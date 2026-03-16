@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Trees & Binary Search Trees</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800;900&family=Nunito:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* === THEME: Swiss Modern — clean, precise, Bauhaus-inspired === */
+        :root {
+            --bg-white: #ffffff;
+            --bg-off: #f7f7f7;
+            --text-primary: #0a0a0a;
+            --text-secondary: #444444;
+            --accent-red: #ff3300;
+            --accent-red-soft: rgba(255, 51, 0, 0.08);
+            --border: #0a0a0a;
+            --border-light: #e0e0e0;
+            --code-bg: #f0f0f0;
+            --font-display: 'Archivo', sans-serif;
+            --font-body: 'Nunito', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* Viewport-relative sizing */
+            --title-size: clamp(1.8rem, 5.5vw, 5rem);
+            --h2-size: clamp(1.3rem, 3.2vw, 2.6rem);
+            --h3-size: clamp(1rem, 2vw, 1.6rem);
+            --body-size: clamp(0.78rem, 1.4vw, 1.05rem);
+            --small-size: clamp(0.65rem, 1vw, 0.85rem);
+            --mono-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            --slide-padding: clamp(1.5rem, 5vw, 5rem);
+            --content-gap: clamp(0.6rem, 1.8vw, 1.8rem);
+            --element-gap: clamp(0.3rem, 0.8vw, 0.8rem);
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* === RESET === */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* === VIEWPORT BASE (mandatory) === */
+        html, body { height: 100%; overflow-x: hidden; }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: var(--bg-white);
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+
+        /* === TYPOGRAPHY === */
+        body { font-family: var(--font-body); color: var(--text-primary); }
+
+        h1 { font-family: var(--font-display); font-weight: 900; font-size: var(--title-size); line-height: 1.0; letter-spacing: -0.02em; }
+        h2 { font-family: var(--font-display); font-weight: 800; font-size: var(--h2-size); line-height: 1.1; letter-spacing: -0.01em; }
+        h3 { font-family: var(--font-display); font-weight: 700; font-size: var(--h3-size); line-height: 1.2; }
+        p, li { font-family: var(--font-body); font-size: var(--body-size); line-height: 1.6; color: var(--text-secondary); }
+        code, .mono { font-family: var(--font-mono); font-size: var(--mono-size); }
+
+        /* === GRID BACKGROUND — Swiss signature === */
+        .grid-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+            background-size: clamp(30px,4vw,60px) clamp(30px,4vw,60px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .slide-content { position: relative; z-index: 1; }
+
+        /* === ACCENT LINE — Swiss red rule === */
+        .accent-line {
+            width: clamp(40px, 6vw, 80px);
+            height: 4px;
+            background: var(--accent-red);
+            margin-bottom: var(--element-gap);
+        }
+
+        .accent-line-lg {
+            width: clamp(60px, 10vw, 140px);
+            height: 5px;
+            background: var(--accent-red);
+            margin-bottom: var(--content-gap);
+        }
+
+        /* === SLIDE NUMBER === */
+        .slide-num {
+            position: absolute;
+            bottom: clamp(0.8rem, 2vw, 1.5rem);
+            right: clamp(1rem, 3vw, 2.5rem);
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: #aaa;
+            letter-spacing: 0.1em;
+            z-index: 10;
+        }
+
+        /* === PROGRESS BAR === */
+        #progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 3px;
+            background: var(--accent-red);
+            width: 0%;
+            z-index: 9999;
+            transition: width 0.3s ease;
+        }
+
+        /* === NAV DOTS === */
+        #nav-dots {
+            position: fixed;
+            right: clamp(0.5rem, 1.5vw, 1.2rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(4px, 0.6vw, 8px);
+            z-index: 9998;
+        }
+
+        .nav-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .nav-dot.active {
+            background: var(--accent-red);
+            width: 6px; height: 18px;
+            border-radius: 3px;
+        }
+
+        /* === REVEAL ANIMATIONS === */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.55s var(--ease-out-expo), transform 0.55s var(--ease-out-expo);
+        }
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-40px);
+            transition: opacity 0.55s var(--ease-out-expo), transform 0.55s var(--ease-out-expo);
+        }
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.93);
+            transition: opacity 0.5s var(--ease-out-expo), transform 0.5s var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal,
+        .slide.visible .reveal-left,
+        .slide.visible .reveal-scale { opacity: 1; transform: none; }
+
+        .reveal:nth-child(1), .reveal-left:nth-child(1), .reveal-scale:nth-child(1) { transition-delay: 0.05s; }
+        .reveal:nth-child(2), .reveal-left:nth-child(2), .reveal-scale:nth-child(2) { transition-delay: 0.15s; }
+        .reveal:nth-child(3), .reveal-left:nth-child(3), .reveal-scale:nth-child(3) { transition-delay: 0.25s; }
+        .reveal:nth-child(4), .reveal-left:nth-child(4), .reveal-scale:nth-child(4) { transition-delay: 0.35s; }
+        .reveal:nth-child(5) { transition-delay: 0.45s; }
+        .reveal:nth-child(6) { transition-delay: 0.55s; }
+
+        /* ================================================
+           SLIDE 1: TITLE
+        ================================================ */
+        .title-slide {
+            background: var(--text-primary);
+            color: #fff;
+        }
+        .title-slide .slide-content {
+            padding: var(--slide-padding);
+            justify-content: flex-end;
+            padding-bottom: clamp(2rem, 6vh, 5rem);
+        }
+        .title-slide h1 { color: #fff; }
+        .title-slide .subtitle {
+            font-family: var(--font-body);
+            font-size: var(--h3-size);
+            color: rgba(255,255,255,0.55);
+            font-weight: 400;
+            margin-top: var(--element-gap);
+        }
+        .title-red-block {
+            display: inline-block;
+            background: var(--accent-red);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.4em 0.9em;
+            margin-bottom: var(--content-gap);
+        }
+        .title-slide .big-number {
+            position: absolute;
+            top: clamp(1rem, 3vw, 2.5rem);
+            right: clamp(1.5rem, 4vw, 4rem);
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: clamp(5rem, 18vw, 16rem);
+            color: rgba(255,255,255,0.04);
+            line-height: 1;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        /* ================================================
+           SLIDE 2+: STANDARD CONTENT
+        ================================================ */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(1rem, 3vw, 3rem);
+            align-items: start;
+        }
+        .two-col-wide {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: clamp(1rem, 3vw, 3rem);
+            align-items: start;
+        }
+
+        ul.points {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--element-gap);
+        }
+        ul.points li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7em;
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        ul.points li::before {
+            content: '—';
+            color: var(--accent-red);
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 0.05em;
+        }
+
+        /* === CODE BLOCK === */
+        .code-block {
+            background: var(--code-bg);
+            border-left: 3px solid var(--accent-red);
+            padding: clamp(0.6rem, 1.5vw, 1.2rem) clamp(0.8rem, 2vw, 1.5rem);
+            font-family: var(--font-mono);
+            font-size: var(--mono-size);
+            line-height: 1.7;
+            color: #1a1a1a;
+            border-radius: 0 4px 4px 0;
+            overflow: hidden;
+        }
+        .code-block .kw { color: #cc3300; font-weight: 700; }
+        .code-block .cm { color: #888; font-style: italic; }
+        .code-block .fn { color: #0055cc; }
+        .code-block .str { color: #117744; }
+        .code-block .num { color: #cc6600; }
+
+        /* === TREE DIAGRAM (CSS) === */
+        .tree-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: clamp(0.5rem, 1.5vw, 1.5rem) 0;
+        }
+        .tree { display: flex; flex-direction: column; align-items: center; gap: 0; }
+        .tree-level { display: flex; justify-content: center; align-items: flex-start; gap: clamp(0.5rem, 3vw, 3rem); }
+        .tree-node-wrap { display: flex; flex-direction: column; align-items: center; }
+        .tree-node {
+            width: clamp(34px, 5vw, 52px);
+            height: clamp(34px, 5vw, 52px);
+            border-radius: 50%;
+            border: 2.5px solid var(--border);
+            background: var(--bg-white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: clamp(0.7rem, 1.3vw, 1rem);
+            position: relative;
+            z-index: 2;
+        }
+        .tree-node.root { background: var(--text-primary); color: #fff; border-color: var(--text-primary); }
+        .tree-node.highlight { background: var(--accent-red); color: #fff; border-color: var(--accent-red); }
+        .tree-node.found { background: #22aa55; color: #fff; border-color: #22aa55; }
+        .tree-connector { width: 2px; height: clamp(18px, 2.5vw, 30px); background: #bbb; }
+        .tree-children { display: flex; gap: clamp(0.5rem, 3vw, 3rem); }
+        .tree-child-wrap { display: flex; flex-direction: column; align-items: center; }
+
+        /* === PROPERTY CARDS === */
+        .prop-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(0.5rem, 1.2vw, 1.2rem);
+        }
+        .prop-card {
+            border: 1.5px solid var(--border-light);
+            padding: clamp(0.6rem, 1.5vw, 1.2rem);
+            border-radius: 2px;
+        }
+        .prop-card .label {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--accent-red);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3em;
+        }
+        .prop-card p { font-size: var(--body-size); color: var(--text-secondary); }
+
+        /* === COMPLEXITY TABLE === */
+        .complexity-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+        }
+        .complexity-table th {
+            font-family: var(--font-display);
+            font-weight: 800;
+            text-align: left;
+            border-bottom: 2.5px solid var(--text-primary);
+            padding: 0.5em 0.8em;
+            font-size: var(--body-size);
+        }
+        .complexity-table td {
+            padding: 0.45em 0.8em;
+            border-bottom: 1px solid var(--border-light);
+            color: var(--text-secondary);
+        }
+        .complexity-table .good { color: #22aa55; font-weight: 700; font-family: var(--font-mono); }
+        .complexity-table .bad { color: var(--accent-red); font-weight: 700; font-family: var(--font-mono); }
+        .complexity-table .ok { color: #cc6600; font-weight: 700; font-family: var(--font-mono); }
+
+        /* === BIG CALLOUT === */
+        .big-callout {
+            border-left: 5px solid var(--accent-red);
+            padding: clamp(0.8rem, 2vw, 1.5rem) clamp(1rem, 2.5vw, 2rem);
+            background: var(--accent-red-soft);
+        }
+        .big-callout p {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: var(--h3-size);
+            color: var(--text-primary);
+            line-height: 1.35;
+        }
+
+        /* === COMPARISON COLS === */
+        .compare-col {
+            border: 1.5px solid var(--border-light);
+            padding: clamp(0.7rem, 1.8vw, 1.5rem);
+        }
+        .compare-col .col-title {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: var(--h3-size);
+            border-bottom: 2.5px solid var(--text-primary);
+            padding-bottom: 0.4em;
+            margin-bottom: var(--element-gap);
+        }
+        .compare-col.red-title .col-title { border-color: var(--accent-red); color: var(--accent-red); }
+
+        /* === INLINE TAG === */
+        .tag {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            background: var(--code-bg);
+            border: 1px solid #ddd;
+            padding: 0.1em 0.5em;
+            border-radius: 2px;
+        }
+        .tag.red { background: var(--accent-red-soft); border-color: var(--accent-red); color: var(--accent-red); }
+
+        /* === SECTION DIVIDER SLIDE === */
+        .divider-slide {
+            background: var(--text-primary);
+        }
+        .divider-slide .slide-content { justify-content: center; }
+        .divider-slide h2 { color: #fff; }
+        .divider-slide p { color: rgba(255,255,255,0.5); }
+        .divider-slide .accent-line { background: var(--accent-red); }
+
+        /* === SUMMARY SLIDE === */
+        .summary-slide { background: var(--accent-red); }
+        .summary-slide .slide-content { justify-content: center; }
+        .summary-slide h2 { color: #fff; }
+        .summary-slide ul.points li { color: rgba(255,255,255,0.85); }
+        .summary-slide ul.points li::before { color: #fff; }
+        .summary-slide .slide-num { color: rgba(255,255,255,0.4); }
+
+        /* === RESPONSIVE === */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.2vw, 1rem);
+                --title-size: clamp(1.4rem, 4.5vw, 2.8rem);
+                --h2-size: clamp(1.1rem, 2.8vw, 2rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 0.8vw, 0.7rem);
+                --body-size: clamp(0.68rem, 1.1vw, 0.9rem);
+            }
+            #nav-dots { display: none; }
+        }
+        @media (max-width: 600px) {
+            .two-col, .two-col-wide { grid-template-columns: 1fr; }
+            .prop-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+            html { scroll-behavior: auto; }
+        }
+
+        /* === INLINE EDIT === */
+        .edit-hotzone {
+            position: fixed; top: 0; left: 0;
+            width: 80px; height: 80px;
+            z-index: 10000; cursor: pointer;
+        }
+        .edit-toggle {
+            position: fixed; top: 14px; left: 14px;
+            background: var(--accent-red); color: #fff;
+            border: none; border-radius: 4px;
+            padding: 6px 12px;
+            font-family: var(--font-mono); font-size: 0.75rem;
+            cursor: pointer; z-index: 10001;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+        [contenteditable]:focus { outline: 2px dashed var(--accent-red); outline-offset: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<nav id="nav-dots" aria-label="Slide navigation"></nav>
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Toggle edit mode (E)">✏ Edit</button>
+
+<!-- ================================================
+     SLIDE 1: TITLE
+================================================ -->
+<section class="slide title-slide grid-bg" id="slide-1">
+    <div class="big-number">BT</div>
+    <div class="slide-content">
+        <div class="title-red-block reveal">CS — Data Structures</div>
+        <h1 class="reveal">Binary Trees<br>&amp; BSTs</h1>
+        <p class="subtitle reveal">Foundations, operations, and performance</p>
+        <div class="reveal" style="margin-top: clamp(1rem, 2.5vh, 2rem); border-top: 1px solid rgba(255,255,255,0.15); padding-top: clamp(0.6rem, 1.5vh, 1.2rem); display: flex; flex-direction: column; gap: 0.2em;">
+            <p style="font-family: var(--font-mono); font-size: var(--small-size); color: rgba(255,255,255,0.45); line-height: 1.5;">Faculty of Computing and Mathematical Sciences</p>
+            <p style="font-family: var(--font-mono); font-size: var(--small-size); color: rgba(255,255,255,0.45); line-height: 1.5;">Cyber Security and Information Systems Department</p>
+            <p style="font-family: var(--font-mono); font-size: var(--small-size); color: rgba(255,255,255,0.65); line-height: 1.5; margin-top: 0.3em;">Presented by: Frederick Edem Broni</p>
+        </div>
+    </div>
+    <span class="slide-num">01 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 2: AGENDA
+================================================ -->
+<section class="slide" id="slide-2">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Today's Agenda</h2>
+        <div style="margin-top: var(--content-gap);" class="two-col">
+            <ul class="points">
+                <li class="reveal">What is a tree? Core terminology</li>
+                <li class="reveal">Binary Trees — structure &amp; types</li>
+                <li class="reveal">Tree traversals (Inorder, Preorder, Postorder)</li>
+                <li class="reveal">Level-order traversal (BFS)</li>
+            </ul>
+            <ul class="points">
+                <li class="reveal">Binary Search Trees (BST)</li>
+                <li class="reveal">BST operations: search, insert, delete</li>
+                <li class="reveal">Time complexity analysis</li>
+                <li class="reveal">Balanced vs. unbalanced trees</li>
+            </ul>
+        </div>
+    </div>
+    <span class="slide-num">02 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 3: WHAT IS A TREE?
+================================================ -->
+<section class="slide grid-bg" id="slide-3">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">What Is a Tree?</h2>
+        <div class="two-col-wide" style="margin-top: var(--content-gap);">
+            <ul class="points">
+                <li class="reveal">A <strong>hierarchical</strong> non-linear data structure</li>
+                <li class="reveal">Consists of <strong>nodes</strong> connected by <strong>edges</strong></li>
+                <li class="reveal">Has a single <strong>root</strong> node at the top</li>
+                <li class="reveal">Each node has at most one <strong>parent</strong></li>
+                <li class="reveal">Nodes with no children are called <strong>leaves</strong></li>
+                <li class="reveal">Unlike arrays/lists — not sequential</li>
+            </ul>
+            <div class="reveal-scale" style="display:flex; flex-direction:column; align-items:center; gap: clamp(4px,1vw,10px);">
+                <!-- Simple tree CSS diagram -->
+                <div class="tree-node root">A</div>
+                <div style="display:flex; gap:clamp(8px,2vw,24px); flex-direction:column; align-items:center;">
+                    <div style="display:flex; gap:clamp(16px,4vw,48px);">
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                            <div class="tree-connector"></div>
+                            <div class="tree-node">B</div>
+                            <div style="display:flex; gap:clamp(8px,2vw,20px);">
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                    <div class="tree-connector"></div>
+                                    <div class="tree-node" style="border-style:dashed;">D</div>
+                                </div>
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                    <div class="tree-connector"></div>
+                                    <div class="tree-node" style="border-style:dashed;">E</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                            <div class="tree-connector"></div>
+                            <div class="tree-node">C</div>
+                            <div style="display:flex; gap:clamp(8px,2vw,20px);">
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                    <div class="tree-connector"></div>
+                                    <div class="tree-node" style="border-style:dashed;">F</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size:var(--small-size); color:#aaa; text-align:center; margin-top:0.3em;">Dashed = leaf nodes</p>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">03 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 4: TERMINOLOGY
+================================================ -->
+<section class="slide" id="slide-4">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Key Terminology</h2>
+        <div class="prop-grid" style="margin-top: var(--content-gap);">
+            <div class="prop-card reveal">
+                <div class="label">Root</div>
+                <p>The topmost node — has no parent</p>
+            </div>
+            <div class="prop-card reveal">
+                <div class="label">Height</div>
+                <p>Longest path from root to a leaf node</p>
+            </div>
+            <div class="prop-card reveal">
+                <div class="label">Depth</div>
+                <p>Distance from the root to a given node</p>
+            </div>
+            <div class="prop-card reveal">
+                <div class="label">Degree</div>
+                <p>Number of children a node has</p>
+            </div>
+            <div class="prop-card reveal">
+                <div class="label">Subtree</div>
+                <p>Any node plus all of its descendants</p>
+            </div>
+            <div class="prop-card reveal">
+                <div class="label">Leaf</div>
+                <p>A node with no children (degree = 0)</p>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">04 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 5: BINARY TREE DEFINITION
+================================================ -->
+<section class="slide grid-bg" id="slide-5">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Binary Trees</h2>
+        <div style="margin-top: var(--content-gap);" class="two-col-wide">
+            <div>
+                <div class="big-callout reveal" style="margin-bottom: var(--content-gap);">
+                    <p>Each node has <em>at most</em> 2 children: a <span style="color:var(--accent-red)">left</span> child and a <span style="color:var(--accent-red)">right</span> child.</p>
+                </div>
+                <ul class="points">
+                    <li class="reveal"><strong>Full BT</strong> — every node has 0 or 2 children</li>
+                    <li class="reveal"><strong>Complete BT</strong> — all levels filled except possibly the last</li>
+                    <li class="reveal"><strong>Perfect BT</strong> — all internal nodes have 2 children, all leaves same depth</li>
+                    <li class="reveal"><strong>Degenerate (Skewed)</strong> — every node has only one child</li>
+                </ul>
+            </div>
+            <div class="reveal-scale" style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                <div class="tree-node root">1</div>
+                <div style="display:flex; gap:clamp(16px,4vw,48px);">
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                        <div class="tree-connector"></div>
+                        <div class="tree-node highlight">2</div>
+                        <div style="display:flex; gap:clamp(8px,2vw,20px);">
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node">4</div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node">5</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                        <div class="tree-connector"></div>
+                        <div class="tree-node highlight">3</div>
+                        <div style="display:flex; gap:clamp(8px,2vw,20px);">
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node">6</div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node">7</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size:var(--small-size); color:#999; text-align:center; margin-top:0.4em;">Perfect Binary Tree (height = 2)</p>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">05 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 6: NODE STRUCTURE CODE
+================================================ -->
+<section class="slide" id="slide-6">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Node Structure in Code</h2>
+        <div class="two-col" style="margin-top: var(--content-gap);">
+            <div>
+                <p class="reveal" style="margin-bottom: var(--element-gap); color: var(--text-secondary);">A node stores a value and references to its left and right children.</p>
+                <div class="code-block reveal">
+<span class="kw">class</span> <span class="fn">Node</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self, val):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.val = val<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.left = <span class="num">None</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.right = <span class="num">None</span>
+                </div>
+            </div>
+            <div>
+                <p class="reveal" style="margin-bottom: var(--element-gap); color: var(--text-secondary);">The tree itself can just be a reference to the root node.</p>
+                <div class="code-block reveal">
+<span class="cm"># Build a simple tree</span><br>
+root = <span class="fn">Node</span>(<span class="num">1</span>)<br>
+root.left = <span class="fn">Node</span>(<span class="num">2</span>)<br>
+root.right = <span class="fn">Node</span>(<span class="num">3</span>)<br>
+root.left.left = <span class="fn">Node</span>(<span class="num">4</span>)<br>
+root.left.right = <span class="fn">Node</span>(<span class="num">5</span>)
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">06 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 7: SECTION DIVIDER — TRAVERSALS
+================================================ -->
+<section class="slide divider-slide grid-bg" id="slide-7">
+    <div class="slide-content" style="justify-content: center;">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Tree Traversals</h2>
+        <p class="reveal" style="margin-top: var(--element-gap); font-size: var(--h3-size); color: rgba(255,255,255,0.5);">How to visit every node — and in what order</p>
+    </div>
+    <span class="slide-num">07 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 8: DFS TRAVERSALS
+================================================ -->
+<section class="slide" id="slide-8">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Depth-First Traversals</h2>
+        <div class="two-col" style="margin-top: var(--content-gap);">
+            <div>
+                <div class="compare-col reveal" style="margin-bottom: var(--element-gap);">
+                    <div class="col-title">Inorder (L → Root → R)</div>
+                    <p>Visits left subtree, then root, then right. Produces <strong>sorted output</strong> on a BST.</p>
+                    <div class="code-block" style="margin-top:0.5em;">
+<span class="kw">def</span> <span class="fn">inorder</span>(node):<br>
+&nbsp;&nbsp;<span class="kw">if</span> node:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">inorder</span>(node.left)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(node.val)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">inorder</span>(node.right)
+                    </div>
+                </div>
+                <div class="compare-col reveal">
+                    <div class="col-title">Preorder (Root → L → R)</div>
+                    <p>Visits root first — useful for copying or serializing a tree.</p>
+                </div>
+            </div>
+            <div>
+                <div class="compare-col reveal" style="margin-bottom: var(--element-gap);">
+                    <div class="col-title">Postorder (L → R → Root)</div>
+                    <p>Visits root last — useful for deleting a tree or evaluating expressions.</p>
+                    <div class="code-block" style="margin-top:0.5em;">
+<span class="kw">def</span> <span class="fn">postorder</span>(node):<br>
+&nbsp;&nbsp;<span class="kw">if</span> node:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">postorder</span>(node.left)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">postorder</span>(node.right)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(node.val)
+                    </div>
+                </div>
+                <div class="big-callout reveal">
+                    <p>All three are O(n) — every node visited exactly once.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">08 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 9: BFS / LEVEL-ORDER
+================================================ -->
+<section class="slide grid-bg" id="slide-9">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Level-Order Traversal (BFS)</h2>
+        <div class="two-col-wide" style="margin-top: var(--content-gap);">
+            <div>
+                <ul class="points" style="margin-bottom: var(--element-gap);">
+                    <li class="reveal">Visits nodes <strong>level by level</strong>, left to right</li>
+                    <li class="reveal">Uses a <strong>queue</strong> (FIFO) — not recursion</li>
+                    <li class="reveal">Useful for finding shortest path, printing level by level</li>
+                    <li class="reveal">Time: O(n) — Space: O(w) where w = max width</li>
+                </ul>
+                <div class="code-block reveal">
+<span class="kw">from</span> collections <span class="kw">import</span> deque<br>
+<span class="kw">def</span> <span class="fn">bfs</span>(root):<br>
+&nbsp;&nbsp;q = <span class="fn">deque</span>([root])<br>
+&nbsp;&nbsp;<span class="kw">while</span> q:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;node = q.<span class="fn">popleft</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(node.val)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> node.left: q.<span class="fn">append</span>(node.left)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> node.right: q.<span class="fn">append</span>(node.right)
+                </div>
+            </div>
+            <div class="reveal-scale" style="display:flex; flex-direction:column; gap: clamp(0.3rem,1vw,0.8rem);">
+                <p style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--accent-red); text-transform:uppercase; letter-spacing:0.1em;">Visit order</p>
+                <div style="display:flex; flex-direction:column; gap:clamp(3px,0.5vw,6px);">
+                    <div style="display:flex; align-items:center; gap:0.5em;">
+                        <span class="tag red">Level 0</span>
+                        <span style="font-family:var(--font-mono); font-size:var(--body-size);">1</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5em;">
+                        <span class="tag red">Level 1</span>
+                        <span style="font-family:var(--font-mono); font-size:var(--body-size);">2 → 3</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5em;">
+                        <span class="tag red">Level 2</span>
+                        <span style="font-family:var(--font-mono); font-size:var(--body-size);">4 → 5 → 6 → 7</span>
+                    </div>
+                </div>
+                <div class="big-callout" style="margin-top: var(--element-gap);">
+                    <p>DFS goes <em>deep</em>. BFS goes <em>wide</em>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">09 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 10: SECTION DIVIDER — BST
+================================================ -->
+<section class="slide divider-slide grid-bg" id="slide-10">
+    <div class="slide-content" style="justify-content: center;">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Binary Search Trees</h2>
+        <p class="reveal" style="margin-top: var(--element-gap); font-size: var(--h3-size); color: rgba(255,255,255,0.5);">Ordered binary trees that enable fast search</p>
+    </div>
+    <span class="slide-num">10 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 11: BST PROPERTY
+================================================ -->
+<section class="slide" id="slide-11">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">The BST Property</h2>
+        <div style="margin-top: var(--content-gap);" class="two-col-wide">
+            <div>
+                <div class="big-callout reveal" style="margin-bottom: var(--content-gap);">
+                    <p>For every node N:<br>
+                    All values in <span style="color:var(--accent-red)">left subtree</span> &lt; N.val<br>
+                    All values in <span style="color:var(--accent-red)">right subtree</span> &gt; N.val</p>
+                </div>
+                <ul class="points">
+                    <li class="reveal">This holds <strong>recursively</strong> for every subtree</li>
+                    <li class="reveal">No duplicate values in a standard BST</li>
+                    <li class="reveal">Inorder traversal of a BST → <strong>sorted sequence</strong></li>
+                </ul>
+            </div>
+            <div class="reveal-scale" style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                <div class="tree-node root">8</div>
+                <div style="display:flex; gap:clamp(16px,4vw,48px);">
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                        <div class="tree-connector"></div>
+                        <div class="tree-node">3</div>
+                        <div style="display:flex; gap:clamp(8px,2vw,20px);">
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node">1</div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node">6</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                        <div class="tree-connector"></div>
+                        <div class="tree-node">10</div>
+                        <div style="display:flex; gap:clamp(8px,2vw,20px);">
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node">9</div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node">14</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size:var(--small-size); color:#999; text-align:center; margin-top:0.4em;">Inorder: 1, 3, 6, 8, 9, 10, 14</p>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">11 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 12: BST SEARCH
+================================================ -->
+<section class="slide grid-bg" id="slide-12">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">BST — Search</h2>
+        <div class="two-col" style="margin-top: var(--content-gap);">
+            <div>
+                <ul class="points" style="margin-bottom: var(--element-gap);">
+                    <li class="reveal">Start at the <strong>root</strong></li>
+                    <li class="reveal">If target = current → <strong>found!</strong></li>
+                    <li class="reveal">If target &lt; current → go <strong>left</strong></li>
+                    <li class="reveal">If target &gt; current → go <strong>right</strong></li>
+                    <li class="reveal">Repeat until found or null</li>
+                </ul>
+                <div class="code-block reveal">
+<span class="kw">def</span> <span class="fn">search</span>(node, target):<br>
+&nbsp;&nbsp;<span class="kw">if not</span> node <span class="kw">or</span> node.val == target:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> node<br>
+&nbsp;&nbsp;<span class="kw">if</span> target &lt; node.val:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="fn">search</span>(node.left, target)<br>
+&nbsp;&nbsp;<span class="kw">return</span> <span class="fn">search</span>(node.right, target)
+                </div>
+            </div>
+            <div class="reveal-scale" style="display:flex; flex-direction:column; gap: var(--element-gap);">
+                <p style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--accent-red);">SEARCHING FOR 6</p>
+                <div style="display:flex; flex-direction:column; gap:clamp(4px,0.8vw,8px);">
+                    <div class="compare-col">
+                        <span class="tag">Step 1</span> Visit <strong>8</strong>. 6 &lt; 8 → go left
+                    </div>
+                    <div class="compare-col">
+                        <span class="tag">Step 2</span> Visit <strong>3</strong>. 6 &gt; 3 → go right
+                    </div>
+                    <div class="compare-col" style="border-color: #22aa55;">
+                        <span class="tag" style="background:#d4f5e4; border-color:#22aa55; color:#22aa55;">Step 3</span> Visit <strong>6</strong>. Found! ✓
+                    </div>
+                </div>
+                <div class="big-callout">
+                    <p>Only 3 comparisons for a 7-node tree!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">12 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 13: BST INSERT
+================================================ -->
+<section class="slide" id="slide-13">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">BST — Insert</h2>
+        <div class="two-col" style="margin-top: var(--content-gap);">
+            <div>
+                <ul class="points" style="margin-bottom:var(--element-gap);">
+                    <li class="reveal">Follow search path to find the <strong>correct position</strong></li>
+                    <li class="reveal">New node always inserted as a <strong>leaf</strong></li>
+                    <li class="reveal">BST property must remain intact after insertion</li>
+                    <li class="reveal">Time complexity: O(h) where h = height</li>
+                </ul>
+                <div class="code-block reveal">
+<span class="kw">def</span> <span class="fn">insert</span>(node, val):<br>
+&nbsp;&nbsp;<span class="kw">if not</span> node:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="fn">Node</span>(val)<br>
+&nbsp;&nbsp;<span class="kw">if</span> val &lt; node.val:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;node.left = <span class="fn">insert</span>(node.left, val)<br>
+&nbsp;&nbsp;<span class="kw">elif</span> val &gt; node.val:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;node.right = <span class="fn">insert</span>(node.right, val)<br>
+&nbsp;&nbsp;<span class="kw">return</span> node
+                </div>
+            </div>
+            <div class="reveal-scale" style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                <p style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--accent-red); margin-bottom:0.2em;">INSERTING 5</p>
+                <div class="tree-node root">8</div>
+                <div style="display:flex; gap:clamp(16px,4vw,48px);">
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                        <div class="tree-connector"></div>
+                        <div class="tree-node">3</div>
+                        <div style="display:flex; gap:clamp(8px,2vw,20px);">
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node">1</div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                <div class="tree-connector"></div>
+                                <div class="tree-node">6</div>
+                                <div style="display:flex; gap:clamp(8px,2vw,20px);">
+                                    <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                                        <div class="tree-connector"></div>
+                                        <div class="tree-node highlight">5</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                        <div class="tree-connector"></div>
+                        <div class="tree-node">10</div>
+                    </div>
+                </div>
+                <p style="font-size:var(--small-size); color:#999; text-align:center; margin-top:0.3em;">5 inserted as left child of 6</p>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">13 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 14: BST DELETE
+================================================ -->
+<section class="slide grid-bg" id="slide-14">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">BST — Delete (3 Cases)</h2>
+        <div style="margin-top: var(--content-gap); display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(0.5rem, 1.5vw, 1.5rem);">
+            <div class="compare-col reveal">
+                <div class="col-title">Case 1</div>
+                <p style="font-family:var(--font-display); font-weight:700; font-size:var(--body-size); color:var(--text-primary); margin-bottom:0.3em;">Leaf Node</p>
+                <p>Node has no children. Simply remove it — no restructuring needed.</p>
+            </div>
+            <div class="compare-col reveal">
+                <div class="col-title">Case 2</div>
+                <p style="font-family:var(--font-display); font-weight:700; font-size:var(--body-size); color:var(--text-primary); margin-bottom:0.3em;">One Child</p>
+                <p>Replace the node with its only child. Bypass the deleted node.</p>
+            </div>
+            <div class="compare-col red-title reveal">
+                <div class="col-title">Case 3 ★</div>
+                <p style="font-family:var(--font-display); font-weight:700; font-size:var(--body-size); color:var(--text-primary); margin-bottom:0.3em;">Two Children</p>
+                <p>Replace value with <strong>inorder successor</strong> (smallest in right subtree), then delete that node.</p>
+            </div>
+        </div>
+        <div class="big-callout reveal" style="margin-top: var(--content-gap);">
+            <p>Delete is the trickiest BST operation — always check which case applies first.</p>
+        </div>
+    </div>
+    <span class="slide-num">14 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 15: TIME COMPLEXITY
+================================================ -->
+<section class="slide" id="slide-15">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Time Complexity</h2>
+        <div class="two-col" style="margin-top: var(--content-gap);">
+            <div class="reveal">
+                <table class="complexity-table">
+                    <thead>
+                        <tr>
+                            <th>Operation</th>
+                            <th>Average</th>
+                            <th>Worst</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Search</td><td class="good">O(log n)</td><td class="bad">O(n)</td></tr>
+                        <tr><td>Insert</td><td class="good">O(log n)</td><td class="bad">O(n)</td></tr>
+                        <tr><td>Delete</td><td class="good">O(log n)</td><td class="bad">O(n)</td></tr>
+                        <tr><td>Traversal</td><td class="ok">O(n)</td><td class="ok">O(n)</td></tr>
+                        <tr><td>Space</td><td class="ok">O(n)</td><td class="ok">O(n)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <div class="big-callout reveal" style="margin-bottom: var(--element-gap);">
+                    <p>Worst case O(n) happens when the tree is <em>skewed</em> — essentially a linked list.</p>
+                </div>
+                <div class="compare-col reveal">
+                    <div class="col-title">Why O(log n)?</div>
+                    <p>A balanced tree of height h has ~2<sup>h</sup> nodes. So h ≈ log₂(n). Each operation traverses at most h levels.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">15 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 16: BALANCED vs UNBALANCED
+================================================ -->
+<section class="slide grid-bg" id="slide-16">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Balanced vs. Unbalanced</h2>
+        <div class="two-col" style="margin-top: var(--content-gap);">
+            <div class="compare-col reveal" style="display:flex; flex-direction:column; align-items:center; gap: var(--element-gap);">
+                <div class="col-title" style="width:100%; text-align:left;">✓ Balanced BST</div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                    <div class="tree-node found" style="border-color:#22aa55;">5</div>
+                    <div style="display:flex; gap:clamp(16px,4vw,40px);">
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                            <div class="tree-connector"></div>
+                            <div class="tree-node">3</div>
+                            <div style="display:flex; gap:clamp(8px,2vw,16px);">
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);"><div class="tree-connector"></div><div class="tree-node">2</div></div>
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);"><div class="tree-connector"></div><div class="tree-node">4</div></div>
+                            </div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                            <div class="tree-connector"></div>
+                            <div class="tree-node">7</div>
+                            <div style="display:flex; gap:clamp(8px,2vw,16px);">
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);"><div class="tree-connector"></div><div class="tree-node">6</div></div>
+                                <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);"><div class="tree-connector"></div><div class="tree-node">8</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p style="color:#22aa55; font-weight:700; font-family:var(--font-mono); font-size:var(--body-size);">Height = 2 → O(log n)</p>
+            </div>
+            <div class="compare-col red-title reveal" style="display:flex; flex-direction:column; align-items:center; gap: var(--element-gap);">
+                <div class="col-title" style="width:100%; text-align:left;">✗ Skewed BST</div>
+                <div style="display:flex; flex-direction:column; align-items:center; gap:clamp(4px,1vw,10px);">
+                    <div class="tree-node highlight">2</div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:clamp(4px,1vw,10px);">
+                        <div class="tree-connector"></div>
+                        <div class="tree-node highlight">4</div>
+                        <div class="tree-connector"></div>
+                        <div class="tree-node highlight">6</div>
+                        <div class="tree-connector"></div>
+                        <div class="tree-node highlight">8</div>
+                    </div>
+                </div>
+                <p style="color:var(--accent-red); font-weight:700; font-family:var(--font-mono); font-size:var(--body-size);">Height = n → O(n)</p>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">16 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 17: SELF-BALANCING & APPLICATIONS
+================================================ -->
+<section class="slide" id="slide-17">
+    <div class="slide-content">
+        <div class="accent-line reveal"></div>
+        <h2 class="reveal">Self-Balancing Trees & Applications</h2>
+        <div class="two-col" style="margin-top: var(--content-gap);">
+            <div>
+                <h3 class="reveal" style="margin-bottom: var(--element-gap);">Self-Balancing BSTs</h3>
+                <ul class="points">
+                    <li class="reveal"><strong>AVL Tree</strong> — Strictly balanced, height diff ≤ 1 per node</li>
+                    <li class="reveal"><strong>Red-Black Tree</strong> — Loosely balanced, used in Java's TreeMap</li>
+                    <li class="reveal"><strong>B-Tree</strong> — Multi-child, used in databases &amp; file systems</li>
+                </ul>
+                <div class="big-callout reveal" style="margin-top:var(--element-gap);">
+                    <p>These guarantee O(log n) in the worst case by re-balancing after insert/delete.</p>
+                </div>
+            </div>
+            <div>
+                <h3 class="reveal" style="margin-bottom: var(--element-gap);">Real-World Applications</h3>
+                <ul class="points">
+                    <li class="reveal">Database <strong>indexing</strong> (B+ Trees)</li>
+                    <li class="reveal">Autocomplete &amp; <strong>symbol tables</strong> in compilers</li>
+                    <li class="reveal">Priority queues (Heap = special tree)</li>
+                    <li class="reveal">Expression parsing in <strong>calculators</strong></li>
+                    <li class="reveal">File system <strong>directory structures</strong></li>
+                    <li class="reveal">Network <strong>routing tables</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <span class="slide-num">17 / 18</span>
+</section>
+
+<!-- ================================================
+     SLIDE 18: SUMMARY
+================================================ -->
+<section class="slide summary-slide grid-bg" id="slide-18">
+    <div class="slide-content">
+        <div class="accent-line reveal" style="background:#fff;"></div>
+        <h2 class="reveal" style="color:#fff; margin-bottom: var(--content-gap);">Key Takeaways</h2>
+        <div class="two-col">
+            <ul class="points">
+                <li class="reveal">A <strong style="color:#fff;">Binary Tree</strong> has at most 2 children per node</li>
+                <li class="reveal"><strong style="color:#fff;">Traversals</strong>: Inorder, Preorder, Postorder (DFS) and Level-order (BFS)</li>
+                <li class="reveal">A <strong style="color:#fff;">BST</strong> enforces left &lt; root &lt; right at every node</li>
+                <li class="reveal">BST Inorder traversal gives a <strong style="color:#fff;">sorted sequence</strong></li>
+            </ul>
+            <ul class="points">
+                <li class="reveal">All BST ops are <strong style="color:#fff;">O(h)</strong> — height matters!</li>
+                <li class="reveal">Balanced tree → O(log n) · Skewed tree → O(n)</li>
+                <li class="reveal">Use <strong style="color:#fff;">AVL or Red-Black</strong> trees to guarantee balance</li>
+                <li class="reveal">Delete has <strong style="color:#fff;">3 cases</strong> — always handle 2-child case carefully</li>
+            </ul>
+        </div>
+    </div>
+    <span class="slide-num" style="color:rgba(255,255,255,0.4);">18 / 18</span>
+</section>
+
+<script>
+/* ================================================
+   SLIDE CONTROLLER
+================================================ */
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.total = this.slides.length;
+        this.current = 0;
+        this.isScrolling = false;
+
+        this.progressBar = document.getElementById('progress-bar');
+        this.navDots = document.getElementById('nav-dots');
+
+        this.setupObserver();
+        this.setupNavDots();
+        this.setupKeyboard();
+        this.setupTouch();
+        this.setupWheel();
+        this.updateProgress(0);
+    }
+
+    setupObserver() {
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    const idx = [...this.slides].indexOf(entry.target);
+                    this.current = idx;
+                    this.updateProgress(idx);
+                    this.updateDots(idx);
+                }
+            });
+        }, { threshold: 0.5 });
+        this.slides.forEach(s => obs.observe(s));
+    }
+
+    setupNavDots() {
+        this.slides.forEach((_, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            btn.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            btn.addEventListener('click', () => this.goTo(i));
+            this.navDots.appendChild(btn);
+        });
+    }
+
+    updateDots(idx) {
+        document.querySelectorAll('.nav-dot').forEach((d, i) => {
+            d.classList.toggle('active', i === idx);
+        });
+    }
+
+    updateProgress(idx) {
+        const pct = this.total > 1 ? (idx / (this.total - 1)) * 100 : 100;
+        this.progressBar.style.width = pct + '%';
+    }
+
+    goTo(idx) {
+        this.slides[idx].scrollIntoView({ behavior: 'smooth' });
+    }
+
+    setupKeyboard() {
+        document.addEventListener('keydown', (e) => {
+            if (this.editor && this.editor.isActive) return;
+            const map = {
+                'ArrowDown': 1, 'ArrowRight': 1, ' ': 1, 'PageDown': 1,
+                'ArrowUp': -1, 'ArrowLeft': -1, 'PageUp': -1
+            };
+            if (map[e.key] !== undefined) {
+                e.preventDefault();
+                const next = Math.max(0, Math.min(this.total - 1, this.current + map[e.key]));
+                this.goTo(next);
+            }
+        });
+    }
+
+    setupTouch() {
+        let startY = 0;
+        document.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+        document.addEventListener('touchend', e => {
+            const dy = startY - e.changedTouches[0].clientY;
+            if (Math.abs(dy) > 50) {
+                const next = Math.max(0, Math.min(this.total - 1, this.current + (dy > 0 ? 1 : -1)));
+                this.goTo(next);
+            }
+        }, { passive: true });
+    }
+
+    setupWheel() {
+        let lastWheel = 0;
+        document.addEventListener('wheel', (e) => {
+            const now = Date.now();
+            if (now - lastWheel < 700) return;
+            lastWheel = now;
+            const next = Math.max(0, Math.min(this.total - 1, this.current + (e.deltaY > 0 ? 1 : -1)));
+            this.goTo(next);
+        }, { passive: true });
+    }
+}
+
+/* ================================================
+   INLINE EDITOR
+================================================ */
+class InlineEditor {
+    constructor() {
+        this.isActive = false;
+        this.toggle = document.getElementById('editToggle');
+        this.hotzone = document.getElementById('editHotzone');
+        this.hideTimeout = null;
+        this.editables = [];
+        this.setupHover();
+        this.setupKeyboard();
+        this.loadSaved();
+    }
+
+    setupHover() {
+        const show = () => { clearTimeout(this.hideTimeout); this.toggle.classList.add('show'); };
+        const hide = () => { this.hideTimeout = setTimeout(() => { if (!this.isActive) this.toggle.classList.remove('show'); }, 400); };
+        this.hotzone.addEventListener('mouseenter', show);
+        this.hotzone.addEventListener('mouseleave', hide);
+        this.toggle.addEventListener('mouseenter', show);
+        this.toggle.addEventListener('mouseleave', hide);
+        this.hotzone.addEventListener('click', () => this.toggleEditMode());
+        this.toggle.addEventListener('click', () => this.toggleEditMode());
+    }
+
+    setupKeyboard() {
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) this.toggleEditMode();
+            if ((e.ctrlKey || e.metaKey) && e.key === 's' && this.isActive) { e.preventDefault(); this.save(); }
+        });
+    }
+
+    toggleEditMode() {
+        this.isActive = !this.isActive;
+        this.toggle.textContent = this.isActive ? '💾 Save (Ctrl+S)' : '✏ Edit';
+        this.toggle.classList.toggle('active', this.isActive);
+        this.toggle.classList.add('show');
+
+        if (this.isActive) {
+            this.editables = [...document.querySelectorAll('h1, h2, h3, p, li, .code-block')];
+            this.editables.forEach(el => {
+                el.setAttribute('contenteditable', 'true');
+                el.setAttribute('spellcheck', 'false');
+            });
+        } else {
+            this.editables.forEach(el => el.removeAttribute('contenteditable'));
+            this.save();
+        }
+    }
+
+    save() {
+        const data = {};
+        document.querySelectorAll('.slide').forEach((slide, i) => {
+            data['slide_' + i] = slide.innerHTML;
+        });
+        localStorage.setItem('bst_slides_v1', JSON.stringify(data));
+        if (this.isActive) { const t = this.toggle; t.textContent = '✓ Saved!'; setTimeout(() => { t.textContent = '💾 Save (Ctrl+S)'; }, 1200); }
+    }
+
+    loadSaved() {
+        try {
+            const raw = localStorage.getItem('bst_slides_v1');
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            document.querySelectorAll('.slide').forEach((slide, i) => {
+                if (data['slide_' + i]) slide.innerHTML = data['slide_' + i];
+            });
+        } catch(e) {}
+    }
+}
+
+/* ================================================
+   INIT
+================================================ */
+const presentation = new SlidePresentation();
+const editor = new InlineEditor();
+presentation.editor = editor;
+</script>
+</body>
+</html>

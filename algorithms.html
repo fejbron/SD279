@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithms — Sorting & Searching</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+/* =====================================================
+   THEME: Notebook Tabs — cream paper on charcoal bg
+   Typography: Bodoni Moda (display) + DM Sans (body)
+   Signature: paper card, colorful tabs, binder holes
+===================================================== */
+:root {
+    /* Core palette */
+    --bg-outer:   #2a2a2a;
+    --bg-page:    #f9f7f2;
+    --bg-page-alt:#f2f0eb;
+    --text-ink:   #1a1a1a;
+    --text-sub:   #555;
+    --text-faint: #999;
+    --border-ink: #d4d0c8;
+
+    /* Tab colours — one per section */
+    --tab-1: #7ec8a4;   /* mint    — intro */
+    --tab-2: #f5a574;   /* peach   — sorting basics */
+    --tab-3: #7ab3d4;   /* sky     — O(n²) sorts */
+    --tab-4: #b89cdb;   /* lavender— O(n log n) sorts */
+    --tab-5: #f0d060;   /* yellow  — linear sorts */
+    --tab-6: #e88ea0;   /* rose    — searching */
+    --tab-7: #88c9c9;   /* teal    — analysis & wrap */
+
+    /* Typography */
+    --font-display: 'Bodoni Moda', serif;
+    --font-body:    'DM Sans', sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
+
+    /* Sizing — all clamp() */
+    --title-size: clamp(1.8rem, 5vw, 4.5rem);
+    --h2-size:    clamp(1.2rem, 2.8vw, 2.2rem);
+    --h3-size:    clamp(0.95rem, 1.8vw, 1.4rem);
+    --body-size:  clamp(0.75rem, 1.3vw, 0.98rem);
+    --small-size: clamp(0.62rem, 0.9vw, 0.78rem);
+    --mono-size:  clamp(0.66rem, 1.05vw, 0.86rem);
+    --tab-text:   clamp(0.5rem, 1vh, 0.68rem);
+
+    /* Spacing */
+    --pad:  clamp(1.8rem, 5vw, 5rem);
+    --gap:  clamp(0.6rem, 1.6vw, 1.5rem);
+    --sgap: clamp(0.3rem, 0.7vw, 0.65rem);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* === RESET === */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+/* === VIEWPORT BASE === */
+html, body { height:100%; overflow-x:hidden; }
+html { scroll-snap-type:y mandatory; scroll-behavior:smooth; }
+
+.slide {
+    width:100vw; height:100vh; height:100dvh;
+    overflow:hidden; scroll-snap-align:start;
+    display:flex; flex-direction:column; position:relative;
+    background: var(--bg-outer);
+    font-family: var(--font-body);
+}
+
+/* === PAPER CARD — the notebook page === */
+.paper {
+    position:absolute;
+    top: clamp(0.6rem,1.5vh,1.2rem);
+    bottom: clamp(0.6rem,1.5vh,1.2rem);
+    left: clamp(0.8rem,2vw,1.8rem);
+    right: clamp(2.8rem,5.5vw,5.5rem); /* leave room for tabs */
+    background: var(--bg-page);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.28), 0 1px 4px rgba(0,0,0,0.15);
+    border-radius: 2px;
+    overflow: hidden;
+    display:flex; flex-direction:column;
+}
+
+/* Binder holes */
+.paper::before {
+    content:'';
+    position:absolute; left:0; top:0; bottom:0;
+    width: clamp(2rem,3.5vw,3rem);
+    background: var(--bg-outer);
+    border-right: 1.5px solid var(--border-ink);
+    z-index:2;
+}
+/* Binder hole circles */
+.paper::after {
+    content:'';
+    position:absolute; left:0; top:0; bottom:0;
+    width: clamp(2rem,3.5vw,3rem);
+    z-index:3;
+    background:
+        radial-gradient(circle at 50% 18%, var(--bg-outer) 38%, transparent 39%),
+        radial-gradient(circle at 50% 50%, var(--bg-outer) 38%, transparent 39%),
+        radial-gradient(circle at 50% 82%, var(--bg-outer) 38%, transparent 39%);
+}
+
+/* === PAPER CONTENT — padded inside the card === */
+.paper-content {
+    flex:1; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:center;
+    padding: clamp(1rem,2.5vh,2rem) clamp(1rem,2.5vw,2rem);
+    padding-left: clamp(2.5rem,5vw,4.5rem);
+    position:relative; z-index:1;
+}
+
+/* === TABS — right edge === */
+.tabs {
+    position:absolute;
+    right: clamp(0.3rem,0.7vw,0.7rem);
+    top: clamp(0.6rem,1.5vh,1.2rem);
+    bottom: clamp(0.6rem,1.5vh,1.2rem);
+    display:flex; flex-direction:column;
+    gap: 3px; z-index:10;
+    width: clamp(1.8rem,3.2vw,3rem);
+}
+.tab {
+    flex:1; border-radius:2px;
+    display:flex; align-items:center; justify-content:center;
+    writing-mode:vertical-rl; text-orientation:mixed;
+    font-family:var(--font-body); font-weight:700;
+    font-size: var(--tab-text);
+    letter-spacing:0.06em; text-transform:uppercase;
+    color: rgba(0,0,0,0.45);
+    opacity:0.35; transition:opacity 0.3s;
+    cursor:pointer; user-select:none;
+}
+.tab.active { opacity:1; color: rgba(0,0,0,0.7); }
+
+/* === TYPOGRAPHY === */
+h1 { font-family:var(--font-display); font-weight:800; font-size:var(--title-size); line-height:1.0; letter-spacing:-0.02em; color:var(--text-ink); }
+h2 { font-family:var(--font-display); font-weight:700; font-size:var(--h2-size); line-height:1.1; color:var(--text-ink); }
+h3 { font-family:var(--font-body); font-weight:700; font-size:var(--h3-size); color:var(--text-ink); }
+p  { font-family:var(--font-body); font-size:var(--body-size); color:var(--text-sub); line-height:1.6; }
+li { font-family:var(--font-body); font-size:var(--body-size); color:var(--text-sub); line-height:1.55; }
+
+/* === SLIDE NUMBER === */
+.snum {
+    position:absolute; bottom:clamp(0.5rem,1.2vh,1rem);
+    right: clamp(3rem,6vw,6rem);
+    font-family:var(--font-mono); font-size:var(--small-size);
+    color:rgba(0,0,0,0.2); z-index:20;
+}
+
+/* === PROGRESS BAR === */
+#progress-bar {
+    position:fixed; top:0; left:0; height:3px;
+    background:#7ec8a4; width:0%;
+    z-index:9999; transition:width 0.3s ease;
+}
+
+/* === NAV DOTS === */
+#nav-dots {
+    position:fixed; right:clamp(0.2rem,0.5vw,0.5rem); top:50%;
+    transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:4px; z-index:9998;
+}
+.nav-dot {
+    width:5px; height:5px; border-radius:50%;
+    background:rgba(255,255,255,0.2); border:none; cursor:pointer;
+    transition:all 0.3s;
+}
+.nav-dot.active { background:#fff; height:14px; border-radius:3px; }
+
+/* === REVEAL ANIMATIONS === */
+.reveal       { opacity:0; transform:translateY(20px); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.reveal-left  { opacity:0; transform:translateX(-28px); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.reveal-scale { opacity:0; transform:scale(0.94); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.slide.visible .reveal,
+.slide.visible .reveal-left,
+.slide.visible .reveal-scale { opacity:1; transform:none; }
+.d1{transition-delay:0.05s} .d2{transition-delay:0.13s} .d3{transition-delay:0.21s}
+.d4{transition-delay:0.29s} .d5{transition-delay:0.37s} .d6{transition-delay:0.45s}
+.d7{transition-delay:0.53s} .d8{transition-delay:0.61s}
+
+/* =====================================================
+   COMPONENT STYLES
+===================================================== */
+
+/* Rule line under heading */
+.rule {
+    width:clamp(32px,5vw,60px); height:3px;
+    margin-bottom:var(--sgap);
+    border-radius:2px;
+}
+
+/* Bullet list */
+ul.pts { list-style:none; display:flex; flex-direction:column; gap:var(--sgap); }
+ul.pts li { display:flex; align-items:flex-start; gap:0.6em; }
+ul.pts li::before { content:'—'; font-weight:700; flex-shrink:0; margin-top:0.05em; }
+
+/* Two / Three column */
+.two-col   { display:grid; grid-template-columns:1fr 1fr; gap:clamp(0.8rem,2vw,2rem); align-items:start; }
+.two-col-w { display:grid; grid-template-columns:1.2fr 0.8fr; gap:clamp(0.8rem,2vw,2rem); align-items:start; }
+.three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(0.5rem,1.2vw,1.2rem); }
+.four-col  { display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(0.4rem,1vw,1rem); }
+
+/* Inline card */
+.icard {
+    border:1.5px solid var(--border-ink);
+    background:var(--bg-page-alt);
+    padding:clamp(0.5rem,1.2vw,1rem);
+    border-radius:2px;
+}
+.icard .lbl {
+    font-family:var(--font-mono); font-size:var(--small-size);
+    text-transform:uppercase; letter-spacing:0.1em;
+    margin-bottom:0.3em; font-weight:700;
+}
+.icard p { font-size:var(--body-size); }
+
+/* Callout box */
+.callout {
+    border-left:4px solid currentColor;
+    padding:clamp(0.5rem,1.2vw,1rem) clamp(0.7rem,1.6vw,1.4rem);
+    border-radius:0 2px 2px 0;
+}
+.callout p { font-family:var(--font-display); font-weight:600; font-size:var(--h3-size); line-height:1.35; color:var(--text-ink); font-style:italic; }
+
+/* Code block */
+.cb {
+    background:var(--text-ink); color:#e8e8e8;
+    border-radius:3px; overflow:hidden;
+    padding:clamp(0.6rem,1.3vw,1rem) clamp(0.8rem,1.6vw,1.3rem);
+    font-family:var(--font-mono); font-size:var(--mono-size); line-height:1.75;
+}
+.kw { color:#f0a050; font-weight:700; }
+.fn { color:#79c8ff; }
+.cm { color:#6a8a6a; font-style:italic; }
+.nm { color:#c8a0ff; }
+.st { color:#98d498; }
+
+/* Complexity table */
+.tbl { width:100%; border-collapse:collapse; font-size:var(--body-size); }
+.tbl th { font-family:var(--font-body); font-weight:700; text-align:left; padding:0.45em 0.7em; border-bottom:2px solid var(--text-ink); color:var(--text-ink); }
+.tbl td { padding:0.4em 0.7em; border-bottom:1px solid var(--border-ink); color:var(--text-sub); }
+.tbl tr:last-child td { border-bottom:none; }
+.good { color:#2d8a4e !important; font-weight:700; font-family:var(--font-mono); }
+.ok   { color:#b07a10 !important; font-weight:700; font-family:var(--font-mono); }
+.bad  { color:#c0392b !important; font-weight:700; font-family:var(--font-mono); }
+
+/* Badge / tag */
+.tag {
+    display:inline-block; font-family:var(--font-mono); font-size:var(--small-size);
+    padding:0.12em 0.5em; border-radius:2px; border:1px solid; font-weight:600;
+}
+
+/* Section divider slide — dark paper */
+.dark-paper .paper { background:var(--text-ink); }
+.dark-paper .paper::before { background:var(--bg-outer); }
+.dark-paper .paper::after {
+    background:
+        radial-gradient(circle at 50% 18%, var(--bg-outer) 38%, transparent 39%),
+        radial-gradient(circle at 50% 50%, var(--bg-outer) 38%, transparent 39%),
+        radial-gradient(circle at 50% 82%, var(--bg-outer) 38%, transparent 39%);
+}
+.dark-paper h2 { color:#fff; }
+.dark-paper p  { color:rgba(255,255,255,0.55); }
+.dark-paper .snum { color:rgba(255,255,255,0.2); }
+
+/* Sort step visualiser */
+.bars {
+    display:flex; align-items:flex-end; gap:clamp(3px,0.5vw,6px);
+    height: clamp(60px,10vh,100px);
+}
+.bar {
+    flex:1; border-radius:2px 2px 0 0;
+    background: var(--border-ink);
+    transition:height 0.3s, background 0.3s;
+}
+.bar.hi  { background:#f5a574; }
+.bar.cmp { background:#7ab3d4; }
+.bar.sorted { background:#7ec8a4; }
+
+/* Array cell */
+.arr-row { display:flex; gap:3px; align-items:center; flex-wrap:wrap; }
+.cell {
+    width:clamp(24px,3.5vw,38px); height:clamp(24px,3.5vw,38px);
+    border:1.5px solid var(--border-ink); border-radius:2px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-weight:700; font-size:var(--mono-size);
+    color:var(--text-ink); background:var(--bg-page);
+}
+.cell.hi     { background:#f5a574; border-color:#e07040; }
+.cell.cmp    { background:#7ab3d4; border-color:#4a8ab0; color:#fff; }
+.cell.sorted { background:#7ec8a4; border-color:#4a9a74; color:#fff; }
+.cell.pivot  { background:#b89cdb; border-color:#8060b0; color:#fff; }
+.cell.found  { background:#7ec8a4; border-color:#4a9a74; color:#fff; }
+.cell.mid    { background:#f0d060; border-color:#c0a020; }
+
+/* Responsive */
+@media (max-height:700px) {
+    :root { --pad:clamp(0.8rem,3vw,2rem); --gap:clamp(0.4rem,1.2vw,1rem); --h2-size:clamp(1.1rem,2.5vw,1.9rem); }
+}
+@media (max-height:600px) {
+    :root { --pad:clamp(0.5rem,2.5vw,1.5rem); --gap:clamp(0.3rem,0.8vw,0.7rem); --body-size:clamp(0.68rem,1.1vw,0.88rem); }
+    #nav-dots { display:none; }
+    .tab { display:none; }
+}
+@media (max-width:640px) {
+    .two-col,.two-col-w,.three-col,.four-col { grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion:reduce) {
+    *,*::before,*::after { animation-duration:0.01ms !important; transition-duration:0.2s !important; }
+    html { scroll-behavior:auto; }
+}
+
+/* Inline edit */
+.edit-hotzone { position:fixed; top:0; left:0; width:80px; height:80px; z-index:10000; cursor:pointer; }
+.edit-toggle {
+    position:fixed; top:14px; left:14px;
+    background:var(--text-ink); color:#f9f7f2;
+    border:none; border-radius:2px; padding:6px 12px;
+    font-family:var(--font-mono); font-size:0.72rem; cursor:pointer;
+    z-index:10001; opacity:0; pointer-events:none; transition:opacity 0.3s;
+}
+.edit-toggle.show,.edit-toggle.active { opacity:1; pointer-events:auto; }
+[contenteditable]:focus { outline:2px dashed #7ec8a4; outline-offset:2px; }
+    </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<nav id="nav-dots" aria-label="Slide navigation"></nav>
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle">✏ Edit</button>
+
+<!-- helper macro: tabs always rendered on every slide, active one highlighted -->
+<!-- TAB COLOURS: 1=mint 2=peach 3=sky 4=lavender 5=yellow 6=rose 7=teal -->
+
+<!-- ================================================
+     SLIDE 1 — TITLE
+================================================ -->
+<section class="slide" id="slide-1">
+    <div class="paper">
+        <div class="paper-content" style="justify-content:flex-end; padding-bottom:clamp(1.5rem,4vh,3.5rem);">
+            <div class="reveal d1" style="margin-bottom:var(--sgap);">
+                <span class="tag" style="border-color:#7ec8a4; color:#2d7a54; background:rgba(126,200,164,0.12); font-size:var(--small-size); letter-spacing:0.15em; text-transform:uppercase;">CS — Algorithms</span>
+            </div>
+            <h1 class="reveal d2" style="line-height:0.95;">Sorting &amp;<br><em>Searching</em></h1>
+            <p class="reveal d3" style="margin-top:var(--sgap); font-size:var(--h3-size); color:var(--text-faint);">Algorithms, analysis, and applications</p>
+            <div class="reveal d4" style="margin-top:clamp(1rem,2.5vh,2rem); border-top:1px solid var(--border-ink); padding-top:clamp(0.6rem,1.5vh,1.2rem); display:flex; flex-direction:column; gap:0.25em;">
+                <p style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--text-faint); line-height:1.5;">Faculty of Computing and Mathematical Sciences</p>
+                <p style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--text-faint); line-height:1.5;">Cyber Security and Information Systems Department</p>
+                <p style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--text-sub); line-height:1.5; margin-top:0.3em;">Presented by: Frederick Edem Broni</p>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab active" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">01 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 2 — AGENDA
+================================================ -->
+<section class="slide" id="slide-2">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-1);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">Agenda</h2>
+            <div class="two-col">
+                <ul class="pts">
+                    <li class="reveal d1">Why sorting &amp; searching matter</li>
+                    <li class="reveal d2">Algorithm analysis: Big-O recap</li>
+                    <li class="reveal d3">Bubble Sort</li>
+                    <li class="reveal d4">Selection Sort</li>
+                    <li class="reveal d5">Insertion Sort</li>
+                    <li class="reveal d6">Merge Sort</li>
+                    <li class="reveal d7">Quick Sort</li>
+                </ul>
+                <ul class="pts">
+                    <li class="reveal d1">Heap Sort</li>
+                    <li class="reveal d2">Counting Sort</li>
+                    <li class="reveal d3">Radix Sort</li>
+                    <li class="reveal d4">Sorting algorithm comparison</li>
+                    <li class="reveal d5">Linear Search</li>
+                    <li class="reveal d6">Binary Search</li>
+                    <li class="reveal d7">Summary &amp; complexity table</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab active" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">02 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 3 — WHY SORTING MATTERS
+================================================ -->
+<section class="slide" id="slide-3">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-1);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">Why Sorting &amp; Searching?</h2>
+            <div class="two-col-w">
+                <ul class="pts">
+                    <li class="reveal d1">Sorting is a <strong>fundamental building block</strong> — used in databases, compilers, OS schedulers</li>
+                    <li class="reveal d2">Searching a <em>sorted</em> list is orders of magnitude faster than unsorted</li>
+                    <li class="reveal d3">Most real-world data pipelines involve at least one sort</li>
+                    <li class="reveal d4">Sorting enables binary search, merging, deduplication, and ranking</li>
+                    <li class="reveal d5">Understanding trade-offs determines which algorithm to pick for a given problem</li>
+                </ul>
+                <div class="reveal-scale d3">
+                    <div class="callout" style="color:var(--tab-1);">
+                        <p>"Sorting is the most fundamental algorithmic problem in computer science."<br><span style="font-family:var(--font-body); font-style:normal; font-size:var(--small-size); color:var(--text-faint);">— Donald Knuth</span></p>
+                    </div>
+                    <div class="icard" style="margin-top:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-1);">Did you know?</div>
+                        <p>Google reportedly spends 20–25% of its total compute cycles on sorting operations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab active" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">03 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 4 — BIG-O RECAP (DIVIDER)
+================================================ -->
+<section class="slide dark-paper" id="slide-4">
+    <div class="paper">
+        <div class="paper-content" style="justify-content:center;">
+            <div class="rule reveal d1" style="background:var(--tab-2);"></div>
+            <h2 class="reveal d2">Algorithm Analysis</h2>
+            <p class="reveal d3" style="font-size:var(--h3-size); margin-top:var(--sgap);">Big-O notation &amp; complexity recap</p>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab active" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">04 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 5 — BIG-O CLASSES
+================================================ -->
+<section class="slide" id="slide-5">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-2);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">Big-O Complexity Classes</h2>
+            <div class="reveal d3">
+                <table class="tbl">
+                    <thead><tr><th>Notation</th><th>Name</th><th>Example</th><th>10 items</th><th>1000 items</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>O(1)</code></td><td>Constant</td><td>Array index lookup</td><td class="good">1</td><td class="good">1</td></tr>
+                        <tr><td><code>O(log n)</code></td><td>Logarithmic</td><td>Binary Search</td><td class="good">3</td><td class="good">10</td></tr>
+                        <tr><td><code>O(n)</code></td><td>Linear</td><td>Linear Search</td><td class="good">10</td><td class="ok">1,000</td></tr>
+                        <tr><td><code>O(n log n)</code></td><td>Linearithmic</td><td>Merge Sort</td><td class="ok">33</td><td class="ok">10,000</td></tr>
+                        <tr><td><code>O(n²)</code></td><td>Quadratic</td><td>Bubble Sort</td><td class="ok">100</td><td class="bad">1,000,000</td></tr>
+                        <tr><td><code>O(2ⁿ)</code></td><td>Exponential</td><td>Brute-force subset</td><td class="bad">1,024</td><td class="bad">∞</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="callout reveal d4" style="color:var(--tab-2); margin-top:var(--gap);">
+                <p>Always report <strong>worst-case</strong> unless stated otherwise. Best-case is misleading for real inputs.</p>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab active" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">05 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 6 — STABILITY & IN-PLACE
+================================================ -->
+<section class="slide" id="slide-6">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-2);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">Key Properties of Sorting Algorithms</h2>
+            <div class="two-col">
+                <div>
+                    <div class="icard reveal d2" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-2);">Stable Sort</div>
+                        <p>Equal elements maintain their original relative order. Critical when sorting by multiple keys (e.g., sort students by grade, then by name).</p>
+                    </div>
+                    <div class="icard reveal d3" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-2);">Unstable Sort</div>
+                        <p>Equal elements may be reordered. Faster in practice but unsafe for multi-key sorting.</p>
+                    </div>
+                    <div class="icard reveal d4">
+                        <div class="lbl" style="color:var(--tab-2);">Adaptive Sort</div>
+                        <p>Runs faster on partially sorted input. Insertion Sort is O(n) for nearly sorted data.</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="icard reveal d2" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:#2d8a4e;">In-Place Sort</div>
+                        <p>Uses O(1) extra memory — sorts within the original array. Examples: Bubble, Selection, Insertion, Heap Sort.</p>
+                    </div>
+                    <div class="icard reveal d3" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:#c0392b;">Not In-Place</div>
+                        <p>Requires O(n) or more extra memory. Examples: Merge Sort needs an auxiliary array.</p>
+                    </div>
+                    <div class="callout reveal d4" style="color:var(--tab-2);">
+                        <p>Knowing these properties helps you choose the right sort for the right constraint.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab active" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">06 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 7 — O(n²) SECTION DIVIDER
+================================================ -->
+<section class="slide dark-paper" id="slide-7">
+    <div class="paper">
+        <div class="paper-content" style="justify-content:center;">
+            <div class="rule reveal d1" style="background:var(--tab-3);"></div>
+            <h2 class="reveal d2">O(n²) Sorting Algorithms</h2>
+            <p class="reveal d3" style="font-size:var(--h3-size); margin-top:var(--sgap);">Bubble · Selection · Insertion</p>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab active" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">07 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 8 — BUBBLE SORT
+================================================ -->
+<section class="slide" id="slide-8">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-3);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--sgap);">Bubble Sort</h2>
+            <div class="two-col">
+                <div>
+                    <p class="reveal d2" style="margin-bottom:var(--sgap);">Repeatedly swap adjacent elements if they are in the wrong order. Large elements "bubble" to the end each pass.</p>
+                    <div class="cb reveal d3" style="margin-bottom:var(--sgap);">
+<span class="kw">def</span> <span class="fn">bubble_sort</span>(arr):<br>
+&nbsp;&nbsp;n = <span class="fn">len</span>(arr)<br>
+&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in range</span>(n):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> j <span class="kw">in range</span>(<span class="nm">0</span>, n-i-<span class="nm">1</span>):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> arr[j] &gt; arr[j+<span class="nm">1</span>]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arr[j], arr[j+<span class="nm">1</span>] = arr[j+<span class="nm">1</span>], arr[j]
+                    </div>
+                    <div class="icard reveal d4">
+                        <div class="lbl" style="color:var(--tab-3);">Optimisation</div>
+                        <p>Add a <code>swapped</code> flag — stop early if no swaps occurred. Best-case becomes O(n) for sorted input.</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="reveal d2" style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--text-faint); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Pass 1 on [5, 3, 8, 4, 2]</p>
+                    <div style="display:flex; flex-direction:column; gap:var(--sgap);">
+                        <div class="reveal d3">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Compare 5,3 → swap</p>
+                            <div class="arr-row"><div class="cell cmp">3</div><div class="cell cmp">5</div><div class="cell">8</div><div class="cell">4</div><div class="cell">2</div></div>
+                        </div>
+                        <div class="reveal d4">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Compare 5,8 → no swap</p>
+                            <div class="arr-row"><div class="cell">3</div><div class="cell cmp">5</div><div class="cell cmp">8</div><div class="cell">4</div><div class="cell">2</div></div>
+                        </div>
+                        <div class="reveal d5">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Compare 8,4 → swap</p>
+                            <div class="arr-row"><div class="cell">3</div><div class="cell">5</div><div class="cell cmp">4</div><div class="cell cmp">8</div><div class="cell">2</div></div>
+                        </div>
+                        <div class="reveal d6">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Compare 8,2 → swap → 8 bubbled!</p>
+                            <div class="arr-row"><div class="cell">3</div><div class="cell">5</div><div class="cell">4</div><div class="cell cmp">2</div><div class="cell sorted">8</div></div>
+                        </div>
+                    </div>
+                    <div class="reveal d7" style="margin-top:var(--sgap);">
+                        <table class="tbl" style="font-size:var(--small-size);">
+                            <tr><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th><th>Stable</th></tr>
+                            <tr><td class="good">O(n)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td><td class="good">Yes</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab active" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">08 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 9 — SELECTION SORT
+================================================ -->
+<section class="slide" id="slide-9">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-3);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--sgap);">Selection Sort</h2>
+            <div class="two-col">
+                <div>
+                    <p class="reveal d2" style="margin-bottom:var(--sgap);">Find the minimum element in the unsorted portion and swap it to its correct position. Repeat for each position.</p>
+                    <div class="cb reveal d3" style="margin-bottom:var(--sgap);">
+<span class="kw">def</span> <span class="fn">selection_sort</span>(arr):<br>
+&nbsp;&nbsp;n = <span class="fn">len</span>(arr)<br>
+&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in range</span>(n):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;min_idx = i<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> j <span class="kw">in range</span>(i+<span class="nm">1</span>, n):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> arr[j] &lt; arr[min_idx]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;min_idx = j<br>
+&nbsp;&nbsp;&nbsp;&nbsp;arr[i],arr[min_idx]=arr[min_idx],arr[i]
+                    </div>
+                    <div class="callout reveal d4" style="color:var(--tab-3);">
+                        <p>Makes at most <strong>n-1 swaps</strong> — great when writes are expensive (e.g., flash memory).</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="reveal d2" style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--text-faint); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Trace on [5, 3, 8, 4, 2]</p>
+                    <div style="display:flex; flex-direction:column; gap:var(--sgap);">
+                        <div class="reveal d3">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Find min=2, swap with pos 0</p>
+                            <div class="arr-row"><div class="cell sorted">2</div><div class="cell">3</div><div class="cell">8</div><div class="cell">4</div><div class="cell hi">5</div></div>
+                        </div>
+                        <div class="reveal d4">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Find min=3, already at pos 1</p>
+                            <div class="arr-row"><div class="cell sorted">2</div><div class="cell sorted">3</div><div class="cell">8</div><div class="cell">4</div><div class="cell">5</div></div>
+                        </div>
+                        <div class="reveal d5">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Find min=4, swap with pos 2</p>
+                            <div class="arr-row"><div class="cell sorted">2</div><div class="cell sorted">3</div><div class="cell sorted">4</div><div class="cell hi">8</div><div class="cell">5</div></div>
+                        </div>
+                    </div>
+                    <div class="reveal d6" style="margin-top:var(--sgap);">
+                        <table class="tbl" style="font-size:var(--small-size);">
+                            <tr><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th><th>Stable</th></tr>
+                            <tr><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td><td class="bad">No</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab active" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">09 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 10 — INSERTION SORT
+================================================ -->
+<section class="slide" id="slide-10">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-3);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--sgap);">Insertion Sort</h2>
+            <div class="two-col">
+                <div>
+                    <p class="reveal d2" style="margin-bottom:var(--sgap);">Build the sorted array one element at a time by inserting each element into its correct position among the already-sorted elements.</p>
+                    <div class="cb reveal d3" style="margin-bottom:var(--sgap);">
+<span class="kw">def</span> <span class="fn">insertion_sort</span>(arr):<br>
+&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in range</span>(<span class="nm">1</span>, <span class="fn">len</span>(arr)):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;key = arr[i]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;j = i - <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> j &gt;= <span class="nm">0</span> <span class="kw">and</span> arr[j] &gt; key:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arr[j+<span class="nm">1</span>] = arr[j]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j -= <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;arr[j+<span class="nm">1</span>] = key
+                    </div>
+                    <div class="icard reveal d4">
+                        <div class="lbl" style="color:#2d8a4e;">Best use case</div>
+                        <p>Small arrays or nearly-sorted data. It's the algorithm used in practice for small subarrays inside Timsort and Introsort.</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="reveal d2" style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--text-faint); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Trace on [5, 3, 8, 4, 2]</p>
+                    <div style="display:flex; flex-direction:column; gap:var(--sgap);">
+                        <div class="reveal d3"><p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Insert 3: shift 5 right</p><div class="arr-row"><div class="cell sorted">3</div><div class="cell sorted">5</div><div class="cell">8</div><div class="cell">4</div><div class="cell">2</div></div></div>
+                        <div class="reveal d4"><p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Insert 8: already in place</p><div class="arr-row"><div class="cell sorted">3</div><div class="cell sorted">5</div><div class="cell sorted">8</div><div class="cell">4</div><div class="cell">2</div></div></div>
+                        <div class="reveal d5"><p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Insert 4: shift 8,5 right</p><div class="arr-row"><div class="cell sorted">3</div><div class="cell sorted">4</div><div class="cell sorted">5</div><div class="cell sorted">8</div><div class="cell">2</div></div></div>
+                        <div class="reveal d6"><p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Insert 2: shift all right</p><div class="arr-row"><div class="cell sorted">2</div><div class="cell sorted">3</div><div class="cell sorted">4</div><div class="cell sorted">5</div><div class="cell sorted">8</div></div></div>
+                    </div>
+                    <div class="reveal d7" style="margin-top:var(--sgap);">
+                        <table class="tbl" style="font-size:var(--small-size);">
+                            <tr><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th><th>Stable</th></tr>
+                            <tr><td class="good">O(n)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td><td class="good">Yes</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab active" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">10 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 11 — O(n log n) DIVIDER
+================================================ -->
+<section class="slide dark-paper" id="slide-11">
+    <div class="paper">
+        <div class="paper-content" style="justify-content:center;">
+            <div class="rule reveal d1" style="background:var(--tab-4);"></div>
+            <h2 class="reveal d2">O(n log n) Sorting Algorithms</h2>
+            <p class="reveal d3" style="font-size:var(--h3-size); margin-top:var(--sgap);">Merge Sort · Quick Sort · Heap Sort</p>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab active" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">11 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 12 — MERGE SORT CONCEPT
+================================================ -->
+<section class="slide" id="slide-12">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-4);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--sgap);">Merge Sort — Divide &amp; Conquer</h2>
+            <div class="two-col-w">
+                <div>
+                    <p class="reveal d2" style="margin-bottom:var(--sgap);">Recursively split the array in half until single elements, then <em>merge</em> sorted halves back together.</p>
+                    <ul class="pts reveal d3" style="margin-bottom:var(--sgap);">
+                        <li><strong>Divide:</strong> Split array into two halves — O(log n) levels</li>
+                        <li><strong>Conquer:</strong> Recursively sort each half</li>
+                        <li><strong>Merge:</strong> Combine two sorted halves — O(n) per level</li>
+                        <li>Total: O(n) × O(log n) = <strong>O(n log n)</strong> guaranteed</li>
+                    </ul>
+                    <div class="icard reveal d4" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-4);">Key advantage</div>
+                        <p>Stable sort with guaranteed O(n log n) worst case. Ideal for linked lists and external sorting (data too large for RAM).</p>
+                    </div>
+                    <div class="reveal d5">
+                        <table class="tbl" style="font-size:var(--small-size);">
+                            <tr><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th><th>Stable</th></tr>
+                            <tr><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="bad">O(n)</td><td class="good">Yes</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="reveal-scale d3" style="display:flex; align-items:center; justify-content:center;">
+                    <svg viewBox="0 0 200 220" style="width:100%; max-height:min(40vh,220px);" xmlns="http://www.w3.org/2000/svg">
+                        <!-- level 0 -->
+                        <rect x="35" y="5" width="130" height="22" rx="3" fill="#b89cdb"/>
+                        <text x="100" y="20" text-anchor="middle" fill="white" font-family="DM Sans" font-weight="700" font-size="11">[5, 3, 8, 4, 2, 7]</text>
+                        <!-- split lines -->
+                        <line x1="100" y1="27" x2="55" y2="55" stroke="#ccc" stroke-width="1.5"/>
+                        <line x1="100" y1="27" x2="145" y2="55" stroke="#ccc" stroke-width="1.5"/>
+                        <!-- level 1 -->
+                        <rect x="5" y="55" width="90" height="22" rx="3" fill="#b89cdb" opacity="0.75"/>
+                        <text x="50" y="70" text-anchor="middle" fill="white" font-family="DM Sans" font-weight="700" font-size="11">[5, 3, 8]</text>
+                        <rect x="105" y="55" width="90" height="22" rx="3" fill="#b89cdb" opacity="0.75"/>
+                        <text x="150" y="70" text-anchor="middle" fill="white" font-family="DM Sans" font-weight="700" font-size="11">[4, 2, 7]</text>
+                        <!-- split level 2 -->
+                        <line x1="50" y1="77" x2="22" y2="105" stroke="#ccc" stroke-width="1.5"/>
+                        <line x1="50" y1="77" x2="72" y2="105" stroke="#ccc" stroke-width="1.5"/>
+                        <line x1="150" y1="77" x2="128" y2="105" stroke="#ccc" stroke-width="1.5"/>
+                        <line x1="150" y1="77" x2="178" y2="105" stroke="#ccc" stroke-width="1.5"/>
+                        <!-- level 2 -->
+                        <rect x="5" y="105" width="34" height="20" rx="3" fill="#7ec8a4"/>
+                        <text x="22" y="119" text-anchor="middle" fill="white" font-family="DM Sans" font-weight="700" font-size="10">[5]</text>
+                        <rect x="45" y="105" width="50" height="20" rx="3" fill="#b89cdb" opacity="0.55"/>
+                        <text x="70" y="119" text-anchor="middle" fill="white" font-family="DM Sans" font-weight="700" font-size="10">[3, 8]</text>
+                        <rect x="110" y="105" width="35" height="20" rx="3" fill="#b89cdb" opacity="0.55"/>
+                        <text x="127" y="119" text-anchor="middle" fill="white" font-family="DM Sans" font-weight="700" font-size="10">[4]</text>
+                        <rect x="155" y="105" width="40" height="20" rx="3" fill="#b89cdb" opacity="0.55"/>
+                        <text x="175" y="119" text-anchor="middle" fill="white" font-family="DM Sans" font-weight="700" font-size="10">[2,7]</text>
+                        <!-- merge arrow -->
+                        <text x="100" y="155" text-anchor="middle" fill="#999" font-family="DM Sans" font-size="10">↑ merge back up ↑</text>
+                        <!-- final -->
+                        <rect x="20" y="168" width="160" height="22" rx="3" fill="#7ec8a4"/>
+                        <text x="100" y="183" text-anchor="middle" fill="white" font-family="DM Sans" font-weight="700" font-size="11">[2, 3, 4, 5, 7, 8]</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab active" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">12 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 13 — MERGE SORT CODE
+================================================ -->
+<section class="slide" id="slide-13">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-4);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">Merge Sort — Implementation</h2>
+            <div class="two-col">
+                <div class="cb reveal d2">
+<span class="kw">def</span> <span class="fn">merge_sort</span>(arr):<br>
+&nbsp;&nbsp;<span class="kw">if</span> <span class="fn">len</span>(arr) &lt;= <span class="nm">1</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> arr<br>
+&nbsp;&nbsp;mid = <span class="fn">len</span>(arr) // <span class="nm">2</span><br>
+&nbsp;&nbsp;left  = <span class="fn">merge_sort</span>(arr[:mid])<br>
+&nbsp;&nbsp;right = <span class="fn">merge_sort</span>(arr[mid:])<br>
+&nbsp;&nbsp;<span class="kw">return</span> <span class="fn">merge</span>(left, right)<br>
+<br>
+<span class="kw">def</span> <span class="fn">merge</span>(L, R):<br>
+&nbsp;&nbsp;result, i, j = [], <span class="nm">0</span>, <span class="nm">0</span><br>
+&nbsp;&nbsp;<span class="kw">while</span> i &lt; <span class="fn">len</span>(L) <span class="kw">and</span> j &lt; <span class="fn">len</span>(R):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> L[i] &lt;= R[j]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.<span class="fn">append</span>(L[i]); i += <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">else</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result.<span class="fn">append</span>(R[j]); j += <span class="nm">1</span><br>
+&nbsp;&nbsp;result += L[i:] + R[j:]<br>
+&nbsp;&nbsp;<span class="kw">return</span> result
+                </div>
+                <div>
+                    <ul class="pts">
+                        <li class="reveal d2">Base case: array of length ≤ 1 is already sorted</li>
+                        <li class="reveal d3">Two recursive calls halve the problem size each time</li>
+                        <li class="reveal d4">The <code>merge()</code> function compares front elements and builds a sorted result</li>
+                        <li class="reveal d5">Remaining elements appended directly — no extra comparisons needed</li>
+                    </ul>
+                    <div class="callout reveal d5" style="color:var(--tab-4); margin-top:var(--gap);">
+                        <p>The <strong>merge step</strong> is where all the work happens — always O(n) per level.</p>
+                    </div>
+                    <div class="icard reveal d6" style="margin-top:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-4);">Real-world use</div>
+                        <p>Python's built-in <code>sorted()</code> and Java's <code>Arrays.sort()</code> for objects both use a variant of Merge Sort (Timsort).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab active" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">13 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 14 — QUICK SORT CONCEPT
+================================================ -->
+<section class="slide" id="slide-14">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-4);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--sgap);">Quick Sort</h2>
+            <div class="two-col">
+                <div>
+                    <p class="reveal d2" style="margin-bottom:var(--sgap);">Pick a <strong>pivot</strong>, partition the array so all elements less than the pivot are on the left, greater on the right. Recursively sort both sides.</p>
+                    <ul class="pts reveal d3" style="margin-bottom:var(--sgap);">
+                        <li>Partition is the key step — rearranges in-place</li>
+                        <li>Pivot choice matters: first, last, median, or random</li>
+                        <li>Average O(n log n), worst case O(n²) on sorted input</li>
+                        <li><strong>In-place</strong> and cache-friendly — often faster than Merge Sort in practice</li>
+                    </ul>
+                    <div class="reveal d4">
+                        <table class="tbl" style="font-size:var(--small-size);">
+                            <tr><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th><th>Stable</th></tr>
+                            <tr><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="bad">O(n²)</td><td class="good">O(log n)</td><td class="bad">No</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="reveal d2" style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--text-faint); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Partition [5, 3, 8, 4, 2] pivot=5</p>
+                    <div style="display:flex; flex-direction:column; gap:var(--sgap);">
+                        <div class="reveal d3">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Initial: pivot = 5 (last)</p>
+                            <div class="arr-row"><div class="cell">5</div><div class="cell">3</div><div class="cell">8</div><div class="cell">4</div><div class="cell pivot">2</div></div>
+                        </div>
+                        <div class="reveal d4">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">After partition</p>
+                            <div class="arr-row"><div class="cell hi">3</div><div class="cell hi">4</div><div class="cell hi">2</div><div class="cell pivot">5</div><div class="cell sorted">8</div></div>
+                        </div>
+                        <div class="reveal d5">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Pivot 5 in final position</p>
+                            <div class="arr-row"><div class="cell">3</div><div class="cell">4</div><div class="cell">2</div><div class="cell sorted">5</div><div class="cell sorted">8</div></div>
+                        </div>
+                        <div class="reveal d6">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">Recurse on left [3,4,2]</p>
+                            <div class="arr-row"><div class="cell sorted">2</div><div class="cell sorted">3</div><div class="cell sorted">4</div><div class="cell sorted">5</div><div class="cell sorted">8</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab active" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">14 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 15 — QUICK SORT CODE
+================================================ -->
+<section class="slide" id="slide-15">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-4);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">Quick Sort — Implementation</h2>
+            <div class="two-col">
+                <div class="cb reveal d2">
+<span class="kw">def</span> <span class="fn">quick_sort</span>(arr, lo, hi):<br>
+&nbsp;&nbsp;<span class="kw">if</span> lo &lt; hi:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;p = <span class="fn">partition</span>(arr, lo, hi)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">quick_sort</span>(arr, lo, p-<span class="nm">1</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">quick_sort</span>(arr, p+<span class="nm">1</span>, hi)<br>
+<br>
+<span class="kw">def</span> <span class="fn">partition</span>(arr, lo, hi):<br>
+&nbsp;&nbsp;pivot = arr[hi]  <span class="cm"># last elem</span><br>
+&nbsp;&nbsp;i = lo - <span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="kw">for</span> j <span class="kw">in range</span>(lo, hi):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> arr[j] &lt;= pivot:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i += <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arr[i],arr[j] = arr[j],arr[i]<br>
+&nbsp;&nbsp;arr[i+<span class="nm">1</span>],arr[hi]=arr[hi],arr[i+<span class="nm">1</span>]<br>
+&nbsp;&nbsp;<span class="kw">return</span> i + <span class="nm">1</span>
+                </div>
+                <div>
+                    <ul class="pts">
+                        <li class="reveal d2"><code>lo</code> and <code>hi</code> define the subarray range</li>
+                        <li class="reveal d3">Partition returns the final index of the pivot</li>
+                        <li class="reveal d4">All elements left of pivot &lt; pivot; right &gt; pivot</li>
+                        <li class="reveal d5">Recursion is tail-call on one side — space-optimisable</li>
+                    </ul>
+                    <div class="icard reveal d5" style="margin-top:var(--gap);">
+                        <div class="lbl" style="color:var(--tab-4);">Avoid worst case</div>
+                        <p>Use <strong>random pivot</strong> or <strong>median-of-three</strong> to avoid O(n²) on already-sorted input.</p>
+                    </div>
+                    <div class="icard reveal d6" style="margin-top:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-4);">Introsort</div>
+                        <p>C++ STL <code>std::sort</code> uses Introsort: Quick Sort + falls back to Heap Sort if recursion depth exceeds O(log n).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab active" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">15 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 16 — HEAP SORT
+================================================ -->
+<section class="slide" id="slide-16">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-4);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--sgap);">Heap Sort</h2>
+            <div class="two-col">
+                <div>
+                    <p class="reveal d2" style="margin-bottom:var(--sgap);">Build a max-heap from the array, then repeatedly extract the maximum element and place it at the end.</p>
+                    <ul class="pts reveal d3" style="margin-bottom:var(--sgap);">
+                        <li><strong>Phase 1 – Heapify:</strong> Build max-heap in O(n)</li>
+                        <li><strong>Phase 2 – Extract:</strong> Swap root with last, reduce heap size, restore heap — O(log n) per extraction</li>
+                        <li>Total: O(n log n) guaranteed — even worst case</li>
+                        <li>In-place but <strong>not stable</strong></li>
+                    </ul>
+                    <div class="cb reveal d4">
+<span class="kw">def</span> <span class="fn">heap_sort</span>(arr):<br>
+&nbsp;&nbsp;n = <span class="fn">len</span>(arr)<br>
+&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in range</span>(n//<span class="nm">2</span>-<span class="nm">1</span>, -<span class="nm">1</span>, -<span class="nm">1</span>):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">heapify</span>(arr, n, i)  <span class="cm"># build heap</span><br>
+&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in range</span>(n-<span class="nm">1</span>, <span class="nm">0</span>, -<span class="nm">1</span>):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;arr[<span class="nm">0</span>], arr[i] = arr[i], arr[<span class="nm">0</span>]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">heapify</span>(arr, i, <span class="nm">0</span>)  <span class="cm"># restore</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="icard reveal d2" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-4);">Max-Heap property</div>
+                        <p>Parent ≥ children at every node. Root always holds the maximum element.</p>
+                    </div>
+                    <div class="icard reveal d3" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-4);">heapify(arr, n, i)</div>
+                        <p>Ensures the subtree rooted at index <code>i</code> satisfies the heap property. Runs in O(log n).</p>
+                    </div>
+                    <div class="reveal d4">
+                        <table class="tbl" style="font-size:var(--small-size);">
+                            <tr><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th><th>Stable</th></tr>
+                            <tr><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(1)</td><td class="bad">No</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab active" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">16 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 17 — LINEAR SORTS DIVIDER
+================================================ -->
+<section class="slide dark-paper" id="slide-17">
+    <div class="paper">
+        <div class="paper-content" style="justify-content:center;">
+            <div class="rule reveal d1" style="background:var(--tab-5);"></div>
+            <h2 class="reveal d2">Linear Time Sorting</h2>
+            <p class="reveal d3" style="font-size:var(--h3-size); margin-top:var(--sgap);">Counting Sort · Radix Sort · Bucket Sort</p>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab active" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">17 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 18 — COUNTING SORT
+================================================ -->
+<section class="slide" id="slide-18">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-5);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--sgap);">Counting Sort</h2>
+            <div class="two-col">
+                <div>
+                    <p class="reveal d2" style="margin-bottom:var(--sgap);">Count occurrences of each value, compute cumulative counts to determine positions, then place each element in its correct output position.</p>
+                    <div class="cb reveal d3">
+<span class="kw">def</span> <span class="fn">counting_sort</span>(arr, k):<br>
+&nbsp;&nbsp;<span class="cm"># k = max value in arr</span><br>
+&nbsp;&nbsp;count = [<span class="nm">0</span>] * (k+<span class="nm">1</span>)<br>
+&nbsp;&nbsp;<span class="kw">for</span> x <span class="kw">in</span> arr:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;count[x] += <span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="cm"># cumulative counts</span><br>
+&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in range</span>(<span class="nm">1</span>, k+<span class="nm">1</span>):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;count[i] += count[i-<span class="nm">1</span>]<br>
+&nbsp;&nbsp;output = [<span class="nm">0</span>] * <span class="fn">len</span>(arr)<br>
+&nbsp;&nbsp;<span class="kw">for</span> x <span class="kw">in reversed</span>(arr):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;output[count[x]-<span class="nm">1</span>] = x<br>
+&nbsp;&nbsp;&nbsp;&nbsp;count[x] -= <span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="kw">return</span> output
+                    </div>
+                </div>
+                <div>
+                    <ul class="pts">
+                        <li class="reveal d2"><strong>Does not compare</strong> elements — beats O(n log n) lower bound</li>
+                        <li class="reveal d3">Time: O(n + k) where k = range of values</li>
+                        <li class="reveal d4">Space: O(n + k) — needs auxiliary arrays</li>
+                        <li class="reveal d5">Only works for <strong>integer keys</strong> within a known range</li>
+                        <li class="reveal d6">Stable — iterating in reverse preserves order</li>
+                    </ul>
+                    <div class="callout reveal d6" style="color:var(--tab-5); margin-top:var(--gap);">
+                        <p>Best for small range k (e.g., grades 0–100, ages 0–150). Wasteful if k ≫ n.</p>
+                    </div>
+                    <div class="reveal d7" style="margin-top:var(--sgap);">
+                        <table class="tbl" style="font-size:var(--small-size);">
+                            <tr><th>Time</th><th>Space</th><th>Stable</th><th>In-place</th></tr>
+                            <tr><td class="good">O(n+k)</td><td class="ok">O(n+k)</td><td class="good">Yes</td><td class="bad">No</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab active" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">18 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 19 — RADIX SORT
+================================================ -->
+<section class="slide" id="slide-19">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-5);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--sgap);">Radix Sort</h2>
+            <div class="two-col-w">
+                <div>
+                    <p class="reveal d2" style="margin-bottom:var(--sgap);">Sort integers digit by digit, from <strong>least significant</strong> to <strong>most significant</strong> digit (LSD Radix Sort), using a stable sort on each digit pass.</p>
+                    <ul class="pts reveal d3" style="margin-bottom:var(--sgap);">
+                        <li>Uses Counting Sort as the stable subroutine per digit</li>
+                        <li>d passes (one per digit), each O(n + b) where b = base (usually 10)</li>
+                        <li>Total time: <strong>O(d · (n + b))</strong> — effectively O(n) for fixed-width integers</li>
+                        <li>Stable, not in-place. Works for strings too (sort char by char)</li>
+                    </ul>
+                    <div class="reveal d4">
+                        <table class="tbl" style="font-size:var(--small-size);">
+                            <tr><th>Time</th><th>Space</th><th>Stable</th></tr>
+                            <tr><td class="good">O(d(n+b))</td><td class="ok">O(n+b)</td><td class="good">Yes</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="reveal-scale d3">
+                    <p style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--text-faint); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Sort [170, 45, 75, 90, 802, 24, 2, 66]</p>
+                    <div style="display:flex; flex-direction:column; gap:var(--sgap);">
+                        <div class="icard"><div class="lbl" style="color:var(--tab-5);">Pass 1 — units digit</div><p><code>[170, 90, 802, 2, 24, 45, 75, 66]</code></p></div>
+                        <div class="icard"><div class="lbl" style="color:var(--tab-5);">Pass 2 — tens digit</div><p><code>[802, 2, 24, 45, 66, 170, 75, 90]</code></p></div>
+                        <div class="icard"><div class="lbl" style="color:var(--tab-5);">Pass 3 — hundreds digit</div><p><code>[2, 24, 45, 66, 75, 90, 170, 802]</code> ✓</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab active" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">19 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 20 — SORTING COMPARISON TABLE
+================================================ -->
+<section class="slide" id="slide-20">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-5);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">Sorting Algorithms — Full Comparison</h2>
+            <div class="reveal d3">
+                <table class="tbl">
+                    <thead><tr><th>Algorithm</th><th>Best</th><th>Average</th><th>Worst</th><th>Space</th><th>Stable</th><th>Notes</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Bubble</strong></td><td class="good">O(n)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td><td class="good">✓</td><td>Educational only</td></tr>
+                        <tr><td><strong>Selection</strong></td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td><td class="bad">✗</td><td>Min writes</td></tr>
+                        <tr><td><strong>Insertion</strong></td><td class="good">O(n)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td><td class="good">✓</td><td>Best for small n</td></tr>
+                        <tr><td><strong>Merge</strong></td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="bad">O(n)</td><td class="good">✓</td><td>Linked lists</td></tr>
+                        <tr><td><strong>Quick</strong></td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="bad">O(n²)</td><td class="good">O(log n)</td><td class="bad">✗</td><td>Fastest in practice</td></tr>
+                        <tr><td><strong>Heap</strong></td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(1)</td><td class="bad">✗</td><td>Guaranteed O(n log n)</td></tr>
+                        <tr><td><strong>Counting</strong></td><td class="good">O(n+k)</td><td class="good">O(n+k)</td><td class="good">O(n+k)</td><td class="ok">O(n+k)</td><td class="good">✓</td><td>Integers, small k</td></tr>
+                        <tr><td><strong>Radix</strong></td><td class="good">O(dn)</td><td class="good">O(dn)</td><td class="good">O(dn)</td><td class="ok">O(n+b)</td><td class="good">✓</td><td>Fixed-width keys</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab active" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">20 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 21 — SEARCHING DIVIDER
+================================================ -->
+<section class="slide dark-paper" id="slide-21">
+    <div class="paper">
+        <div class="paper-content" style="justify-content:center;">
+            <div class="rule reveal d1" style="background:var(--tab-6);"></div>
+            <h2 class="reveal d2">Searching Algorithms</h2>
+            <p class="reveal d3" style="font-size:var(--h3-size); margin-top:var(--sgap);">Linear Search · Binary Search · Variants</p>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab active" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">21 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 22 — LINEAR SEARCH
+================================================ -->
+<section class="slide" id="slide-22">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-6);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--sgap);">Linear Search</h2>
+            <div class="two-col">
+                <div>
+                    <p class="reveal d2" style="margin-bottom:var(--sgap);">Scan every element from left to right until the target is found or the list is exhausted. No pre-conditions required.</p>
+                    <div class="cb reveal d3" style="margin-bottom:var(--sgap);">
+<span class="kw">def</span> <span class="fn">linear_search</span>(arr, target):<br>
+&nbsp;&nbsp;<span class="kw">for</span> i, val <span class="kw">in</span> <span class="fn">enumerate</span>(arr):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> val == target:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> i  <span class="cm"># index found</span><br>
+&nbsp;&nbsp;<span class="kw">return</span> -<span class="nm">1</span>     <span class="cm"># not found</span>
+                    </div>
+                    <div class="reveal d4">
+                        <table class="tbl" style="font-size:var(--small-size);">
+                            <tr><th>Best</th><th>Average</th><th>Worst</th><th>Space</th></tr>
+                            <tr><td class="good">O(1)</td><td class="ok">O(n)</td><td class="bad">O(n)</td><td class="good">O(1)</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="reveal d2" style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--text-faint); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Search for 4 in [7, 2, 9, 4, 1, 6]</p>
+                    <div style="display:flex; flex-direction:column; gap:var(--sgap);">
+                        <div class="reveal d3"><p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">i=0: 7 ≠ 4</p><div class="arr-row"><div class="cell cmp">7</div><div class="cell">2</div><div class="cell">9</div><div class="cell">4</div><div class="cell">1</div><div class="cell">6</div></div></div>
+                        <div class="reveal d4"><p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">i=1: 2 ≠ 4</p><div class="arr-row"><div class="cell">7</div><div class="cell cmp">2</div><div class="cell">9</div><div class="cell">4</div><div class="cell">1</div><div class="cell">6</div></div></div>
+                        <div class="reveal d5"><p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">i=2: 9 ≠ 4</p><div class="arr-row"><div class="cell">7</div><div class="cell">2</div><div class="cell cmp">9</div><div class="cell">4</div><div class="cell">1</div><div class="cell">6</div></div></div>
+                        <div class="reveal d6"><p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">i=3: 4 = 4 ✓ Found at index 3</p><div class="arr-row"><div class="cell">7</div><div class="cell">2</div><div class="cell">9</div><div class="cell found">4</div><div class="cell">1</div><div class="cell">6</div></div></div>
+                    </div>
+                    <div class="callout reveal d7" style="color:var(--tab-6); margin-top:var(--sgap);">
+                        <p>Works on any list — sorted or unsorted, any data type.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab active" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">22 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 23 — BINARY SEARCH
+================================================ -->
+<section class="slide" id="slide-23">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-6);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--sgap);">Binary Search</h2>
+            <div class="two-col">
+                <div>
+                    <p class="reveal d2" style="margin-bottom:var(--sgap);">Requires a <strong>sorted array</strong>. Compare target with the middle element — eliminate half the search space each step.</p>
+                    <div class="cb reveal d3" style="margin-bottom:var(--sgap);">
+<span class="kw">def</span> <span class="fn">binary_search</span>(arr, target):<br>
+&nbsp;&nbsp;lo, hi = <span class="nm">0</span>, <span class="fn">len</span>(arr) - <span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="kw">while</span> lo &lt;= hi:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;mid = (lo + hi) // <span class="nm">2</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> arr[mid] == target:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> mid<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">elif</span> arr[mid] &lt; target:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lo = mid + <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">else</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hi = mid - <span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="kw">return</span> -<span class="nm">1</span>
+                    </div>
+                    <div class="reveal d4">
+                        <table class="tbl" style="font-size:var(--small-size);">
+                            <tr><th>Best</th><th>Average</th><th>Worst</th><th>Space</th></tr>
+                            <tr><td class="good">O(1)</td><td class="good">O(log n)</td><td class="good">O(log n)</td><td class="good">O(1)</td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <p class="reveal d2" style="font-family:var(--font-mono); font-size:var(--small-size); color:var(--text-faint); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Find 23 in [2, 5, 8, 12, 16, 23, 38, 56]</p>
+                    <div style="display:flex; flex-direction:column; gap:var(--sgap);">
+                        <div class="reveal d3">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">mid=3 → 12 &lt; 23 → search right</p>
+                            <div class="arr-row"><div class="cell">2</div><div class="cell">5</div><div class="cell">8</div><div class="cell mid">12</div><div class="cell">16</div><div class="cell">23</div><div class="cell">38</div><div class="cell">56</div></div>
+                        </div>
+                        <div class="reveal d4">
+                            <p style="font-size:var(--small-size); color:var(--text-faint); margin-bottom:3px;">mid=5 → 23 = 23 ✓</p>
+                            <div class="arr-row"><div class="cell">2</div><div class="cell">5</div><div class="cell">8</div><div class="cell">12</div><div class="cell">16</div><div class="cell found">23</div><div class="cell">38</div><div class="cell">56</div></div>
+                        </div>
+                    </div>
+                    <div class="callout reveal d5" style="color:var(--tab-6); margin-top:var(--sgap);">
+                        <p>For 1 billion items, Binary Search needs at most <strong>30 comparisons</strong>. Linear Search needs up to 1 billion.</p>
+                    </div>
+                    <div class="icard reveal d6" style="margin-top:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-6);">Note</div>
+                        <p>Use <code>mid = lo + (hi-lo)//2</code> to avoid integer overflow in languages with fixed-width integers.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab active" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">23 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 24 — BINARY SEARCH VARIANTS
+================================================ -->
+<section class="slide" id="slide-24">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-6);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">Binary Search — Variants &amp; Applications</h2>
+            <div class="two-col">
+                <div>
+                    <div class="icard reveal d2" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-6);">Find First Occurrence</div>
+                        <p>When duplicates exist, binary search can be modified to find the leftmost occurrence by continuing to search left even after a match (<code>hi = mid - 1</code>).</p>
+                    </div>
+                    <div class="icard reveal d3" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-6);">Find Last Occurrence</div>
+                        <p>Symmetric to above — continue searching right after a match (<code>lo = mid + 1</code>) to find the rightmost duplicate.</p>
+                    </div>
+                    <div class="icard reveal d4">
+                        <div class="lbl" style="color:var(--tab-6);">Search on Answer (Binary Search on Value)</div>
+                        <p>Apply binary search on the <em>answer space</em> rather than an array — e.g. "find smallest x such that f(x) is true." Used in optimisation problems.</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="icard reveal d2" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-6);">Rotated Sorted Array</div>
+                        <p>Binary search still works in O(log n) on a rotated sorted array by determining which half is sorted at each step.</p>
+                    </div>
+                    <div class="icard reveal d3" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-6);">Recursive vs Iterative</div>
+                        <p>Iterative is O(1) space. Recursive is O(log n) space due to call stack. Always prefer iterative unless clarity demands recursion.</p>
+                    </div>
+                    <div class="callout reveal d4" style="color:var(--tab-6);">
+                        <p>Binary Search is one of the most frequently tested algorithms in technical interviews.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab active" style="background:var(--tab-6);">Search</div>
+        <div class="tab" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">24 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 25 — CHOOSING THE RIGHT ALGORITHM
+================================================ -->
+<section class="slide" id="slide-25">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-7);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">Choosing the Right Algorithm</h2>
+            <div class="three-col">
+                <div class="icard reveal d2">
+                    <div class="lbl" style="color:var(--tab-7);">Small n (&lt; 50)</div>
+                    <p>Insertion Sort. Low overhead, cache-friendly, O(n) on nearly sorted data. Used inside Timsort for small runs.</p>
+                </div>
+                <div class="icard reveal d3">
+                    <div class="lbl" style="color:var(--tab-7);">General purpose</div>
+                    <p>Quick Sort (randomised pivot). Fastest average case in practice. Default in most standard libraries for primitives.</p>
+                </div>
+                <div class="icard reveal d4">
+                    <div class="lbl" style="color:var(--tab-7);">Need stability</div>
+                    <p>Merge Sort or Timsort. Required when sorting objects by multiple fields or preserving original order of equal keys.</p>
+                </div>
+                <div class="icard reveal d5">
+                    <div class="lbl" style="color:var(--tab-7);">Memory constrained</div>
+                    <p>Heap Sort. Guaranteed O(n log n) worst-case, O(1) space. Used when neither recursion nor extra arrays are affordable.</p>
+                </div>
+                <div class="icard reveal d6">
+                    <div class="lbl" style="color:var(--tab-7);">Integer keys, small range</div>
+                    <p>Counting Sort. Outperforms all comparison-based sorts when k is small relative to n.</p>
+                </div>
+                <div class="icard reveal d7">
+                    <div class="lbl" style="color:var(--tab-7);">Large integers / strings</div>
+                    <p>Radix Sort. Sorts fixed-width keys in linear time. Used in network packet routing and suffix array construction.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab active" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">25 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 26 — LOWER BOUND PROOF
+================================================ -->
+<section class="slide" id="slide-26">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-7);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">The Ω(n log n) Lower Bound</h2>
+            <div class="two-col-w">
+                <div>
+                    <div class="callout reveal d2" style="color:var(--tab-7); margin-bottom:var(--gap);">
+                        <p>Any comparison-based sorting algorithm requires <strong>at least Ω(n log n)</strong> comparisons in the worst case.</p>
+                    </div>
+                    <ul class="pts">
+                        <li class="reveal d3">To sort n elements, we must distinguish between n! possible orderings (permutations)</li>
+                        <li class="reveal d4">A comparison produces 1 bit of information — binary decision tree</li>
+                        <li class="reveal d5">Tree must have ≥ n! leaves, so height ≥ log₂(n!)</li>
+                        <li class="reveal d6">By Stirling's approximation: log₂(n!) ≈ n log₂ n − n log₂ e = <strong>Θ(n log n)</strong></li>
+                        <li class="reveal d7">Therefore: Merge Sort, Heap Sort, and Quick Sort (avg) are <strong>asymptotically optimal</strong></li>
+                    </ul>
+                </div>
+                <div class="reveal-scale d4">
+                    <div class="icard" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-7);">Implication</div>
+                        <p>You cannot sort faster than O(n log n) using comparisons. To go faster you must exploit additional structure (e.g., integer keys → Counting/Radix Sort).</p>
+                    </div>
+                    <div class="icard">
+                        <div class="lbl" style="color:var(--tab-7);">Decision tree for n=3</div>
+                        <p>3! = 6 leaves required. Tree height ≥ ⌈log₂ 6⌉ = 3. Means at least 3 comparisons needed to sort 3 elements.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab active" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">26 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 27 — REAL-WORLD IMPLEMENTATIONS
+================================================ -->
+<section class="slide" id="slide-27">
+    <div class="paper">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-7);"></div>
+            <h2 class="reveal d2" style="margin-bottom:var(--gap);">Real-World Implementations</h2>
+            <div class="two-col">
+                <div>
+                    <div class="icard reveal d2" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-7);">Python — Timsort</div>
+                        <p>Hybrid of Merge Sort + Insertion Sort. Finds natural runs in data, merges them efficiently. Worst case O(n log n), best O(n). Used by <code>sorted()</code> and <code>.sort()</code>.</p>
+                    </div>
+                    <div class="icard reveal d3" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-7);">Java — Dual-Pivot Quick Sort</div>
+                        <p>Arrays of primitives: Dual-Pivot Quick Sort (two pivots, 3-way partition). Objects: Timsort (stable required). Found in <code>Arrays.sort()</code>.</p>
+                    </div>
+                    <div class="icard reveal d4">
+                        <div class="lbl" style="color:var(--tab-7);">C++ — Introsort</div>
+                        <p>Quick Sort + Heap Sort fallback when depth exceeds 2·log(n). Guarantees O(n log n) worst case. Used in <code>std::sort</code>.</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="icard reveal d2" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-7);">Databases — External Sort</div>
+                        <p>Data too large for RAM: External Merge Sort. Sort chunks that fit in memory, then merge them from disk. Used in PostgreSQL, MySQL.</p>
+                    </div>
+                    <div class="icard reveal d3" style="margin-bottom:var(--sgap);">
+                        <div class="lbl" style="color:var(--tab-7);">Parallel Sorting</div>
+                        <p>Merge Sort parallelises naturally — split into threads. Bitonic Sort for GPU-parallel sorting. MapReduce uses external sort for large distributed datasets.</p>
+                    </div>
+                    <div class="callout reveal d4" style="color:var(--tab-7);">
+                        <p>No single algorithm wins everywhere. The best implementations combine multiple strategies.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab active" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum">27 / 28</span>
+</section>
+
+<!-- ================================================
+     SLIDE 28 — KEY TAKEAWAYS
+================================================ -->
+<section class="slide" id="slide-28">
+    <div class="paper" style="background: var(--text-ink);">
+        <div class="paper-content">
+            <div class="rule reveal d1" style="background:var(--tab-7);"></div>
+            <h2 class="reveal d2" style="color:#fff; margin-bottom:var(--gap);">Key Takeaways</h2>
+            <div class="two-col">
+                <ul class="pts">
+                    <li class="reveal d1" style="color:rgba(255,255,255,0.8);">Big-O describes growth rate — always report <strong style="color:#fff;">worst case</strong> unless stated</li>
+                    <li class="reveal d2" style="color:rgba(255,255,255,0.8);">O(n²) sorts (Bubble, Selection, Insertion) — simple, good for small or nearly-sorted data</li>
+                    <li class="reveal d3" style="color:rgba(255,255,255,0.8);">O(n log n) sorts (Merge, Quick, Heap) — optimal for general comparison-based sorting</li>
+                    <li class="reveal d4" style="color:rgba(255,255,255,0.8);"><strong style="color:#fff;">Merge Sort</strong>: stable, guaranteed O(n log n), uses O(n) extra space</li>
+                    <li class="reveal d5" style="color:rgba(255,255,255,0.8);"><strong style="color:#fff;">Quick Sort</strong>: fastest in practice, O(n²) worst case — randomise the pivot</li>
+                </ul>
+                <ul class="pts">
+                    <li class="reveal d1" style="color:rgba(255,255,255,0.8);"><strong style="color:#fff;">Heap Sort</strong>: O(n log n) guaranteed, in-place, not stable</li>
+                    <li class="reveal d2" style="color:rgba(255,255,255,0.8);">Counting &amp; Radix Sort beat O(n log n) by <strong style="color:#fff;">not comparing</strong> elements</li>
+                    <li class="reveal d3" style="color:rgba(255,255,255,0.8);"><strong style="color:#fff;">Linear Search</strong>: O(n), works on any list</li>
+                    <li class="reveal d4" style="color:rgba(255,255,255,0.8);"><strong style="color:#fff;">Binary Search</strong>: O(log n), requires sorted array — up to 10⁹× faster</li>
+                    <li class="reveal d5" style="color:rgba(255,255,255,0.8);">No sorting algorithm is universally best — <strong style="color:#fff;">constraints determine the choice</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab" style="background:var(--tab-1);">Intro</div>
+        <div class="tab" style="background:var(--tab-2);">Basics</div>
+        <div class="tab" style="background:var(--tab-3);">O(n²)</div>
+        <div class="tab" style="background:var(--tab-4);">O(n log n)</div>
+        <div class="tab" style="background:var(--tab-5);">Linear</div>
+        <div class="tab" style="background:var(--tab-6);">Search</div>
+        <div class="tab active" style="background:var(--tab-7);">Wrap</div>
+    </div>
+    <span class="snum" style="color:rgba(255,255,255,0.2);">28 / 28</span>
+</section>
+
+<script>
+/* ================================================
+   SLIDE CONTROLLER
+================================================ */
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.total = this.slides.length;
+        this.current = 0;
+        this.progressBar = document.getElementById('progress-bar');
+        this.navDotsEl  = document.getElementById('nav-dots');
+        this.setupObserver();
+        this.buildDots();
+        this.setupKeyboard();
+        this.setupTouch();
+        this.setupWheel();
+        this.updateProgress(0);
+    }
+
+    setupObserver() {
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('visible');
+                    const i = [...this.slides].indexOf(e.target);
+                    this.current = i;
+                    this.updateProgress(i);
+                    this.updateDots(i);
+                }
+            });
+        }, { threshold: 0.5 });
+        this.slides.forEach(s => obs.observe(s));
+    }
+
+    buildDots() {
+        this.slides.forEach((_, i) => {
+            const b = document.createElement('button');
+            b.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            b.setAttribute('aria-label', 'Slide ' + (i + 1));
+            b.addEventListener('click', () => this.goTo(i));
+            this.navDotsEl.appendChild(b);
+        });
+    }
+
+    updateDots(i) {
+        document.querySelectorAll('.nav-dot').forEach((d, j) => d.classList.toggle('active', i === j));
+    }
+
+    updateProgress(i) {
+        this.progressBar.style.width = (this.total > 1 ? (i / (this.total - 1)) * 100 : 100) + '%';
+    }
+
+    goTo(i) { this.slides[i].scrollIntoView({ behavior: 'smooth' }); }
+
+    setupKeyboard() {
+        document.addEventListener('keydown', e => {
+            if (this.editor && this.editor.isActive) return;
+            const map = { 'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1 };
+            if (map[e.key] !== undefined) {
+                e.preventDefault();
+                this.goTo(Math.max(0, Math.min(this.total - 1, this.current + map[e.key])));
+            }
+        });
+    }
+
+    setupTouch() {
+        let sy = 0;
+        document.addEventListener('touchstart', e => { sy = e.touches[0].clientY; }, { passive: true });
+        document.addEventListener('touchend', e => {
+            const dy = sy - e.changedTouches[0].clientY;
+            if (Math.abs(dy) > 50) this.goTo(Math.max(0, Math.min(this.total - 1, this.current + (dy > 0 ? 1 : -1))));
+        }, { passive: true });
+    }
+
+    setupWheel() {
+        let last = 0;
+        document.addEventListener('wheel', e => {
+            const now = Date.now();
+            if (now - last < 700) return;
+            last = now;
+            this.goTo(Math.max(0, Math.min(this.total - 1, this.current + (e.deltaY > 0 ? 1 : -1))));
+        }, { passive: true });
+    }
+}
+
+/* ================================================
+   INLINE EDITOR
+================================================ */
+class InlineEditor {
+    constructor() {
+        this.isActive = false;
+        this.toggle  = document.getElementById('editToggle');
+        this.hotzone = document.getElementById('editHotzone');
+        this.hideTimeout = null;
+        this.setupHover();
+        this.setupKeys();
+        this.loadSaved();
+    }
+
+    setupHover() {
+        const show = () => { clearTimeout(this.hideTimeout); this.toggle.classList.add('show'); };
+        const hide = () => { this.hideTimeout = setTimeout(() => { if (!this.isActive) this.toggle.classList.remove('show'); }, 400); };
+        this.hotzone.addEventListener('mouseenter', show);
+        this.hotzone.addEventListener('mouseleave', hide);
+        this.toggle.addEventListener('mouseenter', show);
+        this.toggle.addEventListener('mouseleave', hide);
+        this.hotzone.addEventListener('click', () => this.toggleEdit());
+        this.toggle.addEventListener('click',   () => this.toggleEdit());
+    }
+
+    setupKeys() {
+        document.addEventListener('keydown', e => {
+            if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) this.toggleEdit();
+            if ((e.ctrlKey || e.metaKey) && e.key === 's' && this.isActive) { e.preventDefault(); this.save(); }
+        });
+    }
+
+    toggleEdit() {
+        this.isActive = !this.isActive;
+        this.toggle.textContent = this.isActive ? '💾 Save (Ctrl+S)' : '✏ Edit';
+        this.toggle.classList.toggle('active', this.isActive);
+        this.toggle.classList.add('show');
+        const targets = document.querySelectorAll('h1,h2,h3,p,li,.cb');
+        if (this.isActive) {
+            targets.forEach(el => { el.setAttribute('contenteditable','true'); el.setAttribute('spellcheck','false'); });
+        } else {
+            targets.forEach(el => el.removeAttribute('contenteditable'));
+            this.save();
+        }
+    }
+
+    save() {
+        const data = {};
+        document.querySelectorAll('.slide').forEach((s, i) => { data['s' + i] = s.innerHTML; });
+        localStorage.setItem('algo_slides_v1', JSON.stringify(data));
+        if (this.isActive) { this.toggle.textContent = '✓ Saved!'; setTimeout(() => { this.toggle.textContent = '💾 Save (Ctrl+S)'; }, 1400); }
+    }
+
+    loadSaved() {
+        try {
+            const raw = localStorage.getItem('algo_slides_v1');
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            document.querySelectorAll('.slide').forEach((s, i) => { if (data['s' + i]) s.innerHTML = data['s' + i]; });
+        } catch(e) {}
+    }
+}
+
+const presentation = new SlidePresentation();
+const editor = new InlineEditor();
+presentation.editor = editor;
+</script>
+</body>
+</html>

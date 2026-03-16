@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stacks & Queues — Data Structures</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+/* =====================================================
+   THEME: Split Pastel
+   Peach left · Lavender right · Outfit font · badge pills
+   Stack accent: peach/coral  · Queue accent: lavender/purple
+===================================================== */
+:root {
+    --peach:   #f5e6dc;
+    --lav:     #e4dff0;
+    --peach2:  #ebd4c4;
+    --lav2:    #d4cee8;
+    --coral:   #d4674a;
+    --coral2:  #e8826a;
+    --purple:  #6b5ca5;
+    --purple2: #8b78c8;
+    --teal:    #3a8a7a;
+    --gold:    #c09040;
+    --ink:     #1a1a1a;
+    --ink2:    #3a3a3a;
+    --ink3:    #777;
+    --border:  rgba(26,26,26,0.12);
+    --border2: rgba(26,26,26,0.07);
+
+    --font:  'Outfit', sans-serif;
+    --mono:  'JetBrains Mono', monospace;
+
+    --title-size: clamp(2rem, 6vw, 5.5rem);
+    --h2-size:    clamp(1.3rem, 3vw, 2.6rem);
+    --h3-size:    clamp(1rem, 2vw, 1.5rem);
+    --body-size:  clamp(0.75rem, 1.35vw, 1rem);
+    --small-size: clamp(0.62rem, 0.95vw, 0.8rem);
+    --mono-size:  clamp(0.65rem, 1.05vw, 0.88rem);
+
+    --pad:  clamp(1.8rem, 5vw, 5rem);
+    --gap:  clamp(0.65rem, 1.6vw, 1.6rem);
+    --sgap: clamp(0.3rem, 0.75vw, 0.75rem);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* === RESET + VIEWPORT BASE === */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow-x:hidden; }
+html { scroll-snap-type:y mandatory; scroll-behavior:smooth; }
+
+.slide {
+    width:100vw; height:100vh; height:100dvh;
+    overflow:hidden; scroll-snap-align:start;
+    display:flex; flex-direction:column; position:relative;
+    background: var(--peach);
+    font-family: var(--font);
+}
+
+/* === SPLIT BACKGROUND — signature element === */
+.split::after {
+    content:''; position:absolute;
+    top:0; right:0; bottom:0;
+    width:42%;
+    background: var(--lav);
+    z-index:0;
+}
+/* Grid pattern on lavender side */
+.split::before {
+    content:''; position:absolute;
+    top:0; right:0; bottom:0; width:42%; z-index:1;
+    background-image:
+        linear-gradient(rgba(107,92,165,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(107,92,165,0.06) 1px, transparent 1px);
+    background-size: clamp(20px,3vw,40px) clamp(20px,3vw,40px);
+    pointer-events:none;
+}
+.slide-content { flex:1; display:flex; flex-direction:column; justify-content:center; max-height:100%; overflow:hidden; padding:var(--pad); position:relative; z-index:2; }
+
+/* === FULL PEACH or FULL LAV slides === */
+.full-lav  { background:var(--lav); }
+.full-coral { background:#e8cfc4; }
+.dark-slide { background:var(--ink); }
+.dark-slide .slide-content * { color:rgba(255,255,255,0.85); }
+
+/* === PROGRESS BAR === */
+#progress-bar { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--coral),var(--purple)); width:0%; z-index:9999; transition:width 0.3s; }
+
+/* === NAV DOTS === */
+#nav-dots { position:fixed; right:clamp(0.6rem,1.2vw,1.2rem); top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:5px; z-index:9998; }
+.nav-dot { width:5px; height:5px; border-radius:50%; background:rgba(26,26,26,0.2); border:none; cursor:pointer; transition:all 0.3s; }
+.nav-dot.active { background:var(--coral); height:16px; border-radius:3px; }
+
+/* === SLIDE NUMBER === */
+.snum { position:absolute; bottom:clamp(0.8rem,2vh,1.5rem); right:clamp(1.8rem,4.5vw,4.5rem); font-family:var(--mono); font-size:var(--small-size); color:var(--ink3); z-index:10; letter-spacing:0.08em; }
+
+/* === TYPOGRAPHY === */
+h1 { font-size:var(--title-size); font-weight:900; line-height:0.95; letter-spacing:-0.02em; color:var(--ink); }
+h2 { font-size:var(--h2-size); font-weight:800; line-height:1.05; color:var(--ink); }
+h3 { font-size:var(--h3-size); font-weight:700; color:var(--ink2); }
+p  { font-size:var(--body-size); color:var(--ink2); line-height:1.6; }
+li { font-size:var(--body-size); color:var(--ink2); line-height:1.55; }
+
+/* === BADGE PILLS — Split Pastel signature === */
+.badge {
+    display:inline-flex; align-items:center; gap:0.4em;
+    font-family:var(--font); font-weight:600; font-size:var(--small-size);
+    padding:0.3em 0.85em; border-radius:999px;
+    letter-spacing:0.03em;
+}
+.badge.coral  { background:#e8cfc4; color:var(--coral); }
+.badge.lav    { background:var(--lav2); color:var(--purple); }
+.badge.teal   { background:#c4e0db; color:var(--teal); }
+.badge.gold   { background:#eee0c4; color:var(--gold); }
+.badge.ink    { background:var(--ink); color:#fff; }
+.badge.mint   { background:#c8f0d8; color:#2a7a4a; }
+
+/* === LAYOUT === */
+.two-col   { display:grid; grid-template-columns:1fr 1fr; gap:clamp(1rem,3vw,3rem); align-items:start; }
+.two-col-w { display:grid; grid-template-columns:1.2fr 0.8fr; gap:clamp(1rem,3vw,3rem); align-items:start; }
+.three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(0.5rem,1.3vw,1.3rem); }
+
+/* === CARD === */
+.card {
+    background:rgba(255,255,255,0.55);
+    border:1.5px solid var(--border);
+    border-radius:8px;
+    padding:clamp(0.6rem,1.4vw,1.2rem);
+    backdrop-filter:blur(4px);
+}
+.card .lbl { font-family:var(--mono); font-size:var(--small-size); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.35em; font-weight:600; }
+.card p { font-size:var(--body-size); }
+.card.coral { border-color:rgba(212,103,74,0.3); background:rgba(232,207,196,0.5); }
+.card.lav   { border-color:rgba(107,92,165,0.3); background:rgba(212,206,232,0.5); }
+.card.teal  { border-color:rgba(58,138,122,0.3); background:rgba(196,224,219,0.4); }
+
+/* === CALLOUT === */
+.callout { border-left:4px solid var(--coral); padding:clamp(0.5rem,1.2vw,1rem) clamp(0.8rem,2vw,1.5rem); background:rgba(212,103,74,0.07); border-radius:0 6px 6px 0; }
+.callout.lav { border-color:var(--purple); background:rgba(107,92,165,0.07); }
+.callout.teal { border-color:var(--teal); background:rgba(58,138,122,0.07); }
+.callout p { font-weight:600; font-size:var(--h3-size); color:var(--ink); line-height:1.35; }
+
+/* === CODE BLOCK === */
+.cb { background:var(--ink); color:#d4d0cc; border-left:3px solid var(--coral); border-radius:0 6px 6px 0; padding:clamp(0.6rem,1.4vw,1.1rem) clamp(0.8rem,1.8vw,1.4rem); font-family:var(--mono); font-size:var(--mono-size); line-height:1.75; overflow:hidden; }
+.cb.lav { border-color:var(--purple); }
+.cb.teal { border-color:var(--teal); }
+.kw { color:var(--coral2); font-weight:700; }
+.fn { color:#7be0c8; }
+.cm { color:#5a5a52; font-style:italic; }
+.nm { color:#f0c060; }
+.st { color:#a8d8a8; }
+
+/* === TABLE === */
+.tbl { width:100%; border-collapse:collapse; font-size:var(--body-size); }
+.tbl th { font-weight:700; text-align:left; padding:0.45em 0.7em; border-bottom:2px solid var(--ink); color:var(--ink); }
+.tbl td { padding:0.4em 0.7em; border-bottom:1px solid var(--border2); color:var(--ink2); }
+.tbl tr:last-child td { border-bottom:none; }
+.good { color:var(--teal)   !important; font-weight:700; font-family:var(--mono); }
+.ok   { color:var(--gold)   !important; font-weight:700; font-family:var(--mono); }
+.bad  { color:var(--coral)  !important; font-weight:700; font-family:var(--mono); }
+
+/* === BULLET LIST === */
+ul.pts { list-style:none; display:flex; flex-direction:column; gap:var(--sgap); }
+ul.pts li { display:flex; align-items:flex-start; gap:0.6em; }
+ul.pts li::before { content:'›'; font-weight:800; font-size:1.1em; flex-shrink:0; margin-top:-0.05em; }
+ul.pts.coral li::before { color:var(--coral); }
+ul.pts.lav   li::before { color:var(--purple); }
+ul.pts.teal  li::before { color:var(--teal); }
+ul.pts.ink   li::before { color:var(--ink); }
+
+/* === STACK / QUEUE VISUAL ELEMENTS === */
+/* Stack box — stacked cells */
+.stack-vis { display:flex; flex-direction:column-reverse; gap:3px; }
+.sbox {
+    padding:clamp(6px,1.2vh,12px) clamp(12px,2vw,22px);
+    border-radius:6px;
+    font-family:var(--mono); font-weight:700; font-size:var(--mono-size);
+    text-align:center; color:var(--ink);
+    border:1.5px solid rgba(26,26,26,0.15);
+}
+.sbox.top  { background:var(--coral2); color:#fff; border-color:var(--coral); }
+.sbox.mid  { background:var(--peach2); }
+.sbox.bot  { background:var(--peach); }
+.sbox.emp  { background:rgba(255,255,255,0.3); border-style:dashed; color:var(--ink3); }
+.sbox.new  { background:#a8d8a8; border-color:var(--teal); color:var(--ink); }
+.sbox.qlav { background:var(--purple2); color:#fff; border-color:var(--purple); }
+.sbox.qmid { background:var(--lav2); }
+.sbox.qbot { background:var(--lav); }
+
+/* Horizontal queue cells */
+.queue-vis { display:flex; align-items:stretch; gap:3px; }
+.qbox {
+    flex:1; padding:clamp(8px,1.5vh,14px) clamp(6px,1vw,10px);
+    border-radius:6px; font-family:var(--mono); font-weight:700;
+    font-size:var(--mono-size); text-align:center; color:var(--ink);
+    border:1.5px solid rgba(26,26,26,0.15); min-width:clamp(36px,5vw,60px);
+}
+.qbox.front { background:var(--purple2); color:#fff; border-color:var(--purple); }
+.qbox.mid   { background:var(--lav2); }
+.qbox.back  { background:var(--lav); }
+.qbox.emp   { background:rgba(255,255,255,0.3); border-style:dashed; color:var(--ink3); }
+.qbox.new   { background:#a8d8a8; border-color:var(--teal); color:var(--ink); }
+.qbox.coral { background:var(--coral2); color:#fff; border-color:var(--coral); }
+
+/* arrow helpers */
+.arr-up   { text-align:center; font-size:clamp(1rem,1.5vw,1.3rem); color:var(--coral);  line-height:1; }
+.arr-right { text-align:center; font-size:clamp(1rem,1.5vw,1.3rem); color:var(--purple); line-height:1; }
+
+/* section label */
+.sec-lbl { position:absolute; top:clamp(0.8rem,2vh,1.5rem); left:var(--pad); font-family:var(--mono); font-size:var(--small-size); color:var(--ink3); letter-spacing:0.15em; text-transform:uppercase; z-index:10; }
+
+/* === REVEAL === */
+.reveal       { opacity:0; transform:translateY(20px); transition:opacity 0.48s var(--ease),transform 0.48s var(--ease); }
+.reveal-left  { opacity:0; transform:translateX(-28px); transition:opacity 0.48s var(--ease),transform 0.48s var(--ease); }
+.reveal-scale { opacity:0; transform:scale(0.93); transition:opacity 0.48s var(--ease),transform 0.48s var(--ease); }
+.slide.visible .reveal,
+.slide.visible .reveal-left,
+.slide.visible .reveal-scale { opacity:1; transform:none; }
+.d1{transition-delay:.05s} .d2{transition-delay:.13s} .d3{transition-delay:.21s}
+.d4{transition-delay:.29s} .d5{transition-delay:.37s} .d6{transition-delay:.45s}
+.d7{transition-delay:.53s} .d8{transition-delay:.61s}
+
+/* Responsive */
+@media (max-height:700px) { :root { --pad:clamp(0.8rem,3vw,2.5rem); --gap:clamp(0.4rem,1.2vw,1rem); --h2-size:clamp(1.1rem,2.6vw,2rem); } }
+@media (max-height:600px) { :root { --pad:clamp(0.5rem,2.5vw,1.5rem); --body-size:clamp(0.68rem,1.1vw,0.88rem); } #nav-dots { display:none; } .split::before,.split::after { display:none; } }
+@media (max-width:640px) { .two-col,.two-col-w,.three-col { grid-template-columns:1fr; } .split::after,.split::before { display:none; } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:0.01ms !important; transition-duration:0.2s !important; } html { scroll-behavior:auto; } }
+
+/* inline edit */
+.edit-hotzone { position:fixed; top:0; left:0; width:80px; height:80px; z-index:10000; cursor:pointer; }
+.edit-toggle { position:fixed; top:14px; left:14px; background:var(--coral); color:#fff; border:none; border-radius:999px; padding:6px 16px; font-family:var(--font); font-size:0.72rem; cursor:pointer; z-index:10001; opacity:0; pointer-events:none; transition:opacity 0.3s; font-weight:700; }
+.edit-toggle.show,.edit-toggle.active { opacity:1; pointer-events:auto; }
+[contenteditable]:focus { outline:2px dashed var(--coral); outline-offset:2px; }
+    </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<nav id="nav-dots"></nav>
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle">✏ Edit</button>
+
+<!-- ====================== SLIDE 1 — TITLE ====================== -->
+<section class="slide split" id="slide-1">
+    <div class="slide-content" style="justify-content:flex-end; padding-bottom:clamp(2.5rem,7vh,6rem);">
+        <div class="reveal d1" style="display:flex; gap:0.5em; flex-wrap:wrap; margin-bottom:var(--gap);">
+            <span class="badge coral">CS — Data Structures</span>
+        </div>
+        <h1 class="reveal d2">Stacks<br>&amp; <span style="color:var(--purple);">Queues</span></h1>
+        <p class="reveal d3" style="font-size:var(--h3-size); color:var(--ink3); margin-top:var(--sgap);">LIFO · FIFO · operations · implementations · applications</p>
+        <div class="reveal d4" style="margin-top:clamp(1rem,2.5vh,2rem); border-top:1px solid var(--border); padding-top:clamp(0.6rem,1.5vh,1.2rem); display:flex; flex-direction:column; gap:0.25em;">
+            <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--ink3);">Faculty of Computing and Mathematical Sciences</p>
+            <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--ink3);">Cyber Security and Information Systems Department</p>
+            <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--ink2); margin-top:0.3em;">Presented by: Frederick Edem Broni</p>
+        </div>
+    </div>
+    <span class="snum">01 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 2 — AGENDA ====================== -->
+<section class="slide split" id="slide-2">
+    <div class="sec-lbl">Overview</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Agenda</h2>
+        <div class="two-col">
+            <div>
+                <div class="reveal d1" style="margin-bottom:var(--sgap);"><span class="badge coral">Stacks</span></div>
+                <ul class="pts coral">
+                    <li class="reveal d2">Stack definition &amp; LIFO principle</li>
+                    <li class="reveal d3">Stack operations: push, pop, peek</li>
+                    <li class="reveal d4">Array-based implementation</li>
+                    <li class="reveal d5">Linked-list implementation</li>
+                    <li class="reveal d6">Stack applications: balanced brackets, undo, DFS</li>
+                    <li class="reveal d7">Monotonic Stack pattern</li>
+                </ul>
+            </div>
+            <div>
+                <div class="reveal d1" style="margin-bottom:var(--sgap);"><span class="badge lav">Queues</span></div>
+                <ul class="pts lav">
+                    <li class="reveal d2">Queue definition &amp; FIFO principle</li>
+                    <li class="reveal d3">Queue operations: enqueue, dequeue, peek</li>
+                    <li class="reveal d4">Array / circular buffer implementation</li>
+                    <li class="reveal d5">Linked-list implementation</li>
+                    <li class="reveal d6">Deque (double-ended queue)</li>
+                    <li class="reveal d7">Priority Queue &amp; applications</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <span class="snum">02 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 3 — STACKS DIVIDER ====================== -->
+<section class="slide full-coral" id="slide-3">
+    <div style="position:absolute; right:clamp(2rem,5vw,5rem); top:50%; transform:translateY(-50%); font-family:var(--font); font-weight:900; font-size:clamp(8rem,22vw,20rem); color:rgba(212,103,74,0.1); line-height:1; user-select:none;">S</div>
+    <div class="slide-content" style="justify-content:center;">
+        <div style="display:flex; gap:0.5em; margin-bottom:var(--gap);"><span class="badge ink reveal d1">Section 01</span></div>
+        <h2 class="reveal d2" style="font-size:var(--title-size);">Stacks</h2>
+        <p class="reveal d3" style="font-size:var(--h3-size); color:var(--ink3); margin-top:var(--sgap);">Last In, First Out — <em style="font-style:italic;">LIFO</em></p>
+    </div>
+    <span class="snum">03 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 4 — WHAT IS A STACK ====================== -->
+<section class="slide split" id="slide-4">
+    <div class="sec-lbl">Stacks</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">What Is a Stack?</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A stack is a linear data structure that follows the <strong>LIFO</strong> (Last In, First Out) principle — the last element added is the first one removed.</p>
+                </div>
+                <ul class="pts coral">
+                    <li class="reveal d3">Think of a <strong>stack of plates</strong> — you add and remove from the top</li>
+                    <li class="reveal d4">Only the <strong>top element</strong> is accessible at any time</li>
+                    <li class="reveal d5">Two primary operations: <strong>push</strong> (add) and <strong>pop</strong> (remove)</li>
+                    <li class="reveal d6">Also supports <strong>peek</strong> (view top without removing)</li>
+                    <li class="reveal d7">All operations are <strong>O(1)</strong> — constant time</li>
+                </ul>
+            </div>
+            <div class="reveal-scale d3" style="display:flex; flex-direction:column; gap:var(--sgap); align-items:center;">
+                <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--ink3); text-transform:uppercase; letter-spacing:0.1em; align-self:flex-start;">Stack state</p>
+                <div style="width:100%; display:flex; flex-direction:column; gap:var(--sgap); align-items:center;">
+                    <div style="display:flex; align-items:center; gap:var(--sgap); width:100%;">
+                        <div class="sbox top" style="flex:1;">30 ← TOP</div>
+                        <span class="badge coral">push / pop here</span>
+                    </div>
+                    <div class="sbox mid" style="width:100%;">20</div>
+                    <div class="sbox bot" style="width:100%;">10</div>
+                    <div class="sbox emp" style="width:100%;">— empty —</div>
+                </div>
+                <div class="arr-up" style="font-size:clamp(1.2rem,2vw,1.8rem);">↑ push / pop</div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">04 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 5 — STACK OPERATIONS ====================== -->
+<section class="slide split" id="slide-5">
+    <div class="sec-lbl">Stacks</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Stack Operations</h2>
+        <div class="two-col">
+            <div>
+                <div class="card coral reveal d2" style="margin-bottom:var(--sgap);">
+                    <div class="lbl" style="color:var(--coral);">push(item) — O(1)</div>
+                    <p>Add an item to the top of the stack. If the stack is full (array-based), throw a Stack Overflow error.</p>
+                </div>
+                <div class="card coral reveal d3" style="margin-bottom:var(--sgap);">
+                    <div class="lbl" style="color:var(--coral);">pop() — O(1)</div>
+                    <p>Remove and return the top item. If the stack is empty, throw a Stack Underflow error.</p>
+                </div>
+                <div class="card coral reveal d4" style="margin-bottom:var(--sgap);">
+                    <div class="lbl" style="color:var(--coral);">peek() / top() — O(1)</div>
+                    <p>Return the top item without removing it. Useful for checking what's next without modifying the stack.</p>
+                </div>
+                <div class="card coral reveal d5">
+                    <div class="lbl" style="color:var(--coral);">is_empty() — O(1)</div>
+                    <p>Check if the stack has no elements. Always check before calling pop() to avoid underflow.</p>
+                </div>
+            </div>
+            <div class="reveal-scale d3" style="display:flex; flex-direction:column; gap:var(--gap);">
+                <div>
+                    <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--coral); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">After push(40)</p>
+                    <div class="stack-vis">
+                        <div class="sbox bot" style="text-align:center;">10</div>
+                        <div class="sbox mid" style="text-align:center;">20</div>
+                        <div class="sbox mid" style="text-align:center;">30</div>
+                        <div class="sbox new" style="text-align:center;">40 ← new TOP</div>
+                    </div>
+                    <div class="arr-up" style="margin-top:var(--sgap);">↑ pushed here</div>
+                </div>
+                <div>
+                    <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--coral); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">After pop() → returns 40</p>
+                    <div class="stack-vis">
+                        <div class="sbox bot" style="text-align:center;">10</div>
+                        <div class="sbox mid" style="text-align:center;">20</div>
+                        <div class="sbox top" style="text-align:center;">30 ← TOP</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">05 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 6 — STACK: ARRAY IMPL ====================== -->
+<section class="slide split" id="slide-6">
+    <div class="sec-lbl">Stacks</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Stack — Array Implementation</h2>
+        <div class="two-col">
+            <div class="cb reveal d2">
+<span class="kw">class</span> <span class="fn">Stack</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self, cap=<span class="nm">100</span>):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.data = [<span class="kw">None</span>] * cap<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.top  = -<span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.cap  = cap<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">push</span>(self, item):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> self.top == self.cap - <span class="nm">1</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">raise</span> <span class="fn">OverflowError</span>(<span class="st">"Full"</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.top += <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.data[self.top] = item<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">pop</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> self.<span class="fn">is_empty</span>():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">raise</span> <span class="fn">IndexError</span>(<span class="st">"Empty"</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;val = self.data[self.top]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.top -= <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> val<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">peek</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> self.data[self.top]<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">is_empty</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> self.top == -<span class="nm">1</span>
+            </div>
+            <div>
+                <ul class="pts coral">
+                    <li class="reveal d2">Uses a fixed-size array; <code style="font-family:var(--mono);">top</code> tracks the last valid index</li>
+                    <li class="reveal d3">All operations O(1) — no traversal needed</li>
+                    <li class="reveal d4">Limitation: fixed capacity — must pre-allocate</li>
+                    <li class="reveal d5">In Python, use a plain <code style="font-family:var(--mono);">list</code> with <code style="font-family:var(--mono);">append()</code> and <code style="font-family:var(--mono);">pop()</code></li>
+                </ul>
+                <div class="card coral reveal d5" style="margin-top:var(--gap);">
+                    <div class="lbl" style="color:var(--coral);">Python built-in stack</div>
+                    <div class="cb coral" style="margin-top:var(--sgap); border-color:var(--coral);">
+s = []<br>
+s.<span class="fn">append</span>(<span class="nm">10</span>)  <span class="cm"># push</span><br>
+s.<span class="fn">append</span>(<span class="nm">20</span>)<br>
+s.<span class="fn">pop</span>()      <span class="cm"># → 20</span><br>
+s[-<span class="nm">1</span>]        <span class="cm"># peek → 10</span>
+                    </div>
+                </div>
+                <div class="reveal d6" style="margin-top:var(--sgap);">
+                    <table class="tbl" style="font-size:var(--small-size);">
+                        <tr><th>Op</th><th>Time</th><th>Space</th></tr>
+                        <tr><td>push</td><td class="good">O(1)</td><td class="good">O(1)</td></tr>
+                        <tr><td>pop</td><td class="good">O(1)</td><td class="good">O(1)</td></tr>
+                        <tr><td>peek</td><td class="good">O(1)</td><td class="good">O(1)</td></tr>
+                        <tr><td>Total space</td><td>—</td><td class="ok">O(n)</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">06 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 7 — STACK: LINKED LIST IMPL ====================== -->
+<section class="slide split" id="slide-7">
+    <div class="sec-lbl">Stacks</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Stack — Linked List Implementation</h2>
+        <div class="two-col">
+            <div class="cb reveal d2">
+<span class="kw">class</span> <span class="fn">Node</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self, val):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.val  = val<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.next = <span class="kw">None</span><br>
+<br>
+<span class="kw">class</span> <span class="fn">Stack</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.head = <span class="kw">None</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.size = <span class="nm">0</span><br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">push</span>(self, val):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;node = <span class="fn">Node</span>(val)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;node.next = self.head  <span class="cm"># prepend</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.head = node<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.size += <span class="nm">1</span><br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">pop</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> self.head: <span class="kw">raise</span> <span class="fn">IndexError</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;val = self.head.val<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.head = self.head.next<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.size -= <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> val<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">peek</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> self.head.val
+            </div>
+            <div>
+                <ul class="pts coral">
+                    <li class="reveal d2"><strong>No fixed size</strong> — grows dynamically, no overflow</li>
+                    <li class="reveal d3">Push = prepend to head (O(1))</li>
+                    <li class="reveal d4">Pop = remove head (O(1))</li>
+                    <li class="reveal d5">Extra memory per node for the <code style="font-family:var(--mono);">next</code> pointer</li>
+                </ul>
+                <div class="callout reveal d5" style="margin-top:var(--gap);">
+                    <p>The <strong>head of the linked list is the top of the stack</strong> — all operations happen at the head in O(1).</p>
+                </div>
+                <div class="reveal-scale d5" style="margin-top:var(--gap);">
+                    <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--coral); margin-bottom:var(--sgap);">Linked Stack (head = top)</p>
+                    <div style="display:flex; align-items:center; gap:var(--sgap); flex-wrap:wrap;">
+                        <div class="sbox top" style="padding:var(--sgap) var(--gap);">30</div>
+                        <span style="color:var(--ink3); font-family:var(--mono);">→</span>
+                        <div class="sbox mid" style="padding:var(--sgap) var(--gap);">20</div>
+                        <span style="color:var(--ink3); font-family:var(--mono);">→</span>
+                        <div class="sbox bot" style="padding:var(--sgap) var(--gap);">10</div>
+                        <span style="color:var(--ink3); font-family:var(--mono);">→ null</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">07 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 8 — BALANCED BRACKETS ====================== -->
+<section class="slide split" id="slide-8">
+    <div class="sec-lbl">Stacks — Applications</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Application: Balanced Brackets</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Use a stack to check if every opening bracket has a matching closing bracket in the correct order.</p>
+                </div>
+                <div class="cb reveal d3">
+<span class="kw">def</span> <span class="fn">is_balanced</span>(s):<br>
+&nbsp;&nbsp;stack = []<br>
+&nbsp;&nbsp;pairs = {<span class="st">')'</span>:<span class="st">'('</span>, <span class="st">']'</span>:<span class="st">'['</span>, <span class="st">'}'</span>:<span class="st">'{'</span>}<br>
+&nbsp;&nbsp;<span class="kw">for</span> ch <span class="kw">in</span> s:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> ch <span class="kw">in</span> <span class="st">'([{'</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stack.<span class="fn">append</span>(ch)  <span class="cm"># push</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">elif</span> ch <span class="kw">in</span> pairs:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> stack <span class="kw">or</span> stack[-<span class="nm">1</span>]!=pairs[ch]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return False</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stack.<span class="fn">pop</span>()<br>
+&nbsp;&nbsp;<span class="kw">return not</span> stack  <span class="cm"># empty = balanced</span>
+                </div>
+            </div>
+            <div>
+                <div class="reveal d3" style="display:flex; flex-direction:column; gap:var(--sgap);">
+                    <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--coral); text-transform:uppercase; letter-spacing:0.1em;">Trace: "{[()]}"</p>
+                    <div class="card coral"><div class="lbl" style="color:var(--coral);">See '{' → push</div><p>Stack: [<strong>{</strong>]</p></div>
+                    <div class="card coral"><div class="lbl" style="color:var(--coral);">See '[' → push</div><p>Stack: [{ <strong>[</strong>]</p></div>
+                    <div class="card coral"><div class="lbl" style="color:var(--coral);">See '(' → push</div><p>Stack: [{ [ <strong>(</strong>]</p></div>
+                    <div class="card teal"><div class="lbl" style="color:var(--teal);">See ')' → matches '(' → pop</div><p>Stack: [{ []</p></div>
+                    <div class="card teal"><div class="lbl" style="color:var(--teal);">See ']' → matches '[' → pop</div><p>Stack: [{]</p></div>
+                    <div class="card teal"><div class="lbl" style="color:var(--teal);">See '}' → matches '{' → pop</div><p>Stack: [] ✓ Balanced!</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">08 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 9 — STACK APPLICATIONS ====================== -->
+<section class="slide split" id="slide-9">
+    <div class="sec-lbl">Stacks — Applications</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Stack Applications</h2>
+        <div class="three-col">
+            <div class="card coral reveal d2"><div class="lbl" style="color:var(--coral);">Function Call Stack</div><p>Every function call pushes a stack frame. On return, the frame is popped. This is literally the CPU's call stack — stack overflow = too many nested calls.</p></div>
+            <div class="card coral reveal d3"><div class="lbl" style="color:var(--coral);">Undo / Redo</div><p>Text editors push each action onto an undo stack. Ctrl+Z pops the last action. Ctrl+Y pushes it onto a redo stack. Used in Photoshop, VS Code, Word.</p></div>
+            <div class="card coral reveal d4"><div class="lbl" style="color:var(--coral);">Browser History</div><p>Back/Forward navigation uses two stacks. Navigating pushes to the back stack. Clicking Back pops it and pushes to the forward stack.</p></div>
+            <div class="card coral reveal d5"><div class="lbl" style="color:var(--coral);">Expression Evaluation</div><p>Convert infix to postfix (Shunting-Yard algorithm). Evaluate postfix expressions using a stack. Used in compilers and calculators.</p></div>
+            <div class="card coral reveal d6"><div class="lbl" style="color:var(--coral);">DFS Graph Traversal</div><p>Depth-First Search uses a stack (explicitly or via recursion) to explore as deep as possible before backtracking. Used in maze solving and cycle detection.</p></div>
+            <div class="card coral reveal d7"><div class="lbl" style="color:var(--coral);">Balanced Brackets / XML</div><p>Parsing nested structures: HTML tags, JSON brackets, code blocks. Any time you need to match open-close pairs.</p></div>
+        </div>
+    </div>
+    <span class="snum">09 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 10 — MONOTONIC STACK ====================== -->
+<section class="slide split" id="slide-10">
+    <div class="sec-lbl">Stacks — Patterns</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Monotonic Stack Pattern</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A monotonic stack maintains elements in <strong>increasing or decreasing order</strong> — pop elements that violate the order before pushing.</p>
+                </div>
+                <ul class="pts coral">
+                    <li class="reveal d3">Used to find <strong>next greater/smaller element</strong> in O(n)</li>
+                    <li class="reveal d4">Used in: Largest Rectangle in Histogram, Daily Temperatures, Stock Span</li>
+                    <li class="reveal d5">Each element is pushed and popped at most once → O(n) total</li>
+                </ul>
+            </div>
+            <div class="cb reveal d3">
+<span class="cm"># Next Greater Element — O(n)</span><br>
+<span class="kw">def</span> <span class="fn">next_greater</span>(arr):<br>
+&nbsp;&nbsp;n = <span class="fn">len</span>(arr)<br>
+&nbsp;&nbsp;result = [-<span class="nm">1</span>] * n<br>
+&nbsp;&nbsp;stack = []  <span class="cm"># stores indices</span><br>
+<br>
+&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in range</span>(n):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># pop while current > stack top</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> stack <span class="kw">and</span> arr[i]&gt;arr[stack[-<span class="nm">1</span>]]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;idx = stack.<span class="fn">pop</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result[idx] = arr[i]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;stack.<span class="fn">append</span>(i)<br>
+<br>
+&nbsp;&nbsp;<span class="kw">return</span> result<br>
+<br>
+<span class="cm"># [2,1,2,4,3] → [4,2,4,-1,-1]</span>
+            </div>
+        </div>
+    </div>
+    <span class="snum">10 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 11 — QUEUES DIVIDER ====================== -->
+<section class="slide full-lav" id="slide-11">
+    <div style="position:absolute; right:clamp(2rem,5vw,5rem); top:50%; transform:translateY(-50%); font-family:var(--font); font-weight:900; font-size:clamp(8rem,22vw,20rem); color:rgba(107,92,165,0.1); line-height:1; user-select:none;">Q</div>
+    <div class="slide-content" style="justify-content:center;">
+        <div style="display:flex; gap:0.5em; margin-bottom:var(--gap);"><span class="badge ink reveal d1">Section 02</span></div>
+        <h2 class="reveal d2" style="font-size:var(--title-size); color:var(--purple);">Queues</h2>
+        <p class="reveal d3" style="font-size:var(--h3-size); color:var(--ink3); margin-top:var(--sgap);">First In, First Out — <em style="font-style:italic; color:var(--purple);">FIFO</em></p>
+    </div>
+    <span class="snum">11 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 12 — WHAT IS A QUEUE ====================== -->
+<section class="slide split" id="slide-12">
+    <div class="sec-lbl">Queues</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">What Is a Queue?</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout lav reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A queue is a linear data structure that follows the <strong>FIFO</strong> (First In, First Out) principle — the first element added is the first one removed.</p>
+                </div>
+                <ul class="pts lav">
+                    <li class="reveal d3">Think of a <strong>queue at a shop</strong> — first person in line is served first</li>
+                    <li class="reveal d4">Elements enter at the <strong>rear (back)</strong></li>
+                    <li class="reveal d5">Elements leave from the <strong>front</strong></li>
+                    <li class="reveal d6"><strong>enqueue</strong> (add to back), <strong>dequeue</strong> (remove from front)</li>
+                    <li class="reveal d7">All operations are <strong>O(1)</strong></li>
+                </ul>
+            </div>
+            <div class="reveal-scale d3" style="display:flex; flex-direction:column; gap:var(--sgap);">
+                <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--ink3); text-transform:uppercase; letter-spacing:0.1em;">Queue state</p>
+                <div class="queue-vis">
+                    <div class="qbox front">10<br><span style="font-size:0.7em; font-weight:400;">FRONT</span></div>
+                    <div class="qbox mid">20</div>
+                    <div class="qbox mid">30</div>
+                    <div class="qbox back">40<br><span style="font-size:0.7em; font-weight:400;">BACK</span></div>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span class="badge lav">← dequeue</span>
+                    <span class="badge lav">enqueue →</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:var(--small-size); color:var(--ink3);">
+                    <span>exit here</span>
+                    <span>enter here</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">12 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 13 — QUEUE OPERATIONS ====================== -->
+<section class="slide split" id="slide-13">
+    <div class="sec-lbl">Queues</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Queue Operations</h2>
+        <div class="two-col">
+            <div>
+                <div class="card lav reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--purple);">enqueue(item) — O(1)</div><p>Add item to the rear. If full (array-based fixed-size), throw Queue Full error.</p></div>
+                <div class="card lav reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--purple);">dequeue() — O(1)</div><p>Remove and return item from the front. If empty, throw Queue Empty error.</p></div>
+                <div class="card lav reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--purple);">peek() / front() — O(1)</div><p>Return front item without removing it.</p></div>
+                <div class="card lav reveal d5"><div class="lbl" style="color:var(--purple);">is_empty() — O(1)</div><p>Check if queue has no elements. Always check before dequeue.</p></div>
+            </div>
+            <div class="reveal-scale d3" style="display:flex; flex-direction:column; gap:var(--gap);">
+                <div>
+                    <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--purple); margin-bottom:var(--sgap);">After enqueue(50)</p>
+                    <div class="queue-vis">
+                        <div class="qbox front">10</div>
+                        <div class="qbox mid">20</div>
+                        <div class="qbox mid">30</div>
+                        <div class="qbox mid">40</div>
+                        <div class="qbox new">50</div>
+                    </div>
+                    <div class="arr-right" style="text-align:right; margin-top:var(--sgap);">50 added to back →</div>
+                </div>
+                <div>
+                    <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--purple); margin-bottom:var(--sgap);">After dequeue() → returns 10</p>
+                    <div class="queue-vis">
+                        <div class="qbox front">20<br><span style="font-size:0.7em; font-weight:400;">FRONT</span></div>
+                        <div class="qbox mid">30</div>
+                        <div class="qbox mid">40</div>
+                        <div class="qbox back">50</div>
+                    </div>
+                    <div style="font-family:var(--mono); font-size:var(--small-size); color:var(--purple); margin-top:var(--sgap);">← 10 removed from front</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">13 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 14 — CIRCULAR BUFFER ====================== -->
+<section class="slide split" id="slide-14">
+    <div class="sec-lbl">Queues</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Queue — Circular Buffer (Array)</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout lav reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A naive array queue wastes space as elements are dequeued. A <strong>circular buffer</strong> reuses slots by wrapping the front/rear indices around using modulo.</p>
+                </div>
+                <div class="cb lav reveal d3">
+<span class="kw">class</span> <span class="fn">Queue</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self, cap):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.data  = [<span class="kw">None</span>] * cap<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.front = <span class="nm">0</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.size  = <span class="nm">0</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.cap   = cap<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">enqueue</span>(self, item):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> self.size == self.cap: <span class="kw">raise</span> <span class="fn">OverflowError</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;rear = (self.front + self.size) % self.cap<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.data[rear] = item<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.size += <span class="nm">1</span><br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">dequeue</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> self.size == <span class="nm">0</span>: <span class="kw">raise</span> <span class="fn">IndexError</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;val = self.data[self.front]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.front = (self.front+<span class="nm">1</span>) % self.cap<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.size -= <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> val
+                </div>
+            </div>
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--sgap);">The <code style="font-family:var(--mono);">rear = (front + size) % cap</code> formula wraps around — slots freed by dequeue are reused.</p>
+                <div class="reveal-scale d3" style="display:flex; flex-direction:column; gap:var(--sgap);">
+                    <svg viewBox="0 0 220 220" style="width:100%; max-height:min(30vh,200px);" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="110" cy="110" r="80" fill="none" stroke="rgba(107,92,165,0.2)" stroke-width="24"/>
+                        <!-- segments -->
+                        <path d="M 110,30 A 80,80 0 0,1 176,70" fill="none" stroke="#d4cee8" stroke-width="24"/>
+                        <path d="M 176,70 A 80,80 0 0,1 190,110" fill="none" stroke="#b89cdb" stroke-width="24"/>
+                        <path d="M 190,110 A 80,80 0 0,1 176,150" fill="none" stroke="#9278cc" stroke-width="24"/>
+                        <path d="M 176,150 A 80,80 0 0,1 110,190" fill="none" stroke="#7060b0" stroke-width="24"/>
+                        <path d="M 110,190 A 80,80 0 0,1 44,150" fill="none" stroke="rgba(107,92,165,0.15)" stroke-width="24"/>
+                        <path d="M 44,150  A 80,80 0 0,1 30,110" fill="none" stroke="rgba(107,92,165,0.15)" stroke-width="24"/>
+                        <path d="M 30,110  A 80,80 0 0,1 44,70"  fill="none" stroke="rgba(107,92,165,0.15)" stroke-width="24"/>
+                        <path d="M 44,70   A 80,80 0 0,1 110,30" fill="none" stroke="rgba(107,92,165,0.15)" stroke-width="24"/>
+                        <!-- labels -->
+                        <text x="148" y="56"  text-anchor="middle" fill="white" font-family="JetBrains Mono" font-size="10" font-weight="700">10</text>
+                        <text x="185" y="96"  text-anchor="middle" fill="white" font-family="JetBrains Mono" font-size="10" font-weight="700">20</text>
+                        <text x="185" y="130" text-anchor="middle" fill="white" font-family="JetBrains Mono" font-size="10" font-weight="700">30</text>
+                        <text x="148" y="166" text-anchor="middle" fill="white" font-family="JetBrains Mono" font-size="10" font-weight="700">40</text>
+                        <text x="72"  y="166" fill="rgba(107,92,165,0.4)" font-family="JetBrains Mono" font-size="9">free</text>
+                        <text x="26"  y="130" fill="rgba(107,92,165,0.4)" font-family="JetBrains Mono" font-size="9">free</text>
+                        <text x="26"  y="96"  fill="rgba(107,92,165,0.4)" font-family="JetBrains Mono" font-size="9">free</text>
+                        <text x="72"  y="56"  fill="rgba(107,92,165,0.4)" font-family="JetBrains Mono" font-size="9">free</text>
+                        <!-- front / rear arrows -->
+                        <text x="110" y="105" text-anchor="middle" fill="var(--purple)" font-family="Outfit" font-size="11" font-weight="700">circular</text>
+                        <text x="110" y="122" text-anchor="middle" fill="var(--purple)" font-family="Outfit" font-size="11" font-weight="700">buffer</text>
+                    </svg>
+                    <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--ink3); text-align:center;">front → 10 · rear → after 40</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">14 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 15 — QUEUE LINKED LIST ====================== -->
+<section class="slide split" id="slide-15">
+    <div class="sec-lbl">Queues</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Queue — Linked List &amp; Python</h2>
+        <div class="two-col">
+            <div class="cb lav reveal d2">
+<span class="kw">class</span> <span class="fn">Queue</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.head = self.tail = <span class="kw">None</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.size = <span class="nm">0</span><br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">enqueue</span>(self, val):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;node = <span class="fn">Node</span>(val)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> self.tail:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.tail.next = node<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.tail = node<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> self.head:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.head = node<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.size += <span class="nm">1</span><br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">dequeue</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> self.head: <span class="kw">raise</span> <span class="fn">IndexError</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;val = self.head.val<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.head = self.head.next<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> self.head: self.tail = <span class="kw">None</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.size -= <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> val
+            </div>
+            <div>
+                <ul class="pts lav">
+                    <li class="reveal d2">Head = front (dequeue from here)</li>
+                    <li class="reveal d3">Tail = rear (enqueue here)</li>
+                    <li class="reveal d4">Both operations O(1) — tail pointer avoids traversal</li>
+                    <li class="reveal d5">No size limit — grows dynamically</li>
+                </ul>
+                <div class="card lav reveal d5" style="margin-top:var(--gap);">
+                    <div class="lbl" style="color:var(--purple);">Python — collections.deque</div>
+                    <div class="cb lav" style="margin-top:var(--sgap);">
+<span class="kw">from</span> collections <span class="kw">import</span> deque<br>
+q = <span class="fn">deque</span>()<br>
+q.<span class="fn">append</span>(<span class="nm">10</span>)      <span class="cm"># enqueue O(1)</span><br>
+q.<span class="fn">append</span>(<span class="nm">20</span>)<br>
+q.<span class="fn">popleft</span>()      <span class="cm"># dequeue → 10 O(1)</span><br>
+q[<span class="nm">0</span>]              <span class="cm"># peek front</span>
+                    </div>
+                </div>
+                <div class="reveal d6" style="margin-top:var(--sgap);">
+                    <table class="tbl" style="font-size:var(--small-size);">
+                        <tr><th>Op</th><th>Time</th></tr>
+                        <tr><td>enqueue</td><td class="good">O(1)</td></tr>
+                        <tr><td>dequeue</td><td class="good">O(1)</td></tr>
+                        <tr><td>peek</td><td class="good">O(1)</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">15 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 16 — QUEUE: BFS ====================== -->
+<section class="slide split" id="slide-16">
+    <div class="sec-lbl">Queues — Applications</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Application: BFS with a Queue</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout lav reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Breadth-First Search uses a queue to visit all neighbours at distance k before moving to distance k+1 — guaranteeing <strong>shortest path</strong> in unweighted graphs/trees.</p>
+                </div>
+                <div class="cb lav reveal d3">
+<span class="kw">from</span> collections <span class="kw">import</span> deque<br>
+<br>
+<span class="kw">def</span> <span class="fn">bfs</span>(graph, start):<br>
+&nbsp;&nbsp;visited = {start}<br>
+&nbsp;&nbsp;q = <span class="fn">deque</span>([start])<br>
+&nbsp;&nbsp;<span class="kw">while</span> q:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;node = q.<span class="fn">popleft</span>()   <span class="cm"># FIFO!</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(node)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> nb <span class="kw">in</span> graph[node]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> nb <span class="kw">not in</span> visited:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;visited.<span class="fn">add</span>(nb)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;q.<span class="fn">append</span>(nb)
+                </div>
+            </div>
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--gap);">Queue ensures level-by-level processing — all nodes at depth 1 before depth 2, etc.</p>
+                <div class="reveal d3" style="display:flex; flex-direction:column; gap:var(--sgap);">
+                    <div class="card lav"><div class="lbl" style="color:var(--purple);">Step 1 — enqueue A</div><p>Queue: [A]</p></div>
+                    <div class="card lav"><div class="lbl" style="color:var(--purple);">Step 2 — dequeue A, enqueue B, C</div><p>Queue: [B, C]</p></div>
+                    <div class="card lav"><div class="lbl" style="color:var(--purple);">Step 3 — dequeue B, enqueue D, E</div><p>Queue: [C, D, E]</p></div>
+                    <div class="card teal"><div class="lbl" style="color:var(--teal);">FIFO order = level-order traversal</div><p>Visit: A → B → C → D → E → F</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">16 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 17 — QUEUE APPLICATIONS ====================== -->
+<section class="slide split" id="slide-17">
+    <div class="sec-lbl">Queues — Applications</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Queue Applications</h2>
+        <div class="three-col">
+            <div class="card lav reveal d2"><div class="lbl" style="color:var(--purple);">CPU Scheduling</div><p>OS task scheduler uses a queue of processes. Round-robin scheduling: each process gets a time slice, then goes to the back of the queue.</p></div>
+            <div class="card lav reveal d3"><div class="lbl" style="color:var(--purple);">Print Spooling</div><p>Print jobs queued FIFO. First document submitted is first printed. The OS manages the printer queue.</p></div>
+            <div class="card lav reveal d4"><div class="lbl" style="color:var(--purple);">BFS / Level-Order</div><p>Graph and tree traversal. Used in: shortest path (unweighted), social network distance, web crawlers, peer discovery.</p></div>
+            <div class="card lav reveal d5"><div class="lbl" style="color:var(--purple);">Network Buffers</div><p>Routers buffer packets in a queue. Network interface cards process outgoing packets in FIFO order to avoid collisions.</p></div>
+            <div class="card lav reveal d6"><div class="lbl" style="color:var(--purple);">Message Queues</div><p>Kafka, RabbitMQ, SQS — distributed queues for async communication between services. Producer enqueues, consumer dequeues.</p></div>
+            <div class="card lav reveal d7"><div class="lbl" style="color:var(--purple);">Keyboard Input</div><p>Keystrokes stored in a FIFO queue. The OS processes them in order to ensure characters appear correctly even when CPU is busy.</p></div>
+        </div>
+    </div>
+    <span class="snum">17 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 18 — DEQUE ====================== -->
+<section class="slide split" id="slide-18">
+    <div class="sec-lbl">Queues — Variants</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Deque — Double-Ended Queue</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout teal reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A <strong>deque</strong> supports insert and delete at <em>both</em> front and back in O(1) — generalising both stacks and queues.</p>
+                </div>
+                <ul class="pts teal">
+                    <li class="reveal d3"><strong>addFront</strong> / <strong>addBack</strong> — O(1)</li>
+                    <li class="reveal d4"><strong>removeFront</strong> / <strong>removeBack</strong> — O(1)</li>
+                    <li class="reveal d5">Can simulate both Stack (addBack/removeBack) and Queue (addBack/removeFront)</li>
+                    <li class="reveal d6">Python <code style="font-family:var(--mono);">collections.deque</code> is a doubly-linked list — O(1) at both ends</li>
+                    <li class="reveal d7">Used in: sliding window maximum, palindrome checking, work stealing schedulers</li>
+                </ul>
+            </div>
+            <div>
+                <div class="cb teal reveal d3" style="margin-bottom:var(--gap);">
+<span class="kw">from</span> collections <span class="kw">import</span> deque<br>
+d = <span class="fn">deque</span>([<span class="nm">2</span>, <span class="nm">3</span>, <span class="nm">4</span>])<br>
+<br>
+d.<span class="fn">appendleft</span>(<span class="nm">1</span>) <span class="cm"># [1,2,3,4]</span><br>
+d.<span class="fn">append</span>(<span class="nm">5</span>)     <span class="cm"># [1,2,3,4,5]</span><br>
+d.<span class="fn">popleft</span>()     <span class="cm"># → 1, [2,3,4,5]</span><br>
+d.<span class="fn">pop</span>()         <span class="cm"># → 5, [2,3,4]</span><br>
+d[<span class="nm">0</span>]             <span class="cm"># peek front → 2</span><br>
+d[-<span class="nm">1</span>]            <span class="cm"># peek back → 4</span>
+                </div>
+                <div class="card teal reveal d4">
+                    <div class="lbl" style="color:var(--teal);">Sliding Window Max — O(n)</div>
+                    <p>Use a monotonic deque to track the maximum in a sliding window. Each element enters/exits at most once → O(n) total.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">18 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 19 — PRIORITY QUEUE ====================== -->
+<section class="slide split" id="slide-19">
+    <div class="sec-lbl">Queues — Variants</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Priority Queue</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout lav reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A priority queue dequeues elements in order of their <strong>priority</strong> — not insertion order. Highest (or lowest) priority element is always served first.</p>
+                </div>
+                <ul class="pts lav">
+                    <li class="reveal d3">Implemented with a <strong>Binary Heap</strong> — O(log n) insert and extract-min/max</li>
+                    <li class="reveal d4">Python: <code style="font-family:var(--mono);">heapq</code> module (min-heap by default)</li>
+                    <li class="reveal d5">Java: <code style="font-family:var(--mono);">PriorityQueue&lt;T&gt;</code></li>
+                    <li class="reveal d6">Used in: Dijkstra's algorithm, A* search, task scheduling, Huffman coding</li>
+                </ul>
+            </div>
+            <div class="cb lav reveal d3">
+<span class="kw">import</span> heapq<br>
+<br>
+pq = []<br>
+heapq.<span class="fn">heappush</span>(pq, (<span class="nm">3</span>, <span class="st">"task C"</span>))<br>
+heapq.<span class="fn">heappush</span>(pq, (<span class="nm">1</span>, <span class="st">"task A"</span>))<br>
+heapq.<span class="fn">heappush</span>(pq, (<span class="nm">2</span>, <span class="st">"task B"</span>))<br>
+<br>
+<span class="cm"># Always pops min priority first</span><br>
+heapq.<span class="fn">heappop</span>(pq)  <span class="cm"># (1, "task A")</span><br>
+heapq.<span class="fn">heappop</span>(pq)  <span class="cm"># (2, "task B")</span><br>
+heapq.<span class="fn">heappop</span>(pq)  <span class="cm"># (3, "task C")</span><br>
+<br>
+<span class="cm"># Max-heap: negate priority</span><br>
+heapq.<span class="fn">heappush</span>(pq, (-<span class="nm">10</span>, <span class="st">"urgent"</span>))
+            </div>
+        </div>
+    </div>
+    <span class="snum">19 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 20 — STACK vs QUEUE ====================== -->
+<section class="slide split" id="slide-20">
+    <div class="sec-lbl">Comparison</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Stack vs. Queue — Side by Side</h2>
+        <div class="reveal d2" style="margin-bottom:var(--gap);">
+            <table class="tbl">
+                <thead><tr><th>Property</th><th style="color:var(--coral);">Stack</th><th style="color:var(--purple);">Queue</th></tr></thead>
+                <tbody>
+                    <tr><td>Principle</td><td>LIFO — Last In, First Out</td><td>FIFO — First In, First Out</td></tr>
+                    <tr><td>Insert end</td><td>Top</td><td>Rear (back)</td></tr>
+                    <tr><td>Remove end</td><td>Top</td><td>Front</td></tr>
+                    <tr><td>Primary ops</td><td>push, pop, peek</td><td>enqueue, dequeue, peek</td></tr>
+                    <tr><td>All ops time</td><td class="good">O(1)</td><td class="good">O(1)</td></tr>
+                    <tr><td>Key analogy</td><td>Stack of plates</td><td>Queue at a shop</td></tr>
+                    <tr><td>Graph use</td><td>DFS</td><td>BFS</td></tr>
+                    <tr><td>Python impl</td><td><code style="font-family:var(--mono);">list</code> (append/pop)</td><td><code style="font-family:var(--mono);">deque</code> (append/popleft)</td></tr>
+                    <tr><td>Real-world</td><td>Undo, call stack, brackets</td><td>CPU scheduling, print jobs</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout teal reveal d3">
+            <p>Both are O(1) for all core operations — the difference is <em>where</em> you remove: Stack removes newest; Queue removes oldest.</p>
+        </div>
+    </div>
+    <span class="snum">20 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 21 — IMPLEMENT QUEUE USING STACKS ====================== -->
+<section class="slide split" id="slide-21">
+    <div class="sec-lbl">Classic Problems</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Classic: Implement Queue Using Two Stacks</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Use two stacks — <em>inbox</em> (push here) and <em>outbox</em> (pop from here) — to simulate FIFO behaviour with LIFO stacks.</p>
+                </div>
+                <div class="cb reveal d3">
+<span class="kw">class</span> <span class="fn">MyQueue</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.inbox   = []<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.outbox  = []<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">enqueue</span>(self, val):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.inbox.<span class="fn">append</span>(val) <span class="cm"># O(1)</span><br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">dequeue</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> self.outbox:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># pour inbox → outbox (O(n))</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> self.inbox:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.outbox.<span class="fn">append</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.inbox.<span class="fn">pop</span>())<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> self.outbox.<span class="fn">pop</span>()
+                </div>
+            </div>
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--gap);">Each element is moved at most once from inbox to outbox → <strong>amortised O(1)</strong> per dequeue.</p>
+                <div style="display:flex; flex-direction:column; gap:var(--sgap);" class="reveal d3">
+                    <div class="card coral"><div class="lbl" style="color:var(--coral);">Enqueue 1, 2, 3</div><p>inbox: [1, 2, 3] · outbox: []</p></div>
+                    <div class="card coral"><div class="lbl" style="color:var(--coral);">First dequeue — outbox empty</div><p>Pour inbox into outbox:<br>inbox: [] · outbox: [3, 2, 1]</p></div>
+                    <div class="card teal"><div class="lbl" style="color:var(--teal);">Pop outbox → returns 1 ✓ FIFO!</div><p>outbox: [3, 2]</p></div>
+                    <div class="card teal"><div class="lbl" style="color:var(--teal);">Second dequeue — outbox has elements</div><p>Pop outbox directly → returns 2 ✓</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">21 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 22 — IMPLEMENT STACK USING QUEUES ====================== -->
+<section class="slide split" id="slide-22">
+    <div class="sec-lbl">Classic Problems</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Classic: Implement Stack Using Queues</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout lav reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Use a single queue — on each <strong>push</strong>, enqueue the new element then rotate all existing elements behind it to make it the front.</p>
+                </div>
+                <div class="cb lav reveal d3">
+<span class="kw">from</span> collections <span class="kw">import</span> deque<br>
+<br>
+<span class="kw">class</span> <span class="fn">MyStack</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.q = <span class="fn">deque</span>()<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">push</span>(self, val):  <span class="cm"># O(n)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.q.<span class="fn">append</span>(val)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># rotate all others to back</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> _ <span class="kw">in range</span>(<span class="fn">len</span>(self.q)-<span class="nm">1</span>):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.q.<span class="fn">append</span>(self.q.<span class="fn">popleft</span>())<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">pop</span>(self):   <span class="cm"># O(1)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> self.q.<span class="fn">popleft</span>()<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">top</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> self.q[<span class="nm">0</span>]
+                </div>
+            </div>
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--gap);">After each push, the newest element is rotated to the front — so it's always dequeued first (LIFO).</p>
+                <div style="display:flex; flex-direction:column; gap:var(--sgap);" class="reveal d3">
+                    <div class="card lav"><div class="lbl" style="color:var(--purple);">push(1)</div><p>queue: front → [1]</p></div>
+                    <div class="card lav"><div class="lbl" style="color:var(--purple);">push(2): enqueue 2, rotate 1 to back</div><p>queue: front → [2, 1]</p></div>
+                    <div class="card lav"><div class="lbl" style="color:var(--purple);">push(3): enqueue 3, rotate 2,1 to back</div><p>queue: front → [3, 2, 1]</p></div>
+                    <div class="card teal"><div class="lbl" style="color:var(--teal);">pop() → popleft() → returns 3 ✓ LIFO!</div><p>queue: [2, 1]</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">22 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 23 — MIN STACK ====================== -->
+<section class="slide split" id="slide-23">
+    <div class="sec-lbl">Classic Problems</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Classic: Min Stack — O(1) getMin()</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Design a stack that supports push, pop, and <strong>getMin()</strong> — all in O(1). Use a second auxiliary stack to track current minimums.</p>
+                </div>
+                <div class="cb reveal d3">
+<span class="kw">class</span> <span class="fn">MinStack</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.stack = []<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.mins  = []  <span class="cm"># aux min stack</span><br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">push</span>(self, val):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.stack.<span class="fn">append</span>(val)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;m = <span class="fn">min</span>(val, self.mins[-<span class="nm">1</span>]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> self.mins <span class="kw">else</span> val)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.mins.<span class="fn">append</span>(m)<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">pop</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.stack.<span class="fn">pop</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.mins.<span class="fn">pop</span>()<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">getMin</span>(self):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> self.mins[-<span class="nm">1</span>]  <span class="cm"># O(1)!</span>
+                </div>
+            </div>
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--gap);">The <code style="font-family:var(--mono);">mins</code> stack always tracks the current minimum at each level — when we pop the main stack, we also pop the min stack.</p>
+                <div style="display:flex; flex-direction:column; gap:var(--sgap);" class="reveal d3">
+                    <div class="card coral"><div class="lbl" style="color:var(--coral);">push(5)</div><p>stack:[5] · mins:[5]</p></div>
+                    <div class="card coral"><div class="lbl" style="color:var(--coral);">push(3)</div><p>stack:[5,3] · mins:[5,<strong>3</strong>]</p></div>
+                    <div class="card coral"><div class="lbl" style="color:var(--coral);">push(7)</div><p>stack:[5,3,7] · mins:[5,3,<strong>3</strong>]</p></div>
+                    <div class="card coral"><div class="lbl" style="color:var(--coral);">push(2)</div><p>stack:[5,3,7,2] · mins:[5,3,3,<strong>2</strong>]</p></div>
+                    <div class="card teal"><div class="lbl" style="color:var(--teal);">getMin() → mins[-1] = 2 ✓ O(1)</div><p>No scanning needed!</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">23 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 24 — COMPLEXITY & WHEN TO USE ====================== -->
+<section class="slide split" id="slide-24">
+    <div class="sec-lbl">Summary</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">When to Use Stacks vs. Queues</h2>
+        <div class="two-col">
+            <div>
+                <h3 class="reveal d2" style="color:var(--coral); margin-bottom:var(--sgap);">Use a Stack when…</h3>
+                <ul class="pts coral reveal d3" style="margin-bottom:var(--gap);">
+                    <li>You need to <strong>reverse</strong> a sequence</li>
+                    <li>You need <strong>backtracking</strong> (DFS, recursion)</li>
+                    <li>You need to <strong>match nested structures</strong> (brackets, XML)</li>
+                    <li>You need the <strong>most recent</strong> item (undo, browser back)</li>
+                    <li>Evaluating or converting expressions</li>
+                </ul>
+                <div class="card coral reveal d4">
+                    <div class="lbl" style="color:var(--coral);">Python stack</div>
+                    <p><code style="font-family:var(--mono);">list</code> with <code style="font-family:var(--mono);">.append()</code>/<code style="font-family:var(--mono);">.pop()</code> — O(1)</p>
+                </div>
+            </div>
+            <div>
+                <h3 class="reveal d2" style="color:var(--purple); margin-bottom:var(--sgap);">Use a Queue when…</h3>
+                <ul class="pts lav reveal d3" style="margin-bottom:var(--gap);">
+                    <li>You need to <strong>process in order</strong> of arrival (FIFO)</li>
+                    <li>You need <strong>BFS</strong> (shortest path, level-order)</li>
+                    <li><strong>Task scheduling</strong> — serve requests fairly</li>
+                    <li><strong>Buffering</strong> — keyboard, network packets</li>
+                    <li>Any producer-consumer communication pattern</li>
+                </ul>
+                <div class="card lav reveal d4">
+                    <div class="lbl" style="color:var(--purple);">Python queue</div>
+                    <p><code style="font-family:var(--mono);">collections.deque</code> with <code style="font-family:var(--mono);">.append()</code>/<code style="font-family:var(--mono);">.popleft()</code> — O(1)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">24 / 25</span>
+</section>
+
+<!-- ====================== SLIDE 25 — KEY TAKEAWAYS ====================== -->
+<section class="slide dark-slide" id="slide-25">
+    <div style="position:absolute; inset:0; background:var(--ink);"></div>
+    <div style="position:absolute; right:0; top:0; bottom:0; width:42%; background:rgba(107,92,165,0.12);"></div>
+    <div class="slide-content" style="position:relative; z-index:2;">
+        <div style="display:flex; gap:0.5em; margin-bottom:var(--gap);" class="reveal d1">
+            <span class="badge coral">Stacks</span>
+            <span class="badge lav">Queues</span>
+        </div>
+        <h2 class="reveal d2" style="color:#fff; margin-bottom:var(--gap);">Key Takeaways</h2>
+        <div class="two-col">
+            <ul class="pts coral">
+                <li class="reveal d1" style="color:rgba(255,255,255,0.8);">A <strong style="color:#fff;">Stack</strong> is LIFO — last in, first out. Push and pop at the top only</li>
+                <li class="reveal d2" style="color:rgba(255,255,255,0.8);">All stack operations are <strong style="color:var(--coral2);">O(1)</strong> — push, pop, peek</li>
+                <li class="reveal d3" style="color:rgba(255,255,255,0.8);">Stack applications: brackets, undo, call stack, DFS, expression parsing</li>
+                <li class="reveal d4" style="color:rgba(255,255,255,0.8);">Monotonic Stack solves "next greater/smaller" problems in O(n)</li>
+                <li class="reveal d5" style="color:rgba(255,255,255,0.8);">Min Stack adds O(1) <code style="font-family:var(--mono); color:var(--coral2);">getMin()</code> using an auxiliary stack</li>
+            </ul>
+            <ul class="pts lav">
+                <li class="reveal d1" style="color:rgba(255,255,255,0.8);">A <strong style="color:#fff;">Queue</strong> is FIFO — first in, first out. Enqueue at back, dequeue at front</li>
+                <li class="reveal d2" style="color:rgba(255,255,255,0.8);">All queue operations are <strong style="color:var(--purple2);">O(1)</strong> — enqueue, dequeue, peek</li>
+                <li class="reveal d3" style="color:rgba(255,255,255,0.8);">Queue applications: BFS, CPU scheduling, print jobs, network buffers</li>
+                <li class="reveal d4" style="color:rgba(255,255,255,0.8);"><strong style="color:#fff;">Deque</strong> generalises both — O(1) at both ends</li>
+                <li class="reveal d5" style="color:rgba(255,255,255,0.8);">Python: <code style="font-family:var(--mono); color:var(--purple2);">list</code> for stacks · <code style="font-family:var(--mono); color:var(--purple2);">collections.deque</code> for queues</li>
+            </ul>
+        </div>
+    </div>
+    <span class="snum" style="color:rgba(255,255,255,0.2);">25 / 25</span>
+</section>
+
+<script>
+class SlidePresentation {
+    constructor() {
+        this.slides=document.querySelectorAll('.slide'); this.total=this.slides.length;
+        this.current=0; this.progressBar=document.getElementById('progress-bar');
+        this.navDotsEl=document.getElementById('nav-dots');
+        this.setupObserver(); this.buildDots(); this.setupKeyboard(); this.setupTouch(); this.setupWheel(); this.updateProgress(0);
+    }
+    setupObserver() {
+        const obs=new IntersectionObserver(entries=>{
+            entries.forEach(e=>{
+                if(e.isIntersecting){
+                    e.target.classList.add('visible');
+                    const i=[...this.slides].indexOf(e.target);
+                    this.current=i; this.updateProgress(i); this.updateDots(i);
+                }
+            });
+        },{threshold:0.5});
+        this.slides.forEach(s=>obs.observe(s));
+    }
+    buildDots() {
+        this.slides.forEach((_,i)=>{
+            const b=document.createElement('button');
+            b.className='nav-dot'+(i===0?' active':''); b.setAttribute('aria-label','Slide '+(i+1));
+            b.addEventListener('click',()=>this.goTo(i)); this.navDotsEl.appendChild(b);
+        });
+    }
+    updateDots(i){document.querySelectorAll('.nav-dot').forEach((d,j)=>d.classList.toggle('active',i===j));}
+    updateProgress(i){this.progressBar.style.width=(this.total>1?(i/(this.total-1))*100:100)+'%';}
+    goTo(i){this.slides[i].scrollIntoView({behavior:'smooth'});}
+    setupKeyboard(){
+        document.addEventListener('keydown',e=>{
+            if(this.editor&&this.editor.isActive)return;
+            const map={'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1};
+            if(map[e.key]!==undefined){e.preventDefault();this.goTo(Math.max(0,Math.min(this.total-1,this.current+map[e.key])));}
+        });
+    }
+    setupTouch(){
+        let sy=0;
+        document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});
+        document.addEventListener('touchend',e=>{const dy=sy-e.changedTouches[0].clientY; if(Math.abs(dy)>50)this.goTo(Math.max(0,Math.min(this.total-1,this.current+(dy>0?1:-1))));},{passive:true});
+    }
+    setupWheel(){
+        let last=0;
+        document.addEventListener('wheel',e=>{const now=Date.now();if(now-last<700)return;last=now;this.goTo(Math.max(0,Math.min(this.total-1,this.current+(e.deltaY>0?1:-1))));},{passive:true});
+    }
+}
+class InlineEditor {
+    constructor(){
+        this.isActive=false; this.toggle=document.getElementById('editToggle'); this.hotzone=document.getElementById('editHotzone'); this.hideTimeout=null;
+        this.setupHover(); this.setupKeys(); this.loadSaved();
+    }
+    setupHover(){
+        const show=()=>{clearTimeout(this.hideTimeout);this.toggle.classList.add('show');};
+        const hide=()=>{this.hideTimeout=setTimeout(()=>{if(!this.isActive)this.toggle.classList.remove('show');},400);};
+        this.hotzone.addEventListener('mouseenter',show); this.hotzone.addEventListener('mouseleave',hide);
+        this.toggle.addEventListener('mouseenter',show); this.toggle.addEventListener('mouseleave',hide);
+        this.hotzone.addEventListener('click',()=>this.toggleEdit()); this.toggle.addEventListener('click',()=>this.toggleEdit());
+    }
+    setupKeys(){
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&!e.target.getAttribute('contenteditable'))this.toggleEdit();
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'&&this.isActive){e.preventDefault();this.save();}
+        });
+    }
+    toggleEdit(){
+        this.isActive=!this.isActive; this.toggle.textContent=this.isActive?'💾 Save (Ctrl+S)':'✏ Edit';
+        this.toggle.classList.toggle('active',this.isActive); this.toggle.classList.add('show');
+        const targets=document.querySelectorAll('h1,h2,h3,p,li,.cb');
+        if(this.isActive){targets.forEach(el=>{el.setAttribute('contenteditable','true');el.setAttribute('spellcheck','false');});}
+        else{targets.forEach(el=>el.removeAttribute('contenteditable'));this.save();}
+    }
+    save(){
+        const data={}; document.querySelectorAll('.slide').forEach((s,i)=>{data['s'+i]=s.innerHTML;});
+        localStorage.setItem('stacks_queues_v1',JSON.stringify(data));
+        if(this.isActive){this.toggle.textContent='✓ Saved!';setTimeout(()=>{this.toggle.textContent='💾 Save (Ctrl+S)';},1400);}
+    }
+    loadSaved(){
+        try{const raw=localStorage.getItem('stacks_queues_v1');if(!raw)return;const data=JSON.parse(raw);document.querySelectorAll('.slide').forEach((s,i)=>{if(data['s'+i])s.innerHTML=data['s'+i];});}catch(e){}
+    }
+}
+const presentation=new SlidePresentation(); const editor=new InlineEditor(); presentation.editor=editor;
+</script>
+</body>
+</html>

@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asymptotic & Complexity Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================
+   THEME: Dark Botanical
+   Deep black · warm gold/coral/rose accents
+   Cormorant Garamond (display) + IBM Plex Sans (body)
+===================================================== */
+:root {
+    --bg:     #0f0f0f;
+    --bg2:    #161616;
+    --bg3:    #1e1e1e;
+    --gold:   #c9a84c;
+    --gold2:  #e8c878;
+    --rose:   #e8a8b0;
+    --coral:  #d47060;
+    --sage:   #7aaa88;
+    --blue:   #7ab8d4;
+    --text:   #e8e2d8;
+    --text2:  #a8a098;
+    --text3:  #5a5248;
+    --border: rgba(201,168,76,0.2);
+    --border2:rgba(201,168,76,0.08);
+
+    --font-d: 'Cormorant Garamond', serif;
+    --font-b: 'IBM Plex Sans', sans-serif;
+    --font-m: 'JetBrains Mono', monospace;
+
+    --title-size: clamp(1.8rem, 5.5vw, 5rem);
+    --h2-size:    clamp(1.25rem, 2.8vw, 2.4rem);
+    --h3-size:    clamp(0.95rem, 1.8vw, 1.4rem);
+    --body-size:  clamp(0.74rem, 1.3vw, 0.97rem);
+    --small-size: clamp(0.61rem, 0.9vw, 0.78rem);
+    --mono-size:  clamp(0.64rem, 1vw, 0.86rem);
+
+    --pad:  clamp(1.8rem, 5vw, 5rem);
+    --gap:  clamp(0.6rem, 1.5vw, 1.5rem);
+    --sgap: clamp(0.28rem, 0.7vw, 0.7rem);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow-x:hidden;}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth;}
+
+.slide{width:100vw;height:100vh;height:100dvh;overflow:hidden;scroll-snap-align:start;display:flex;flex-direction:column;position:relative;background:var(--bg);font-family:var(--font-b);}
+
+/* abstract blurred orb decorations */
+.orb{position:absolute;border-radius:50%;filter:blur(clamp(40px,8vw,100px));pointer-events:none;z-index:0;opacity:0.18;}
+
+.slide-content{flex:1;display:flex;flex-direction:column;justify-content:center;max-height:100%;overflow:hidden;padding:var(--pad);position:relative;z-index:1;}
+
+/* progress */
+#progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--rose));width:0%;z-index:9999;transition:width 0.3s;}
+
+/* nav dots */
+#nav-dots{position:fixed;right:clamp(0.6rem,1.2vw,1.2rem);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:9998;}
+.nav-dot{width:4px;height:4px;border-radius:50%;background:var(--text3);border:none;cursor:pointer;transition:all 0.3s;}
+.nav-dot.active{background:var(--gold);height:14px;border-radius:2px;}
+
+/* slide number */
+.snum{position:absolute;bottom:clamp(0.8rem,2vh,1.5rem);right:clamp(1.8rem,4.5vw,4.5rem);font-family:var(--font-m);font-size:var(--small-size);color:var(--text3);z-index:10;letter-spacing:0.12em;}
+
+/* section label */
+.sec{position:absolute;top:clamp(0.8rem,2vh,1.5rem);left:var(--pad);font-family:var(--font-m);font-size:var(--small-size);color:var(--text3);letter-spacing:0.15em;text-transform:uppercase;z-index:10;}
+
+/* ===================== TYPOGRAPHY ===================== */
+h1{font-family:var(--font-d);font-weight:700;font-size:var(--title-size);line-height:0.95;letter-spacing:-0.01em;color:var(--text);}
+h2{font-family:var(--font-d);font-weight:600;font-size:var(--h2-size);line-height:1.1;color:var(--text);}
+h3{font-family:var(--font-b);font-weight:600;font-size:var(--h3-size);color:var(--text);}
+p{font-family:var(--font-b);font-size:var(--body-size);color:var(--text2);line-height:1.65;}
+li{font-family:var(--font-b);font-size:var(--body-size);color:var(--text2);line-height:1.6;}
+em{color:var(--gold);font-style:italic;}
+strong{color:var(--text);font-weight:600;}
+
+/* thin gold line */
+.rule{width:clamp(32px,5vw,60px);height:1px;background:var(--gold);margin-bottom:var(--sgap);opacity:0.7;}
+.rule.rose{background:var(--rose);}
+.rule.sage{background:var(--sage);}
+.rule.full{width:100%;opacity:0.15;}
+
+/* ===================== CARDS ===================== */
+.dcard{background:var(--bg3);border:1px solid var(--border2);padding:clamp(0.55rem,1.3vw,1.1rem);border-radius:3px;}
+.dcard .lbl{font-family:var(--font-m);font-size:var(--small-size);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.35em;font-weight:500;color:var(--gold);}
+.dcard.rose .lbl{color:var(--rose);}
+.dcard.sage .lbl{color:var(--sage);}
+.dcard.blue .lbl{color:var(--blue);}
+.dcard.coral .lbl{color:var(--coral);}
+.dcard p{font-size:var(--body-size);}
+
+/* callout */
+.callout{border-left:2px solid var(--gold);padding:clamp(0.5rem,1.2vw,1rem) clamp(0.8rem,2vw,1.5rem);background:rgba(201,168,76,0.06);border-radius:0 3px 3px 0;}
+.callout.rose{border-color:var(--rose);background:rgba(232,168,176,0.06);}
+.callout.sage{border-color:var(--sage);background:rgba(122,170,136,0.06);}
+.callout.blue{border-color:var(--blue);background:rgba(122,184,212,0.06);}
+.callout.coral{border-color:var(--coral);background:rgba(212,112,96,0.06);}
+.callout p{font-family:var(--font-d);font-style:italic;font-weight:600;font-size:var(--h3-size);color:var(--text);line-height:1.4;}
+
+/* badge */
+.badge{display:inline-block;font-family:var(--font-m);font-size:var(--small-size);padding:0.15em 0.6em;border-radius:2px;border:1px solid;font-weight:500;}
+.badge.g{color:var(--gold);border-color:var(--gold);background:rgba(201,168,76,0.1);}
+.badge.r{color:var(--rose);border-color:var(--rose);background:rgba(232,168,176,0.1);}
+.badge.s{color:var(--sage);border-color:var(--sage);background:rgba(122,170,136,0.1);}
+.badge.b{color:var(--blue);border-color:var(--blue);background:rgba(122,184,212,0.1);}
+.badge.c{color:var(--coral);border-color:var(--coral);background:rgba(212,112,96,0.1);}
+
+/* code */
+.cb{background:#080808;border-left:2px solid var(--gold);border-radius:0 3px 3px 0;padding:clamp(0.6rem,1.3vw,1.1rem) clamp(0.8rem,1.8vw,1.4rem);font-family:var(--font-m);font-size:var(--mono-size);line-height:1.75;color:#c8c0b4;overflow:hidden;}
+.cb.rose{border-color:var(--rose);}
+.cb.sage{border-color:var(--sage);}
+.cb.blue{border-color:var(--blue);}
+.kw{color:#d4845a;font-weight:700;}
+.fn{color:#7abccc;}
+.cm{color:#4a4840;font-style:italic;}
+.nm{color:#c8a860;}
+.st{color:#88b888;}
+.op{color:var(--text3);}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse;font-size:var(--body-size);}
+.tbl th{font-family:var(--font-b);font-weight:600;text-align:left;padding:0.45em 0.7em;border-bottom:1px solid var(--border);color:var(--gold);}
+.tbl td{padding:0.4em 0.7em;border-bottom:1px solid var(--border2);color:var(--text2);}
+.tbl tr:last-child td{border-bottom:none;}
+.good{color:var(--sage)!important;font-weight:700;font-family:var(--font-m);}
+.ok{color:var(--gold)!important;font-weight:700;font-family:var(--font-m);}
+.bad{color:var(--coral)!important;font-weight:700;font-family:var(--font-m);}
+.ugly{color:var(--rose)!important;font-weight:700;font-family:var(--font-m);}
+
+/* bullet list */
+ul.pts{list-style:none;display:flex;flex-direction:column;gap:var(--sgap);}
+ul.pts li{display:flex;align-items:flex-start;gap:0.6em;}
+ul.pts li::before{content:'◆';font-size:0.55em;flex-shrink:0;margin-top:0.35em;}
+ul.pts.g li::before{color:var(--gold);}
+ul.pts.r li::before{color:var(--rose);}
+ul.pts.s li::before{color:var(--sage);}
+ul.pts.b li::before{color:var(--blue);}
+ul.pts.c li::before{color:var(--coral);}
+
+/* layout */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1rem,2.5vw,2.5rem);align-items:start;}
+.two-col-w{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(1rem,2.5vw,2.5rem);align-items:start;}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(0.5rem,1.2vw,1.2rem);}
+.four-col{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(0.4rem,1vw,1rem);}
+
+/* divider slide */
+.div-slide{background:var(--bg2);}
+.div-slide .slide-content{justify-content:center;}
+
+/* math formula box */
+.math{background:var(--bg3);border:1px solid var(--border);padding:clamp(0.5rem,1.2vw,1.2rem) clamp(0.8rem,2vw,2rem);border-radius:3px;font-family:var(--font-m);font-size:clamp(0.85rem,1.6vw,1.3rem);color:var(--gold);text-align:center;letter-spacing:0.05em;}
+.math span.dim{color:var(--text3);font-size:0.85em;}
+
+/* growth curve SVG chart */
+.chart-area{background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:clamp(0.4rem,1vw,0.8rem);position:relative;}
+
+/* reveals */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity 0.48s var(--ease),transform 0.48s var(--ease);}
+.reveal-left{opacity:0;transform:translateX(-26px);transition:opacity 0.48s var(--ease),transform 0.48s var(--ease);}
+.reveal-scale{opacity:0;transform:scale(0.94);transition:opacity 0.48s var(--ease),transform 0.48s var(--ease);}
+.slide.visible .reveal,.slide.visible .reveal-left,.slide.visible .reveal-scale{opacity:1;transform:none;}
+.d1{transition-delay:.04s}.d2{transition-delay:.12s}.d3{transition-delay:.20s}
+.d4{transition-delay:.28s}.d5{transition-delay:.36s}.d6{transition-delay:.44s}
+.d7{transition-delay:.52s}.d8{transition-delay:.60s}
+
+@media(max-height:700px){:root{--pad:clamp(0.8rem,3vw,2.5rem);--gap:clamp(0.4rem,1.2vw,1rem);--h2-size:clamp(1.1rem,2.4vw,1.9rem);}}
+@media(max-height:600px){:root{--pad:clamp(0.5rem,2.5vw,1.5rem);--body-size:clamp(0.67rem,1vw,0.86rem);}#nav-dots{display:none;}}
+@media(max-width:640px){.two-col,.two-col-w,.three-col,.four-col{grid-template-columns:1fr;}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.2s!important;}html{scroll-behavior:auto;}}
+
+/* inline edit */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:14px;left:14px;background:var(--gold);color:#0f0f0f;border:none;border-radius:2px;padding:6px 14px;font-family:var(--font-m);font-size:0.72rem;cursor:pointer;z-index:10001;opacity:0;pointer-events:none;transition:opacity 0.3s;font-weight:700;}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+[contenteditable]:focus{outline:1px dashed var(--gold);outline-offset:2px;}
+</style>
+</head>
+<body>
+<div id="progress-bar"></div>
+<nav id="nav-dots"></nav>
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle">✏ Edit</button>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 01 — TITLE
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-1">
+    <div class="orb" style="width:clamp(200px,35vw,400px);height:clamp(200px,35vw,400px);background:var(--gold);right:-10%;top:-15%;"></div>
+    <div class="orb" style="width:clamp(150px,25vw,300px);height:clamp(150px,25vw,300px);background:var(--rose);left:-8%;bottom:-10%;"></div>
+    <div class="slide-content" style="justify-content:flex-end;padding-bottom:clamp(2.5rem,7vh,6rem);">
+        <div class="reveal d1" style="margin-bottom:var(--sgap);"><span class="badge g" style="letter-spacing:0.15em;text-transform:uppercase;">CS — Algorithm Theory</span></div>
+        <h1 class="reveal d2">Asymptotic &amp;<br><em>Complexity</em><br>Analysis</h1>
+        <div class="rule reveal d3" style="margin-top:var(--gap);"></div>
+        <p class="reveal d4" style="font-size:var(--h3-size);color:var(--text2);max-width:clamp(220px,55vw,560px);">Measuring algorithm efficiency · Big-O, Θ, Ω · best/average/worst case · space complexity · recurrences</p>
+        <div class="reveal d5" style="margin-top:clamp(1rem,2.5vh,2rem);border-top:1px solid var(--border2);padding-top:clamp(0.6rem,1.5vh,1.2rem);display:flex;flex-direction:column;gap:0.25em;">
+            <p style="font-family:var(--font-m);font-size:var(--small-size);color:var(--text3);">Faculty of Computing and Mathematical Sciences</p>
+            <p style="font-family:var(--font-m);font-size:var(--small-size);color:var(--text3);">Cyber Security and Information Systems Department</p>
+            <p style="font-family:var(--font-m);font-size:var(--small-size);color:var(--text2);margin-top:0.3em;">Presented by: Frederick Edem Broni</p>
+        </div>
+    </div>
+    <span class="snum">01 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 02 — AGENDA
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-2">
+    <div class="sec">Overview</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Agenda</h2>
+        <div class="two-col">
+            <ul class="pts g">
+                <li class="reveal d1">Why we analyse algorithms</li>
+                <li class="reveal d2">Types of analysis: best, average, worst</li>
+                <li class="reveal d3">Rate of growth &amp; asymptotic notation</li>
+                <li class="reveal d4">Big-O notation — upper bound</li>
+                <li class="reveal d5">Big-Omega (Ω) — lower bound</li>
+                <li class="reveal d6">Big-Theta (Θ) — tight bound</li>
+                <li class="reveal d7">Little-o and little-ω</li>
+                <li class="reveal d8">The formal definitions</li>
+            </ul>
+            <ul class="pts r">
+                <li class="reveal d1">O(1), O(log n), O(n), O(n log n), O(n²), O(2ⁿ)</li>
+                <li class="reveal d2">Properties of asymptotic notation</li>
+                <li class="reveal d3">Common algorithm complexities</li>
+                <li class="reveal d4">Space complexity &amp; auxiliary space</li>
+                <li class="reveal d5">Recurrence relations</li>
+                <li class="reveal d6">Master Theorem</li>
+                <li class="reveal d7">Amortised analysis</li>
+                <li class="reveal d8">Complexity hierarchy &amp; summary</li>
+            </ul>
+        </div>
+    </div>
+    <span class="snum">02 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 03 — WHY ANALYSE
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-3">
+    <div class="orb" style="width:clamp(120px,20vw,220px);height:clamp(120px,20vw,220px);background:var(--gold);right:-5%;top:10%;"></div>
+    <div class="sec">Motivation</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Why Analyse Algorithms?</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Algorithm analysis predicts how a program behaves <em>before writing a single line of code</em> — saving engineering time and preventing disasters at scale.</p>
+                </div>
+                <ul class="pts g">
+                    <li class="reveal d3">Two correct algorithms may differ by <strong>1000× in speed</strong> on large inputs</li>
+                    <li class="reveal d4">Hardware improvements (Moore's Law) slow down — algorithmic efficiency lasts forever</li>
+                    <li class="reveal d5">Understand <strong>scaling behaviour</strong>: what happens when n doubles, triples, or reaches billions?</li>
+                    <li class="reveal d6">Compare algorithms <strong>independently of hardware, language, or implementation</strong></li>
+                    <li class="reveal d7">Essential for technical interviews, system design, and production engineering</li>
+                </ul>
+            </div>
+            <div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Hardware vs Algorithm</div><p>A 10× faster computer only helps if the algorithm is the same. Going from O(n²) to O(n log n) on n=10⁶ is a 50,000× improvement — no hardware can match that.</p></div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl">Example</div><p>Bubble Sort vs Merge Sort on n=1,000,000:<br>Bubble: ~10¹² ops · Merge: ~20×10⁶ ops<br>That's 50,000× difference.</p></div>
+                <div class="dcard.sage reveal d5"><div class="callout sage"><p>We analyse <em>growth rate</em>, not exact counts — constants and lower-order terms are irrelevant at scale.</p></div></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">03 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 04 — MEASURING RUNNING TIME
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-4">
+    <div class="sec">Motivation</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">How Do We Measure Running Time?</h2>
+        <div class="two-col">
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl">Empirical / Experimental</div><p>Run the program, measure wall-clock time. Problem: depends on hardware, OS, compiler optimisations, programming language, other processes running.</p></div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Analytical / Theoretical</div><p>Count the number of <strong>primitive operations</strong> (comparisons, assignments, arithmetic) as a function of input size n. Machine-independent.</p></div>
+                <div class="callout reveal d4">
+                    <p>We use <em>theoretical analysis</em> — express running time as T(n), a function of input size n.</p>
+                </div>
+            </div>
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl">Primitive Operations</div><p>Evaluating an expression, assigning a value, indexing an array, calling/returning from a function, following a pointer, comparison — each counts as O(1).</p></div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Input Size n</div><p>Depends on the problem: array length, number of characters in a string, number of vertices + edges in a graph, number of bits in an integer.</p></div>
+                <div class="cb reveal d4">
+<span class="cm"># T(n) for this loop?</span><br>
+total = <span class="nm">0</span>          <span class="cm"># 1 op</span><br>
+<span class="kw">for</span> i <span class="kw">in range</span>(n): <span class="cm"># n iterations</span><br>
+&nbsp;&nbsp;total += i    <span class="cm"># 1 op per iter</span><br>
+<span class="cm"># T(n) = 1 + 2n → O(n)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">04 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 05 — BEST AVERAGE WORST
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-5">
+    <div class="sec">Types of Analysis</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Best, Average &amp; Worst Case</h2>
+        <div class="three-col" style="margin-bottom:var(--gap);">
+            <div class="dcard sage reveal d2">
+                <div class="lbl" style="color:var(--sage);">Best Case — Ω(f(n))</div>
+                <p>The minimum number of operations over <strong>all possible inputs</strong> of size n. Usually not very informative — easy inputs don't reflect real-world behaviour.</p>
+                <p style="margin-top:var(--sgap);font-family:var(--font-m);font-size:var(--small-size);color:var(--sage);">Linear Search: target is arr[0] → O(1)</p>
+            </div>
+            <div class="dcard reveal d3" style="border-color:rgba(201,168,76,0.25);">
+                <div class="lbl">Average Case — Θ(f(n))</div>
+                <p>Expected number of operations over all inputs assuming a <strong>probability distribution</strong> (usually uniform random). Most realistic but hardest to compute.</p>
+                <p style="margin-top:var(--sgap);font-family:var(--font-m);font-size:var(--small-size);color:var(--gold);">Linear Search: target at position n/2 → O(n/2) = O(n)</p>
+            </div>
+            <div class="dcard coral reveal d4">
+                <div class="lbl" style="color:var(--coral);">Worst Case — O(f(n))</div>
+                <p>The maximum number of operations over <strong>all possible inputs</strong>. Gives a guaranteed upper bound. <strong>Most commonly used</strong> in practice — guarantees performance.</p>
+                <p style="margin-top:var(--sgap);font-family:var(--font-m);font-size:var(--small-size);color:var(--coral);">Linear Search: target not in arr → O(n)</p>
+            </div>
+        </div>
+        <div class="callout coral reveal d5">
+            <p>Unless stated otherwise, Big-O always refers to the <em>worst-case</em> — it's the only guarantee you can give to users of your algorithm.</p>
+        </div>
+    </div>
+    <span class="snum">05 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 06 — RATE OF GROWTH
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-6">
+    <div class="sec">Foundations</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Rate of Growth</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>The <em>rate of growth</em> of a function describes how fast its value increases as n→∞. We drop constants and lower-order terms — only the <em>dominant term</em> matters.</p>
+                </div>
+                <ul class="pts g">
+                    <li class="reveal d3"><strong>T(n) = 5n² + 3n + 100</strong> → dominant: n²</li>
+                    <li class="reveal d4">At n=1000: 5×10⁶ vs 3000 vs 100 — the n² term is ~1667× larger than 3n</li>
+                    <li class="reveal d5">We say T(n) grows like n² — ignore coefficients and lower terms</li>
+                    <li class="reveal d6">This simplification is valid because as n→∞, lower-order terms become negligible</li>
+                </ul>
+            </div>
+            <div>
+                <div class="math reveal d3" style="margin-bottom:var(--sgap);">T(n) = 5n² + 3n + 100<br><span class="dim">→ drop 3n, 100 (lower order)</span><br>→ <span style="color:var(--gold);">O(n²)</span></div>
+                <div class="math reveal d4" style="margin-bottom:var(--sgap);">T(n) = 100n + 50n log n<br><span class="dim">→ n log n dominates n</span><br>→ <span style="color:var(--gold);">O(n log n)</span></div>
+                <div class="math reveal d5">T(n) = 3·2ⁿ + 1000n²<br><span class="dim">→ 2ⁿ dominates n²</span><br>→ <span style="color:var(--coral);">O(2ⁿ)</span></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">06 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 07 — ASYMPTOTIC NOTATION INTRO
+═══════════════════════════════════════════════ -->
+<section class="slide div-slide" id="slide-7">
+    <div class="orb" style="width:clamp(180px,30vw,360px);height:clamp(180px,30vw,360px);background:var(--gold);right:-5%;top:-10%;"></div>
+    <div class="orb" style="width:clamp(100px,18vw,200px);height:clamp(100px,18vw,200px);background:var(--rose);left:-5%;bottom:-5%;"></div>
+    <div class="slide-content" style="justify-content:center;">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="font-size:var(--title-size);">Asymptotic<br><em>Notation</em></h2>
+        <p class="reveal d3" style="font-size:var(--h3-size);color:var(--text2);margin-top:var(--sgap);">Big-O · Big-Ω · Big-Θ · little-o · little-ω</p>
+    </div>
+    <span class="snum">07 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 08 — BIG-O DEFINITION
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-8">
+    <div class="sec">Big-O Notation</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Big-O — Formal Definition</h2>
+        <div class="two-col">
+            <div>
+                <div class="math reveal d2" style="margin-bottom:var(--gap);font-size:clamp(0.9rem,1.8vw,1.4rem);">f(n) = O(g(n))<br><span class="dim">if ∃ constants c &gt; 0 and n₀ ≥ 1 such that</span><br>f(n) ≤ c·g(n) &nbsp;∀ n ≥ n₀</div>
+                <div class="callout reveal d3" style="margin-bottom:var(--gap);">
+                    <p>Big-O gives an <em>asymptotic upper bound</em> — g(n) grows at least as fast as f(n) beyond some threshold n₀.</p>
+                </div>
+                <ul class="pts g">
+                    <li class="reveal d4">Read: "f(n) is Big-O of g(n)"</li>
+                    <li class="reveal d5">"f(n) grows no faster than g(n)"</li>
+                    <li class="reveal d6">The constant c absorbs any fixed multiplicative overhead</li>
+                    <li class="reveal d7">We only care about behaviour as n → ∞</li>
+                </ul>
+            </div>
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--sgap);color:var(--text2);">Prove: 3n + 5 = O(n)</p>
+                <div class="cb reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># Need: 3n + 5 ≤ c·n for all n ≥ n₀</span><br>
+<span class="cm"># Choose c = 4, n₀ = 5:</span><br>
+<span class="cm"># n=5:  15+5=20 ≤ 4·5=20  ✓</span><br>
+<span class="cm"># n=10: 30+5=35 ≤ 4·10=40 ✓</span><br>
+<span class="cm"># n=100: 305 ≤ 400 ✓</span><br>
+<span class="cm"># Holds for all n ≥ 5 with c=4</span><br>
+<span class="cm"># Therefore 3n+5 = O(n)  □</span>
+                </div>
+                <div class="dcard reveal d4"><div class="lbl">Key insight</div><p>Big-O is not unique. If f(n)=O(n), then also f(n)=O(n²), O(n³), etc. We always state the <strong>tightest</strong> (smallest) correct bound.</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">08 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 09 — BIG-O EXAMPLES
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-9">
+    <div class="sec">Big-O Notation</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Big-O — Worked Examples</h2>
+        <div class="two-col">
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Example 1: T(n) = 5n² + 3n + 1</div>
+                    <p>Dominant term: n². Claim: T(n) = O(n²).<br>Proof: 5n²+3n+1 ≤ 5n²+3n²+n² = 9n² for n≥1.<br>Choose c=9, n₀=1. ✓</p>
+                </div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Example 2: T(n) = 2ⁿ + n¹⁰⁰</div>
+                    <p>Exponential dominates polynomial. T(n) = O(2ⁿ).<br>Since n¹⁰⁰ ≤ 2ⁿ for n ≥ 1000, we have T(n) ≤ 2·2ⁿ. Choose c=2, n₀=1000. ✓</p>
+                </div>
+                <div class="dcard reveal d4">
+                    <div class="lbl">Example 3: T(n) = log₂(n³)</div>
+                    <p>log₂(n³) = 3·log₂(n) = O(log n).<br>Logarithm base changes are just constant multiples — all log bases are equivalent in Big-O.</p>
+                </div>
+            </div>
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Example 4: T(n) = n·log n + n</div>
+                    <p>n·log n dominates n (for n≥2, log n≥1 so n·log n ≥ n).<br>T(n) = O(n log n).</p>
+                </div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Example 5: T(n) = sum from i=1 to n of i</div>
+                    <p>Σi = n(n+1)/2 = n²/2 + n/2 = O(n²).<br>This is why nested loops (outer n, inner up to i) give O(n²).</p>
+                </div>
+                <div class="callout rose reveal d5">
+                    <p>The step-by-step rule: expand → identify dominant term → state O(dominant term).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">09 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 10 — BIG-OMEGA
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-10">
+    <div class="sec">Big-Omega (Ω) Notation</div>
+    <div class="slide-content">
+        <div class="rule rose reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Big-Ω — Lower Bound</h2>
+        <div class="two-col">
+            <div>
+                <div class="math reveal d2" style="margin-bottom:var(--gap);">f(n) = Ω(g(n))<br><span class="dim">if ∃ constants c &gt; 0 and n₀ ≥ 1 such that</span><br>f(n) ≥ c·g(n) &nbsp;∀ n ≥ n₀</div>
+                <div class="callout rose reveal d3" style="margin-bottom:var(--gap);">
+                    <p>Ω gives an <em>asymptotic lower bound</em> — f(n) grows <em>at least as fast</em> as g(n) beyond n₀.</p>
+                </div>
+                <ul class="pts r">
+                    <li class="reveal d4">"f(n) is Big-Omega of g(n)"</li>
+                    <li class="reveal d5">"f(n) grows at least as fast as g(n)"</li>
+                    <li class="reveal d6">Used to prove <strong>lower bounds</strong> on algorithm complexity</li>
+                    <li class="reveal d7">E.g. any comparison-based sort requires Ω(n log n) — proved via decision tree</li>
+                </ul>
+            </div>
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--sgap);color:var(--text2);">Prove: 3n + 5 = Ω(n)</p>
+                <div class="cb rose reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># Need: 3n+5 ≥ c·n for all n ≥ n₀</span><br>
+<span class="cm"># Choose c = 1, n₀ = 1:</span><br>
+<span class="cm"># 3n+5 ≥ 1·n for all n ≥ 1 ✓</span><br>
+<span class="cm"># (since 3n+5 ≥ n always)</span><br>
+<span class="cm"># Therefore 3n+5 = Ω(n)  □</span>
+                </div>
+                <div class="dcard rose reveal d4"><div class="lbl" style="color:var(--rose);">Lower bound uses</div><p>Proving that an algorithm cannot be faster than Ω(f(n)). E.g., you must read all n inputs → any algorithm is Ω(n). Sorting by comparisons → Ω(n log n).</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">10 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 11 — BIG-THETA
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-11">
+    <div class="sec">Big-Theta (Θ) Notation</div>
+    <div class="slide-content">
+        <div class="rule sage reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Big-Θ — Tight Bound</h2>
+        <div class="two-col">
+            <div>
+                <div class="math reveal d2" style="margin-bottom:var(--gap);">f(n) = Θ(g(n))<br><span class="dim">if ∃ constants c₁, c₂ &gt; 0 and n₀ ≥ 1 such that</span><br>c₁·g(n) ≤ f(n) ≤ c₂·g(n) &nbsp;∀ n ≥ n₀</div>
+                <div class="callout sage reveal d3" style="margin-bottom:var(--gap);">
+                    <p>Θ is a <em>tight asymptotic bound</em> — g(n) and f(n) grow at exactly the same rate. f(n) = Θ(g(n)) iff f(n) = O(g(n)) AND f(n) = Ω(g(n)).</p>
+                </div>
+                <ul class="pts s">
+                    <li class="reveal d4">"f(n) is Theta of g(n)"</li>
+                    <li class="reveal d5">"f(n) and g(n) are asymptotically equivalent"</li>
+                    <li class="reveal d6">Strongest of the three bounds — exact growth rate</li>
+                    <li class="reveal d7">Not always achievable — best and worst case may differ</li>
+                </ul>
+            </div>
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--sgap);">Prove: n(n+1)/2 = Θ(n²)</p>
+                <div class="cb sage reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># n(n+1)/2 = n²/2 + n/2</span><br>
+<span class="cm"># Upper: n²/2 + n/2 ≤ n² for n≥1</span><br>
+<span class="cm"># → O(n²) with c₂=1, n₀=1 ✓</span><br>
+<br>
+<span class="cm"># Lower: n²/2 + n/2 ≥ n²/2 for n≥1</span><br>
+<span class="cm"># → Ω(n²) with c₁=1/2, n₀=1 ✓</span><br>
+<br>
+<span class="cm"># Both hold → Θ(n²)  □</span>
+                </div>
+                <div class="dcard sage reveal d4"><div class="lbl" style="color:var(--sage);">When Θ exists</div><p>Θ(f(n)) exists only when best and worst cases have the same growth rate. Merge Sort is always Θ(n log n). Quick Sort is O(n log n) but NOT Θ(n log n) — worst case is O(n²).</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">11 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 12 — LITTLE-O AND LITTLE-OMEGA
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-12">
+    <div class="sec">Little-o and Little-ω</div>
+    <div class="slide-content">
+        <div class="rule blue reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Little-o and Little-ω</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout blue reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Little-o and little-ω are <em>strict</em> versions — the bound does not touch. They describe algorithms that are strictly slower or faster, not just bounded.</p>
+                </div>
+                <div class="math reveal d3" style="margin-bottom:var(--sgap);">f(n) = o(g(n))<br><span class="dim">if for ALL c &gt; 0, ∃ n₀ such that</span><br>f(n) &lt; c·g(n) &nbsp;∀ n ≥ n₀<br><span class="dim">Equivalently: lim(n→∞) f(n)/g(n) = 0</span></div>
+                <div class="math reveal d4">f(n) = ω(g(n))<br><span class="dim">if for ALL c &gt; 0, ∃ n₀ such that</span><br>f(n) &gt; c·g(n) &nbsp;∀ n ≥ n₀<br><span class="dim">Equivalently: lim(n→∞) f(n)/g(n) = ∞</span></div>
+            </div>
+            <div>
+                <div class="reveal d3" style="margin-bottom:var(--gap);">
+                    <table class="tbl">
+                        <thead><tr><th>Notation</th><th>Meaning</th><th>Analogy</th></tr></thead>
+                        <tbody>
+                            <tr><td><span style="color:var(--gold);font-family:var(--font-m);">O(g)</span></td><td>f ≤ c·g (asymp)</td><td>f ≤ g</td></tr>
+                            <tr><td><span style="color:var(--rose);font-family:var(--font-m);">Ω(g)</span></td><td>f ≥ c·g (asymp)</td><td>f ≥ g</td></tr>
+                            <tr><td><span style="color:var(--sage);font-family:var(--font-m);">Θ(g)</span></td><td>c₁g ≤ f ≤ c₂g</td><td>f = g</td></tr>
+                            <tr><td><span style="color:var(--blue);font-family:var(--font-m);">o(g)</span></td><td>f/g → 0</td><td>f &lt; g (strict)</td></tr>
+                            <tr><td><span style="color:var(--coral);font-family:var(--font-m);">ω(g)</span></td><td>f/g → ∞</td><td>f &gt; g (strict)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="dcard blue reveal d4"><div class="lbl" style="color:var(--blue);">Example</div><p>n = o(n²): lim(n→∞) n/n² = lim 1/n = 0 ✓<br>n² = ω(n): lim n²/n = lim n = ∞ ✓<br>n = O(n) but n ≠ o(n) (limit = 1, not 0)</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">12 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 13 — NOTATION SUMMARY TABLE
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-13">
+    <div class="sec">Summary</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Asymptotic Notation — Summary</h2>
+        <div class="reveal d3" style="margin-bottom:var(--gap);">
+            <table class="tbl">
+                <thead><tr><th>Notation</th><th>Name</th><th>Bound Type</th><th>Formal condition</th><th>Limit condition</th><th>Example</th></tr></thead>
+                <tbody>
+                    <tr><td style="color:var(--gold);font-family:var(--font-m);">O(g)</td><td>Big-O</td><td>Upper</td><td>f ≤ c·g for large n</td><td>lim f/g &lt; ∞</td><td>3n+5 = O(n)</td></tr>
+                    <tr><td style="color:var(--rose);font-family:var(--font-m);">Ω(g)</td><td>Big-Omega</td><td>Lower</td><td>f ≥ c·g for large n</td><td>lim f/g &gt; 0</td><td>3n+5 = Ω(n)</td></tr>
+                    <tr><td style="color:var(--sage);font-family:var(--font-m);">Θ(g)</td><td>Big-Theta</td><td>Tight</td><td>c₁g ≤ f ≤ c₂g</td><td>lim f/g = c &gt; 0</td><td>n²/2 = Θ(n²)</td></tr>
+                    <tr><td style="color:var(--blue);font-family:var(--font-m);">o(g)</td><td>Little-o</td><td>Strict upper</td><td>f &lt; c·g for ALL c</td><td>lim f/g = 0</td><td>n = o(n²)</td></tr>
+                    <tr><td style="color:var(--coral);font-family:var(--font-m);">ω(g)</td><td>Little-omega</td><td>Strict lower</td><td>f &gt; c·g for ALL c</td><td>lim f/g = ∞</td><td>n² = ω(n)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout reveal d4">
+            <p>Θ is the most precise. Big-O is the most commonly used. Ω appears in lower-bound proofs. Little-o/ω appear in theoretical CS papers.</p>
+        </div>
+    </div>
+    <span class="snum">13 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 14 — PROPERTIES OF ASYMPTOTIC NOTATION
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-14">
+    <div class="sec">Properties</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Properties of Asymptotic Notation</h2>
+        <div class="two-col">
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl">Reflexivity</div><p style="font-family:var(--font-m);font-size:var(--small-size);">f(n) = O(f(n)) &nbsp;·&nbsp; f(n) = Ω(f(n)) &nbsp;·&nbsp; f(n) = Θ(f(n))</p></div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Transitivity</div><p style="font-family:var(--font-m);font-size:var(--small-size);">If f = O(g) and g = O(h) → f = O(h)<br>Same holds for Ω, Θ, o, ω</p></div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl">Symmetry (Θ only)</div><p style="font-family:var(--font-m);font-size:var(--small-size);">f(n) = Θ(g(n)) ↔ g(n) = Θ(f(n))</p></div>
+                <div class="dcard reveal d5"><div class="lbl">Transpose Symmetry</div><p style="font-family:var(--font-m);font-size:var(--small-size);">f=O(g) ↔ g=Ω(f)<br>f=o(g) ↔ g=ω(f)</p></div>
+            </div>
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl">Sum Rule</div><p style="font-family:var(--font-m);font-size:var(--small-size);">O(f) + O(g) = O(max(f,g))<br>e.g., O(n²) + O(n) = O(n²)</p></div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Product Rule</div><p style="font-family:var(--font-m);font-size:var(--small-size);">O(f) × O(g) = O(f×g)<br>e.g., O(n) × O(log n) = O(n log n)</p></div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl">Constant Factors</div><p style="font-family:var(--font-m);font-size:var(--small-size);">O(c·f) = O(f) for any constant c &gt; 0<br>e.g., O(3n²) = O(n²)</p></div>
+                <div class="callout reveal d5"><p>These rules let you simplify T(n) expressions quickly without full formal proofs.</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">14 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 15 — O(1) CONSTANT
+═══════════════════════════════════════════════ -->
+<section class="slide div-slide" id="slide-15">
+    <div class="slide-content" style="justify-content:center;">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="font-size:var(--title-size);">Common<br><em>Complexity Classes</em></h2>
+        <p class="reveal d3" style="font-size:var(--h3-size);color:var(--text2);margin-top:var(--sgap);">O(1) · O(log n) · O(n) · O(n log n) · O(n²) · O(2ⁿ) · O(n!)</p>
+    </div>
+    <span class="snum">15 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 16 — O(1) CONSTANT TIME
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-16">
+    <div class="sec">Complexity Classes</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">O(1) — Constant Time</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout sage reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Running time does <em>not depend on n</em> at all. The same number of operations regardless of input size — the holy grail of algorithms.</p>
+                </div>
+                <ul class="pts s">
+                    <li class="reveal d3">Array index access: <code style="font-family:var(--font-m);">arr[i]</code></li>
+                    <li class="reveal d4">Hash map lookup (average case)</li>
+                    <li class="reveal d5">Stack push/pop</li>
+                    <li class="reveal d6">Linked list head insert/delete</li>
+                    <li class="reveal d7">Arithmetic operations</li>
+                </ul>
+            </div>
+            <div>
+                <div class="cb sage reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># All O(1) — no loop, no recursion</span><br>
+<span class="kw">def</span> <span class="fn">get_first</span>(arr):<br>
+&nbsp;&nbsp;<span class="kw">return</span> arr[<span class="nm">0</span>]   <span class="cm"># O(1)</span><br>
+<br>
+<span class="kw">def</span> <span class="fn">swap</span>(arr, i, j):<br>
+&nbsp;&nbsp;arr[i], arr[j] = arr[j], arr[i]<br>
+&nbsp;&nbsp;<span class="cm"># O(1) — fixed ops</span><br>
+<br>
+<span class="kw">def</span> <span class="fn">is_even</span>(n):<br>
+&nbsp;&nbsp;<span class="kw">return</span> n % <span class="nm">2</span> == <span class="nm">0</span>  <span class="cm"># O(1)</span>
+                </div>
+                <div class="math reveal d4">T(n) = c &nbsp;&nbsp; (any constant)<br><span class="dim">Graph: flat horizontal line</span></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">16 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 17 — O(log n) LOGARITHMIC
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-17">
+    <div class="sec">Complexity Classes</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">O(log n) — Logarithmic Time</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>The algorithm <em>halves</em> (or reduces by a constant fraction) the problem size at each step. Incredibly efficient — log₂(10⁹) ≈ 30.</p>
+                </div>
+                <ul class="pts g">
+                    <li class="reveal d3">Binary search on sorted array</li>
+                    <li class="reveal d4">BST operations (balanced)</li>
+                    <li class="reveal d5">Heap insert/extract</li>
+                    <li class="reveal d6">Integer multiplication with repeated squaring</li>
+                    <li class="reveal d7">Finding an element in a balanced BST</li>
+                </ul>
+            </div>
+            <div>
+                <div class="cb reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># Binary search — O(log n)</span><br>
+<span class="kw">def</span> <span class="fn">binary_search</span>(arr, t):<br>
+&nbsp;&nbsp;lo, hi = <span class="nm">0</span>, <span class="fn">len</span>(arr)-<span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="kw">while</span> lo &lt;= hi:    <span class="cm"># log₂n iters</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;mid = (lo+hi)//<span class="nm">2</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> arr[mid] == t: <span class="kw">return</span> mid<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">elif</span> arr[mid]&lt;t: lo=mid+<span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">else</span>: hi=mid-<span class="nm">1</span>
+                </div>
+                <div class="dcard reveal d4"><div class="lbl">Why log n?</div><p>Each iteration: n → n/2 → n/4 → … → 1. After k steps: n/2ᵏ = 1 → k = log₂(n). So at most ⌊log₂n⌋ + 1 iterations.</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">17 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 18 — O(n) LINEAR
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-18">
+    <div class="sec">Complexity Classes</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">O(n) — Linear Time</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Running time grows <em>proportionally</em> to input size. Must look at each element at least once. Often optimal for problems that require reading the entire input.</p>
+                </div>
+                <ul class="pts g">
+                    <li class="reveal d3">Linear search</li>
+                    <li class="reveal d4">Finding max/min in unsorted array</li>
+                    <li class="reveal d5">Counting occurrences</li>
+                    <li class="reveal d6">Traversing a linked list</li>
+                    <li class="reveal d7">Counting sort (for fixed range)</li>
+                </ul>
+            </div>
+            <div>
+                <div class="cb reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># O(n) — single loop</span><br>
+<span class="kw">def</span> <span class="fn">find_max</span>(arr):  <span class="cm"># n ops</span><br>
+&nbsp;&nbsp;best = arr[<span class="nm">0</span>]<br>
+&nbsp;&nbsp;<span class="kw">for</span> x <span class="kw">in</span> arr[<span class="nm">1</span>:]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> x &gt; best: best = x<br>
+&nbsp;&nbsp;<span class="kw">return</span> best<br>
+<br>
+<span class="cm"># Two sequential O(n) loops → O(n)</span><br>
+<span class="kw">def</span> <span class="fn">sum_and_max</span>(arr):<br>
+&nbsp;&nbsp;total = <span class="fn">sum</span>(arr)   <span class="cm"># O(n)</span><br>
+&nbsp;&nbsp;mx = <span class="fn">max</span>(arr)      <span class="cm"># O(n)</span><br>
+&nbsp;&nbsp;<span class="kw">return</span> total, mx   <span class="cm"># O(n)+O(n)=O(n)</span>
+                </div>
+                <div class="dcard reveal d4"><div class="lbl">Sequential loops</div><p>Two separate O(n) loops = O(2n) = O(n). Three loops = O(3n) = O(n). Constants are dropped.</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">18 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 19 — O(n log n) LINEARITHMIC
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-19">
+    <div class="sec">Complexity Classes</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">O(n log n) — Linearithmic Time</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>The most common complexity for <em>divide-and-conquer</em> algorithms. Proven optimal for comparison-based sorting — no algorithm can do better.</p>
+                </div>
+                <ul class="pts g">
+                    <li class="reveal d3">Merge Sort, Heap Sort, Quick Sort (avg)</li>
+                    <li class="reveal d4">FFT (Fast Fourier Transform)</li>
+                    <li class="reveal d5">Building a balanced BST from sorted data</li>
+                    <li class="reveal d6">Many divide-and-conquer algorithms</li>
+                </ul>
+                <div class="dcard reveal d5" style="margin-top:var(--gap);"><div class="lbl">Intuition</div><p>n log n = n (work per level) × log n (number of levels in divide-and-conquer). Think Merge Sort: n elements, split log n times.</p></div>
+            </div>
+            <div>
+                <div class="cb reveal d3">
+<span class="cm"># Merge Sort — O(n log n)</span><br>
+<span class="kw">def</span> <span class="fn">merge_sort</span>(arr):<br>
+&nbsp;&nbsp;<span class="kw">if</span> <span class="fn">len</span>(arr) &lt;= <span class="nm">1</span>: <span class="kw">return</span> arr<br>
+&nbsp;&nbsp;mid = <span class="fn">len</span>(arr) // <span class="nm">2</span><br>
+&nbsp;&nbsp;<span class="cm"># log n levels of recursion</span><br>
+&nbsp;&nbsp;L = <span class="fn">merge_sort</span>(arr[:mid])<br>
+&nbsp;&nbsp;R = <span class="fn">merge_sort</span>(arr[mid:])<br>
+&nbsp;&nbsp;<span class="kw">return</span> <span class="fn">merge</span>(L, R)  <span class="cm"># O(n) each</span><br>
+<br>
+<span class="cm"># T(n) = 2T(n/2) + O(n)</span><br>
+<span class="cm"># By Master Theorem → O(n log n)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">19 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 20 — O(n²) QUADRATIC
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-20">
+    <div class="sec">Complexity Classes</div>
+    <div class="slide-content">
+        <div class="rule rose reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">O(n²) — Quadratic Time</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout rose reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Typically arises from <em>nested loops</em> where each loop runs n times. Acceptable for n ≤ 10,000; unacceptable for n ≥ 10⁶.</p>
+                </div>
+                <ul class="pts r">
+                    <li class="reveal d3">Bubble Sort, Selection Sort, Insertion Sort</li>
+                    <li class="reveal d4">Comparing all pairs of elements</li>
+                    <li class="reveal d5">Naive matrix addition O(n²) for n×n matrix</li>
+                    <li class="reveal d6">Floyd-Warshall shortest path O(V²) (actually O(V³))</li>
+                </ul>
+            </div>
+            <div>
+                <div class="cb rose reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># Nested loop → O(n²)</span><br>
+<span class="kw">def</span> <span class="fn">bubble_sort</span>(arr):<br>
+&nbsp;&nbsp;n = <span class="fn">len</span>(arr)<br>
+&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in range</span>(n):          <span class="cm"># n times</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> j <span class="kw">in range</span>(n-i-<span class="nm">1</span>):  <span class="cm"># n-i times</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> arr[j]&gt;arr[j+<span class="nm">1</span>]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arr[j],arr[j+<span class="nm">1</span>]=arr[j+<span class="nm">1</span>],arr[j]<br>
+<span class="cm"># Total: n + (n-1) + … + 1 = n(n-1)/2 = O(n²)</span>
+                </div>
+                <div class="dcard rose reveal d4"><div class="lbl" style="color:var(--rose);">Not always bad</div><p>Insertion sort is O(n²) worst-case but O(n) best-case (sorted input). Used inside TimSort for small subarrays because cache locality outweighs the complexity.</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">20 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 21 — O(2^n), O(n!), O(n^3)
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-21">
+    <div class="sec">Complexity Classes</div>
+    <div class="slide-content">
+        <div class="rule coral reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">O(n³), O(2ⁿ), O(n!) — Dangerous Complexities</h2>
+        <div class="three-col">
+            <div class="dcard reveal d2">
+                <div class="lbl" style="color:var(--gold);">O(n³) — Cubic</div>
+                <p>Three nested loops. Feasible for n ≤ 500.</p>
+                <div class="cb reveal d3" style="margin-top:var(--sgap);border-color:var(--gold);">
+<span class="cm"># Matrix multiplication</span><br>
+<span class="kw">for</span> i <span class="kw">in range</span>(n):<br>
+&nbsp;<span class="kw">for</span> j <span class="kw">in range</span>(n):<br>
+&nbsp;&nbsp;<span class="kw">for</span> k <span class="kw">in range</span>(n):<br>
+&nbsp;&nbsp;&nbsp;C[i][j]+=A[i][k]*B[k][j]
+                </div>
+                <p style="margin-top:var(--sgap);font-size:var(--small-size);color:var(--text3);">n=1000 → 10⁹ ops ~ 1 second</p>
+            </div>
+            <div class="dcard coral reveal d3">
+                <div class="lbl" style="color:var(--coral);">O(2ⁿ) — Exponential</div>
+                <p>Each new element doubles the work. Only feasible for n ≤ 20–25.</p>
+                <div class="cb reveal d4" style="margin-top:var(--sgap);border-color:var(--coral);">
+<span class="cm"># Fibonacci (naive)</span><br>
+<span class="kw">def</span> <span class="fn">fib</span>(n):<br>
+&nbsp;<span class="kw">if</span> n&lt;=<span class="nm">1</span>: <span class="kw">return</span> n<br>
+&nbsp;<span class="kw">return</span> <span class="fn">fib</span>(n-<span class="nm">1</span>)+<span class="fn">fib</span>(n-<span class="nm">2</span>)
+                </div>
+                <p style="margin-top:var(--sgap);font-size:var(--small-size);color:var(--text3);">n=50 → ~10¹⁵ ops (years!)</p>
+            </div>
+            <div class="dcard rose reveal d4">
+                <div class="lbl" style="color:var(--rose);">O(n!) — Factorial</div>
+                <p>All permutations. Only feasible for n ≤ 12–13.</p>
+                <div class="cb reveal d5" style="margin-top:var(--sgap);border-color:var(--rose);">
+<span class="cm"># Travelling Salesman</span><br>
+<span class="cm"># (brute force)</span><br>
+<span class="cm"># Try all n! routes</span><br>
+<span class="cm"># n=20 → 2.4×10¹⁸ ops</span>
+                </div>
+                <p style="margin-top:var(--sgap);font-size:var(--small-size);color:var(--text3);">n=20 → longer than Universe age</p>
+            </div>
+        </div>
+        <div class="callout coral reveal d5" style="margin-top:var(--gap);">
+            <p>O(2ⁿ) and O(n!) algorithms are <em>practically infeasible</em> for large n. Dynamic programming often reduces O(2ⁿ) to O(n²) or O(n³).</p>
+        </div>
+    </div>
+    <span class="snum">21 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 22 — GROWTH RATE CHART
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-22">
+    <div class="sec">Growth Rate Comparison</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Growth Rate Comparison</h2>
+        <div class="two-col">
+            <div class="reveal d3">
+                <table class="tbl">
+                    <thead><tr><th>n</th><th>log₂n</th><th>n</th><th>n log n</th><th>n²</th><th>2ⁿ</th><th>n!</th></tr></thead>
+                    <tbody>
+                        <tr><td>1</td><td class="good">0</td><td class="good">1</td><td class="good">0</td><td class="good">1</td><td class="ok">2</td><td class="ok">1</td></tr>
+                        <tr><td>4</td><td class="good">2</td><td class="good">4</td><td class="good">8</td><td class="ok">16</td><td class="bad">16</td><td class="ugly">24</td></tr>
+                        <tr><td>8</td><td class="good">3</td><td class="good">8</td><td class="good">24</td><td class="ok">64</td><td class="bad">256</td><td class="ugly">40,320</td></tr>
+                        <tr><td>16</td><td class="good">4</td><td class="good">16</td><td class="good">64</td><td class="ok">256</td><td class="bad">65,536</td><td class="ugly">~2×10¹³</td></tr>
+                        <tr><td>32</td><td class="good">5</td><td class="good">32</td><td class="ok">160</td><td class="bad">1,024</td><td class="ugly">4.3B</td><td class="ugly">∞ effectively</td></tr>
+                        <tr><td>100</td><td class="good">7</td><td class="good">100</td><td class="ok">664</td><td class="bad">10,000</td><td class="ugly">~10³⁰</td><td class="ugly">9.3×10¹⁵⁷</td></tr>
+                        <tr><td>1000</td><td class="good">10</td><td class="ok">1000</td><td class="ok">9,966</td><td class="bad">10⁶</td><td class="ugly">10³⁰¹</td><td class="ugly">∞∞</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <!-- SVG growth curves -->
+                <div class="chart-area reveal-scale d3" style="height:clamp(160px,28vh,260px);">
+                    <svg viewBox="0 0 300 200" style="width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <clipPath id="chartclip"><rect x="30" y="5" width="265" height="170"/></clipPath>
+                        </defs>
+                        <!-- axes -->
+                        <line x1="30" y1="175" x2="295" y2="175" stroke="var(--text3)" stroke-width="1"/>
+                        <line x1="30" y1="5"   x2="30"  y2="175" stroke="var(--text3)" stroke-width="1"/>
+                        <text x="295" y="185" fill="var(--text3)" font-family="JetBrains Mono" font-size="9" text-anchor="end">n →</text>
+                        <text x="10"  y="10"  fill="var(--text3)" font-family="JetBrains Mono" font-size="9" text-anchor="middle">ops</text>
+                        <!-- O(1) -->
+                        <line x1="30" y1="168" x2="295" y2="168" stroke="#7aaa88" stroke-width="2" clip-path="url(#chartclip)"/>
+                        <text x="298" y="170" fill="#7aaa88" font-family="JetBrains Mono" font-size="8">O(1)</text>
+                        <!-- O(log n) -->
+                        <path d="M30,168 Q80,155 160,140 Q220,130 295,122" fill="none" stroke="#c9a84c" stroke-width="2" clip-path="url(#chartclip)"/>
+                        <text x="298" y="124" fill="#c9a84c" font-family="JetBrains Mono" font-size="8">O(lg n)</text>
+                        <!-- O(n) -->
+                        <line x1="30" y1="168" x2="295" y2="55" stroke="#e8c878" stroke-width="2" clip-path="url(#chartclip)"/>
+                        <text x="298" y="57" fill="#e8c878" font-family="JetBrains Mono" font-size="8">O(n)</text>
+                        <!-- O(n log n) -->
+                        <path d="M30,168 L80,145 L140,118 L200,88 L255,60 L295,40" fill="none" stroke="#7ab8d4" stroke-width="2" clip-path="url(#chartclip)"/>
+                        <text x="298" y="42" fill="#7ab8d4" font-family="JetBrains Mono" font-size="8">O(n lg n)</text>
+                        <!-- O(n²) -->
+                        <path d="M30,168 L60,162 L90,148 L120,125 L150,94 L180,54 L200,28" fill="none" stroke="#e8a8b0" stroke-width="2" clip-path="url(#chartclip)"/>
+                        <text x="205" y="22" fill="#e8a8b0" font-family="JetBrains Mono" font-size="8">O(n²)</text>
+                        <!-- O(2^n) -->
+                        <path d="M30,168 L50,165 L70,157 L90,138 L108,108 L120,72 L130,40 L135,15" fill="none" stroke="#d47060" stroke-width="2" clip-path="url(#chartclip)"/>
+                        <text x="140" y="13" fill="#d47060" font-family="JetBrains Mono" font-size="8">O(2ⁿ)</text>
+                    </svg>
+                </div>
+                <div class="callout reveal d4" style="margin-top:var(--gap);">
+                    <p>The gap between O(n log n) and O(n²) grows <em>faster than most people intuit</em> — at n=10⁶ that's a factor of ~50,000.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">22 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 23 — HIERARCHY
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-23">
+    <div class="sec">Complexity Hierarchy</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">The Complexity Hierarchy</h2>
+        <div class="callout reveal d3" style="margin-bottom:var(--gap);">
+            <p>O(1) ⊂ O(log n) ⊂ O(√n) ⊂ O(n) ⊂ O(n log n) ⊂ O(n²) ⊂ O(n³) ⊂ O(2ⁿ) ⊂ O(n!)</p>
+        </div>
+        <div class="reveal d4">
+            <table class="tbl">
+                <thead><tr><th>Class</th><th>Name</th><th>Example</th><th>Practical limit</th><th>Verdict</th></tr></thead>
+                <tbody>
+                    <tr><td style="font-family:var(--font-m);color:var(--sage);">O(1)</td><td>Constant</td><td>Hash lookup, array access</td><td>Any n</td><td class="good">Ideal</td></tr>
+                    <tr><td style="font-family:var(--font-m);color:var(--sage);">O(log n)</td><td>Logarithmic</td><td>Binary search, BST</td><td>Any n</td><td class="good">Excellent</td></tr>
+                    <tr><td style="font-family:var(--font-m);color:var(--gold);">O(√n)</td><td>Square root</td><td>Sieve of Eratosthenes</td><td>n ≤ 10¹²</td><td class="good">Very good</td></tr>
+                    <tr><td style="font-family:var(--font-m);color:var(--gold);">O(n)</td><td>Linear</td><td>Linear scan, Kadane's</td><td>n ≤ 10⁸</td><td class="ok">Good</td></tr>
+                    <tr><td style="font-family:var(--font-m);color:var(--gold);">O(n log n)</td><td>Linearithmic</td><td>Merge Sort, FFT</td><td>n ≤ 10⁷</td><td class="ok">Good</td></tr>
+                    <tr><td style="font-family:var(--font-m);color:var(--rose);">O(n²)</td><td>Quadratic</td><td>Bubble Sort, all pairs</td><td>n ≤ 10⁴</td><td class="bad">Acceptable</td></tr>
+                    <tr><td style="font-family:var(--font-m);color:var(--rose);">O(n³)</td><td>Cubic</td><td>Matrix multiply, Floyd</td><td>n ≤ 500</td><td class="bad">Slow</td></tr>
+                    <tr><td style="font-family:var(--font-m);color:var(--coral);">O(2ⁿ)</td><td>Exponential</td><td>Subsets, naive Fib</td><td>n ≤ 25</td><td class="ugly">Dangerous</td></tr>
+                    <tr><td style="font-family:var(--font-m);color:var(--coral);">O(n!)</td><td>Factorial</td><td>Permutations, TSP</td><td>n ≤ 12</td><td class="ugly">Infeasible</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <span class="snum">23 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 24 — LOOP ANALYSIS RULES
+═══════════════════════════════════════════════ -->
+<section class="slide div-slide" id="slide-24">
+    <div class="slide-content" style="justify-content:center;">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="font-size:var(--title-size);">Analysing<br><em>Code Patterns</em></h2>
+        <p class="reveal d3" style="font-size:var(--h3-size);color:var(--text2);margin-top:var(--sgap);">Loops · conditions · recursion · logarithmic patterns</p>
+    </div>
+    <span class="snum">24 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 25 — SINGLE LOOPS
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-25">
+    <div class="sec">Code Analysis</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Analysing Single Loops</h2>
+        <div class="two-col">
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Loop runs n times → O(n)</div>
+                    <div class="cb reveal d3" style="margin-top:var(--sgap);">
+<span class="kw">for</span> i <span class="kw">in range</span>(n):   <span class="cm"># n iters</span><br>
+&nbsp;&nbsp;<span class="fn">print</span>(i)           <span class="cm"># O(1) body</span><br>
+<span class="cm"># Total: O(n)</span>
+                    </div>
+                </div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Loop runs n/2 times → O(n)</div>
+                    <div class="cb reveal d5" style="margin-top:var(--sgap);">
+i = <span class="nm">0</span><br>
+<span class="kw">while</span> i &lt; n:     <span class="cm"># n/2 iters</span><br>
+&nbsp;&nbsp;<span class="fn">process</span>(i)<br>
+&nbsp;&nbsp;i += <span class="nm">2</span>           <span class="cm"># step by 2</span><br>
+<span class="cm"># Total: O(n/2) = O(n)</span>
+                    </div>
+                </div>
+                <div class="dcard reveal d6">
+                    <div class="lbl">Loop halves i → O(log n)</div>
+                    <div class="cb reveal d7" style="margin-top:var(--sgap);">
+i = n<br>
+<span class="kw">while</span> i &gt; <span class="nm">1</span>:   <span class="cm"># log₂n iters</span><br>
+&nbsp;&nbsp;<span class="fn">process</span>(i)<br>
+&nbsp;&nbsp;i //= <span class="nm">2</span>        <span class="cm"># halve each time</span><br>
+<span class="cm"># Total: O(log n)</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Loop multiplies i → O(log n)</div>
+                    <div class="cb reveal d3" style="margin-top:var(--sgap);">
+i = <span class="nm">1</span><br>
+<span class="kw">while</span> i &lt; n:    <span class="cm"># log₂n iters</span><br>
+&nbsp;&nbsp;<span class="fn">process</span>(i)<br>
+&nbsp;&nbsp;i *= <span class="nm">2</span>         <span class="cm"># double each time</span><br>
+<span class="cm"># i: 1, 2, 4, 8, … → O(log n)</span>
+                    </div>
+                </div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Loop runs √n times → O(√n)</div>
+                    <div class="cb reveal d5" style="margin-top:var(--sgap);">
+i = <span class="nm">1</span><br>
+<span class="kw">while</span> i*i &lt;= n: <span class="cm"># √n iters</span><br>
+&nbsp;&nbsp;<span class="fn">process</span>(i)<br>
+&nbsp;&nbsp;i += <span class="nm">1</span><br>
+<span class="cm"># Total: O(√n)</span>
+                    </div>
+                </div>
+                <div class="callout reveal d6">
+                    <p>Rule: count loop iterations as a function of n. Step size and condition determine the complexity.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">25 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 26 — NESTED LOOPS
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-26">
+    <div class="sec">Code Analysis</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Analysing Nested Loops</h2>
+        <div class="two-col">
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Independent nested loops → O(n²)</div>
+                    <div class="cb reveal d3" style="margin-top:var(--sgap);">
+<span class="kw">for</span> i <span class="kw">in range</span>(n):      <span class="cm"># n</span><br>
+&nbsp;&nbsp;<span class="kw">for</span> j <span class="kw">in range</span>(n):  <span class="cm"># × n</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">process</span>(i, j)      <span class="cm"># O(1)</span><br>
+<span class="cm"># T = n × n × O(1) = O(n²)</span>
+                    </div>
+                </div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">j depends on i → O(n²)</div>
+                    <div class="cb reveal d5" style="margin-top:var(--sgap);">
+<span class="kw">for</span> i <span class="kw">in range</span>(n):      <span class="cm"># n</span><br>
+&nbsp;&nbsp;<span class="kw">for</span> j <span class="kw">in range</span>(i):  <span class="cm"># 0,1,…,i</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">process</span>(i, j)<br>
+<span class="cm"># T = 0+1+2+…+(n-1) = n(n-1)/2 = O(n²)</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Three nested loops → O(n³)</div>
+                    <div class="cb reveal d3" style="margin-top:var(--sgap);">
+<span class="kw">for</span> i <span class="kw">in range</span>(n):         <span class="cm"># n</span><br>
+&nbsp;<span class="kw">for</span> j <span class="kw">in range</span>(n):      <span class="cm"># × n</span><br>
+&nbsp;&nbsp;<span class="kw">for</span> k <span class="kw">in range</span>(n):  <span class="cm"># × n</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">process</span>(i,j,k)<br>
+<span class="cm"># T = n³ = O(n³)</span>
+                    </div>
+                </div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Outer O(n), inner O(log n) → O(n log n)</div>
+                    <div class="cb reveal d5" style="margin-top:var(--sgap);">
+<span class="kw">for</span> i <span class="kw">in range</span>(n):      <span class="cm"># n</span><br>
+&nbsp;&nbsp;j = n<br>
+&nbsp;&nbsp;<span class="kw">while</span> j &gt; <span class="nm">1</span>:       <span class="cm"># log n</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">process</span>(i, j)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;j //= <span class="nm">2</span><br>
+<span class="cm"># T = n × log n = O(n log n)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">26 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 27 — CONDITIONAL ANALYSIS
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-27">
+    <div class="sec">Code Analysis</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Analysing Conditionals &amp; Sequential Code</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>For <em>if-else</em>: take the maximum of both branches. For <em>sequential</em> code: take the maximum of all parts (since lower-order terms drop out).</p>
+                </div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">If-else: take max</div>
+                    <div class="cb reveal d4" style="margin-top:var(--sgap);">
+<span class="kw">if</span> condition:         <span class="cm"># O(1)</span><br>
+&nbsp;&nbsp;<span class="fn">linear_scan</span>(arr)  <span class="cm"># O(n)</span><br>
+<span class="kw">else</span>:<br>
+&nbsp;&nbsp;<span class="fn">bubble_sort</span>(arr)  <span class="cm"># O(n²)</span><br>
+<span class="cm"># T = max(O(n), O(n²)) = O(n²)</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Sequential blocks: take max</div>
+                    <div class="cb reveal d3" style="margin-top:var(--sgap);">
+<span class="fn">sort</span>(arr)         <span class="cm"># O(n log n)</span><br>
+<span class="fn">find_max</span>(arr)     <span class="cm"># O(n)</span><br>
+<span class="fn">binary_search</span>(arr)<span class="cm"># O(log n)</span><br>
+<span class="cm"># T = O(n log n) + O(n) + O(log n)</span><br>
+<span class="cm">#   = O(n log n) ← dominant</span>
+                    </div>
+                </div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Function calls</div>
+                    <div class="cb reveal d5" style="margin-top:var(--sgap);">
+<span class="kw">def</span> <span class="fn">process</span>(arr):  <span class="cm"># O(n²)</span><br>
+&nbsp;&nbsp;<span class="fn">sort</span>(arr)         <span class="cm"># O(n log n)</span><br>
+&nbsp;&nbsp;<span class="fn">all_pairs</span>(arr)    <span class="cm"># O(n²)</span><br>
+<span class="cm"># T = O(n log n) + O(n²) = O(n²)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">27 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 28 — SPACE COMPLEXITY
+═══════════════════════════════════════════════ -->
+<section class="slide div-slide" id="slide-28">
+    <div class="slide-content" style="justify-content:center;">
+        <div class="rule rose reveal d1"></div>
+        <h2 class="reveal d2" style="font-size:var(--title-size);">Space<br><em>Complexity</em></h2>
+        <p class="reveal d3" style="font-size:var(--h3-size);color:var(--text2);margin-top:var(--sgap);">Total space · Auxiliary space · call stack · time-space trade-off</p>
+    </div>
+    <span class="snum">28 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 29 — SPACE COMPLEXITY ANALYSIS
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-29">
+    <div class="sec">Space Complexity</div>
+    <div class="slide-content">
+        <div class="rule rose reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Space Complexity</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout rose reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Space complexity = total memory used by an algorithm as a function of n. Includes input, output, auxiliary data structures, and the call stack.</p>
+                </div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--rose);">Total Space</div><p>All memory used — including the input array itself. Usually O(n) minimum just to store the input.</p></div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--rose);">Auxiliary Space</div><p><strong>Extra</strong> memory beyond the input. In-place algorithms use O(1) auxiliary space. Merge Sort uses O(n) auxiliary (the merge buffer).</p></div>
+                <div class="callout sage reveal d5">
+                    <p>Interviews usually ask for <em>auxiliary space</em>. In-place algorithms (O(1) extra) are preferred when memory is constrained.</p>
+                </div>
+            </div>
+            <div>
+                <div class="cb rose reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># O(1) auxiliary — in-place swap</span><br>
+<span class="kw">def</span> <span class="fn">reverse</span>(arr):<br>
+&nbsp;&nbsp;lo, hi = <span class="nm">0</span>, <span class="fn">len</span>(arr)-<span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="kw">while</span> lo &lt; hi:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;arr[lo],arr[hi]=arr[hi],arr[lo]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;lo+=<span class="nm">1</span>; hi-=<span class="nm">1</span><br>
+<span class="cm"># Space: O(1) — only lo,hi variables</span><br>
+<br>
+<span class="cm"># O(n) auxiliary — new array</span><br>
+<span class="kw">def</span> <span class="fn">reverse_copy</span>(arr):<br>
+&nbsp;&nbsp;<span class="kw">return</span> arr[::-<span class="nm">1</span>]   <span class="cm"># O(n) copy</span><br>
+<br>
+<span class="cm"># Merge Sort: O(n) aux</span><br>
+<span class="cm"># Quick Sort: O(log n) aux (stack)</span><br>
+<span class="cm"># DFS on tree: O(h) aux (h = height)</span>
+                </div>
+                <div class="dcard rose reveal d4"><div class="lbl" style="color:var(--rose);">Call stack space</div><p>Recursive algorithms use O(depth) stack frames. Recursive DFS on a tree of height h uses O(h) = O(log n) for balanced, O(n) for skewed.</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">29 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 30 — TIME-SPACE TRADE-OFF
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-30">
+    <div class="sec">Space Complexity</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Time-Space Trade-Off</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>You can often <em>trade space for time</em> — use extra memory (memoisation, lookup tables) to avoid recomputation, achieving faster runtime.</p>
+                </div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Memoisation (DP)</div><p>Fibonacci naive: O(2ⁿ) time, O(n) stack.<br>Fibonacci memoised: O(n) time, O(n) space.<br>Trade O(n) space to gain from O(2ⁿ) → O(n).</p></div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl">Lookup Tables</div><p>Precompute trig values: O(n) space, O(1) lookup instead of O(1) compute per call (with expensive constants). Hash maps cache expensive computations.</p></div>
+                <div class="dcard reveal d5"><div class="lbl">Counting Sort</div><p>Uses O(k) extra space (k = value range) but achieves O(n+k) time — faster than O(n log n) comparison sorts when k is small.</p></div>
+            </div>
+            <div>
+                <div class="reveal d3">
+                    <table class="tbl">
+                        <thead><tr><th>Algorithm</th><th>Time</th><th>Aux Space</th></tr></thead>
+                        <tbody>
+                            <tr><td>Bubble Sort</td><td class="bad">O(n²)</td><td class="good">O(1)</td></tr>
+                            <tr><td>Merge Sort</td><td class="good">O(n log n)</td><td class="bad">O(n)</td></tr>
+                            <tr><td>Quick Sort</td><td class="good">O(n log n)*</td><td class="ok">O(log n)</td></tr>
+                            <tr><td>Heap Sort</td><td class="good">O(n log n)</td><td class="good">O(1)</td></tr>
+                            <tr><td>Counting Sort</td><td class="good">O(n+k)</td><td class="ok">O(k)</td></tr>
+                            <tr><td>Fib (naive)</td><td class="ugly">O(2ⁿ)</td><td class="ok">O(n)</td></tr>
+                            <tr><td>Fib (memo)</td><td class="good">O(n)</td><td class="bad">O(n)</td></tr>
+                            <tr><td>Binary Search</td><td class="good">O(log n)</td><td class="good">O(1)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="callout sage reveal d4" style="margin-top:var(--gap);">
+                    <p>There is no universally "best" algorithm — the right choice depends on your time and space constraints.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">30 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 31 — RECURRENCE RELATIONS
+═══════════════════════════════════════════════ -->
+<section class="slide div-slide" id="slide-31">
+    <div class="slide-content" style="justify-content:center;">
+        <div class="rule sage reveal d1"></div>
+        <h2 class="reveal d2" style="font-size:var(--title-size);">Recurrence<br><em>Relations</em></h2>
+        <p class="reveal d3" style="font-size:var(--h3-size);color:var(--text2);margin-top:var(--sgap);">Substitution · Recursion tree · Master Theorem</p>
+    </div>
+    <span class="snum">31 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 32 — WHAT IS A RECURRENCE
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-32">
+    <div class="sec">Recurrence Relations</div>
+    <div class="slide-content">
+        <div class="rule sage reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">What Is a Recurrence Relation?</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout sage reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A <em>recurrence relation</em> expresses T(n) in terms of T on smaller inputs — naturally arising from recursive algorithms.</p>
+                </div>
+                <ul class="pts s">
+                    <li class="reveal d3">T(n) = time to solve problem of size n</li>
+                    <li class="reveal d4">Base case: T(1) = c (some constant)</li>
+                    <li class="reveal d5">Recursive case: T(n) in terms of T(n/2), T(n-1), etc.</li>
+                    <li class="reveal d6">Goal: find a closed-form (non-recursive) expression for T(n)</li>
+                </ul>
+            </div>
+            <div>
+                <div class="dcard sage reveal d2" style="margin-bottom:var(--sgap);">
+                    <div class="lbl" style="color:var(--sage);">Binary Search</div>
+                    <div class="math" style="font-size:var(--body-size);">T(n) = T(n/2) + O(1)<br><span class="dim">T(1) = O(1)</span><br>→ T(n) = O(log n)</div>
+                </div>
+                <div class="dcard sage reveal d3" style="margin-bottom:var(--sgap);">
+                    <div class="lbl" style="color:var(--sage);">Merge Sort</div>
+                    <div class="math" style="font-size:var(--body-size);">T(n) = 2T(n/2) + O(n)<br><span class="dim">T(1) = O(1)</span><br>→ T(n) = O(n log n)</div>
+                </div>
+                <div class="dcard sage reveal d4">
+                    <div class="lbl" style="color:var(--sage);">Factorial</div>
+                    <div class="math" style="font-size:var(--body-size);">T(n) = T(n-1) + O(1)<br><span class="dim">T(0) = O(1)</span><br>→ T(n) = O(n)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">32 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 33 — SUBSTITUTION METHOD
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-33">
+    <div class="sec">Recurrence — Substitution</div>
+    <div class="slide-content">
+        <div class="rule sage reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Solving Recurrences — Substitution Method</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout sage reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Guess the solution form, then prove it by mathematical induction. Three steps: guess, verify base case, inductive step.</p>
+                </div>
+                <p class="reveal d3" style="margin-bottom:var(--sgap);">Solve T(n) = 2T(n/2) + n, T(1) = 1</p>
+                <div class="dcard sage reveal d4" style="margin-bottom:var(--sgap);">
+                    <div class="lbl" style="color:var(--sage);">Step 1: Guess T(n) = O(n log n)</div>
+                    <p>Assume T(k) ≤ c·k·log k for all k &lt; n</p>
+                </div>
+                <div class="dcard sage reveal d5">
+                    <div class="lbl" style="color:var(--sage);">Step 2: Inductive step</div>
+                    <p>T(n) = 2T(n/2) + n ≤ 2·c·(n/2)·log(n/2) + n = cn·(log n - 1) + n = cn log n - cn + n ≤ cn log n if c ≥ 1 ✓</p>
+                </div>
+            </div>
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--sgap);color:var(--text2);">Solve T(n) = T(n-1) + n, T(1) = 1</p>
+                <div class="dcard sage reveal d3" style="margin-bottom:var(--sgap);">
+                    <div class="lbl" style="color:var(--sage);">Step 1: Expand (unroll)</div>
+                    <p>T(n) = T(n-1) + n<br>= T(n-2) + (n-1) + n<br>= T(n-3) + (n-2) + (n-1) + n<br>= T(1) + 2 + 3 + … + n</p>
+                </div>
+                <div class="dcard sage reveal d4" style="margin-bottom:var(--sgap);">
+                    <div class="lbl" style="color:var(--sage);">Step 2: Sum</div>
+                    <p>T(n) = 1 + Σᵢ₌₂ⁿ i = 1 + n(n+1)/2 - 1 = n(n+1)/2 = O(n²)</p>
+                </div>
+                <div class="callout reveal d5">
+                    <p>T(n) = T(n-1) + n → T(n) = Θ(n²)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">33 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 34 — RECURSION TREE METHOD
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-34">
+    <div class="sec">Recurrence — Tree Method</div>
+    <div class="slide-content">
+        <div class="rule sage reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Recursion Tree Method</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout sage reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Draw the recursion tree: each node = subproblem cost, sum all levels. The total cost = sum of all nodes across all levels.</p>
+                </div>
+                <p class="reveal d3" style="margin-bottom:var(--sgap);color:var(--text2);">T(n) = 2T(n/2) + cn</p>
+                <ul class="pts s">
+                    <li class="reveal d4">Level 0 (root): cost = cn, subproblems = 2×T(n/2)</li>
+                    <li class="reveal d5">Level 1: 2 nodes × cn/2 each = cn total</li>
+                    <li class="reveal d6">Level 2: 4 nodes × cn/4 each = cn total</li>
+                    <li class="reveal d7">Level k: 2ᵏ nodes × cn/2ᵏ each = cn total</li>
+                    <li class="reveal d8">Depth = log₂n → log₂n + 1 levels, each costs cn</li>
+                </ul>
+            </div>
+            <div class="reveal-scale d3">
+                <svg viewBox="0 0 280 210" style="width:100%;max-height:min(35vh,210px);" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Level 0 -->
+                    <rect x="100" y="5"  width="80" height="24" rx="3" fill="var(--bg3)" stroke="var(--sage)" stroke-width="1"/>
+                    <text x="140" y="21" text-anchor="middle" fill="var(--sage)" font-family="JetBrains Mono" font-size="10">cn</text>
+                    <text x="270" y="21" fill="var(--text3)" font-family="JetBrains Mono" font-size="9">= cn</text>
+                    <!-- Level 1 lines -->
+                    <line x1="130" y1="29" x2="75"  y2="55" stroke="var(--text3)" stroke-width="1"/>
+                    <line x1="150" y1="29" x2="205" y2="55" stroke="var(--text3)" stroke-width="1"/>
+                    <!-- Level 1 -->
+                    <rect x="40"  y="55" width="70" height="22" rx="3" fill="var(--bg3)" stroke="var(--sage)" stroke-width="1" opacity="0.8"/>
+                    <text x="75"  y="70" text-anchor="middle" fill="var(--sage)" font-family="JetBrains Mono" font-size="10">cn/2</text>
+                    <rect x="170" y="55" width="70" height="22" rx="3" fill="var(--bg3)" stroke="var(--sage)" stroke-width="1" opacity="0.8"/>
+                    <text x="205" y="70" text-anchor="middle" fill="var(--sage)" font-family="JetBrains Mono" font-size="10">cn/2</text>
+                    <text x="270" y="70" fill="var(--text3)" font-family="JetBrains Mono" font-size="9">= cn</text>
+                    <!-- Level 2 lines -->
+                    <line x1="65"  y1="77" x2="25"  y2="103" stroke="var(--text3)" stroke-width="1"/>
+                    <line x1="85"  y1="77" x2="120" y2="103" stroke="var(--text3)" stroke-width="1"/>
+                    <line x1="190" y1="77" x2="165" y2="103" stroke="var(--text3)" stroke-width="1"/>
+                    <line x1="215" y1="77" x2="252" y2="103" stroke="var(--text3)" stroke-width="1"/>
+                    <!-- Level 2 -->
+                    <rect x="5"   y="103" width="44" height="20" rx="3" fill="var(--bg3)" stroke="var(--sage)" stroke-width="1" opacity="0.6"/>
+                    <text x="27"  y="117" text-anchor="middle" fill="var(--sage)" font-family="JetBrains Mono" font-size="9">cn/4</text>
+                    <rect x="100" y="103" width="44" height="20" rx="3" fill="var(--bg3)" stroke="var(--sage)" stroke-width="1" opacity="0.6"/>
+                    <text x="122" y="117" text-anchor="middle" fill="var(--sage)" font-family="JetBrains Mono" font-size="9">cn/4</text>
+                    <rect x="145" y="103" width="44" height="20" rx="3" fill="var(--bg3)" stroke="var(--sage)" stroke-width="1" opacity="0.6"/>
+                    <text x="167" y="117" text-anchor="middle" fill="var(--sage)" font-family="JetBrains Mono" font-size="9">cn/4</text>
+                    <rect x="233" y="103" width="44" height="20" rx="3" fill="var(--bg3)" stroke="var(--sage)" stroke-width="1" opacity="0.6"/>
+                    <text x="255" y="117" text-anchor="middle" fill="var(--sage)" font-family="JetBrains Mono" font-size="9">cn/4</text>
+                    <text x="270" y="117" fill="var(--text3)" font-family="JetBrains Mono" font-size="9">= cn</text>
+                    <!-- dots -->
+                    <text x="140" y="148" text-anchor="middle" fill="var(--text3)" font-size="14">⋮</text>
+                    <!-- leaves -->
+                    <text x="20"  y="175" fill="var(--gold)" font-family="JetBrains Mono" font-size="8">T(1)</text>
+                    <text x="60"  y="175" fill="var(--gold)" font-family="JetBrains Mono" font-size="8">T(1)</text>
+                    <text x="100" y="175" fill="var(--gold)" font-family="JetBrains Mono" font-size="8">…</text>
+                    <text x="200" y="175" fill="var(--gold)" font-family="JetBrains Mono" font-size="8">T(1)</text>
+                    <text x="270" y="175" fill="var(--text3)" font-family="JetBrains Mono" font-size="9">= cn</text>
+                    <!-- total -->
+                    <line x1="0" y1="190" x2="280" y2="190" stroke="var(--border)" stroke-width="1"/>
+                    <text x="5" y="204" fill="var(--gold)" font-family="JetBrains Mono" font-size="10">Total = cn × (log n + 1) = O(n log n)</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <span class="snum">34 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 35 — MASTER THEOREM
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-35">
+    <div class="sec">Master Theorem</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">The Master Theorem</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>For recurrences of the form <em>T(n) = a·T(n/b) + f(n)</em> where a ≥ 1, b &gt; 1, compare f(n) to n^(log_b a).</p>
+                </div>
+                <div class="math reveal d3" style="margin-bottom:var(--sgap);">T(n) = a·T(n/b) + f(n)<br><span class="dim">a = subproblems · b = size reduction</span><br><span class="dim">f(n) = work outside recursion</span></div>
+                <div class="dcard sage reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--sage);">Case 1 — leaves dominate</div><p>If f(n) = O(n^(log_b(a) - ε)) for some ε &gt; 0, then <span style="color:var(--gold);font-family:var(--font-m);">T(n) = Θ(n^log_b(a))</span></p></div>
+                <div class="dcard reveal d5" style="margin-bottom:var(--sgap);"><div class="lbl">Case 2 — balanced</div><p>If f(n) = Θ(n^log_b(a)), then <span style="color:var(--gold);font-family:var(--font-m);">T(n) = Θ(n^log_b(a) · log n)</span></p></div>
+                <div class="dcard coral reveal d6"><div class="lbl" style="color:var(--coral);">Case 3 — root dominates</div><p>If f(n) = Ω(n^(log_b(a) + ε)) and regularity condition, then <span style="color:var(--gold);font-family:var(--font-m);">T(n) = Θ(f(n))</span></p></div>
+            </div>
+            <div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Merge Sort: T(n)=2T(n/2)+n</div>
+                    <p>a=2, b=2, f(n)=n. log_b(a)=log₂2=1. f(n)=n=Θ(n¹)=Θ(n^log_b a). Case 2 applies. T(n)=Θ(n log n) ✓</p>
+                </div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Binary Search: T(n)=T(n/2)+1</div>
+                    <p>a=1, b=2, f(n)=1. log_b(a)=log₂1=0. f(n)=1=Θ(n⁰). Case 2. T(n)=Θ(log n) ✓</p>
+                </div>
+                <div class="dcard reveal d5" style="margin-bottom:var(--sgap);">
+                    <div class="lbl">Strassen: T(n)=7T(n/2)+n²</div>
+                    <p>a=7, b=2. log₂7≈2.81. f(n)=n²=O(n^(2.81-ε)). Case 1. T(n)=Θ(n^log₂7) ≈ Θ(n^2.81) ✓</p>
+                </div>
+                <div class="dcard reveal d6">
+                    <div class="lbl">T(n)=4T(n/2)+n³</div>
+                    <p>a=4, b=2. log₂4=2. f(n)=n³=Ω(n^(2+1)). Case 3 (check regularity: 4·(n/2)³=n³/2 ≤ cn³ ✓). T(n)=Θ(n³) ✓</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">35 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 36 — AMORTISED ANALYSIS
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-36">
+    <div class="sec">Amortised Analysis</div>
+    <div class="slide-content">
+        <div class="rule blue reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Amortised Analysis</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout blue reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Amortised analysis computes the <em>average cost per operation</em> over a sequence of operations — even if some individual operations are expensive, the average may be O(1).</p>
+                </div>
+                <ul class="pts b">
+                    <li class="reveal d3">Does NOT assume a probability distribution (unlike average-case)</li>
+                    <li class="reveal d4">The expensive operations happen rarely enough to be "paid for" by the cheap ones</li>
+                    <li class="reveal d5">Three methods: <strong>Aggregate, Accounting (Banker), Potential</strong></li>
+                </ul>
+                <div class="callout blue reveal d5" style="margin-top:var(--gap);">
+                    <p>Example: Dynamic array — most appends are O(1). Resize (copy all) costs O(n) but happens only every ~n appends. Amortised cost = O(1).</p>
+                </div>
+            </div>
+            <div>
+                <p class="reveal d3" style="margin-bottom:var(--sgap);color:var(--text2);">Proof: n appends on a dynamic array</p>
+                <div class="cb blue reveal d4" style="margin-bottom:var(--gap);">
+<span class="cm"># Capacity doubles on resize:</span><br>
+<span class="cm"># 1, 2, 4, 8, 16, … insertions</span><br>
+<span class="cm"># Cost of each resize:</span><br>
+<span class="cm">#   copy 1, 2, 4, 8, … elements</span><br>
+<span class="cm"># Total copy work after n appends:</span><br>
+<span class="cm"># ≤ 1+2+4+8+…+n = 2n (geometric)</span><br>
+<span class="cm"># Total cost: n appends + 2n copies</span><br>
+<span class="cm">#           = 3n ops = O(n)</span><br>
+<span class="cm"># Per append: O(n)/n = O(1) ✓</span>
+                </div>
+                <div class="dcard blue reveal d5"><div class="lbl" style="color:var(--blue);">Other examples</div><p>Stack with multipop (aggregate O(1) per op), splay tree (amortised O(log n)), Union-Find with path compression (amortised O(α(n)) ≈ O(1)).</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">36 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 37 — COMMON ALGORITHM COMPLEXITIES
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-37">
+    <div class="sec">Reference</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Common Algorithm Complexities</h2>
+        <div class="two-col">
+            <div class="reveal d3">
+                <table class="tbl">
+                    <thead><tr><th>Algorithm</th><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th></tr></thead>
+                    <tbody>
+                        <tr><td>Bubble Sort</td><td class="good">O(n)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td></tr>
+                        <tr><td>Selection Sort</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td></tr>
+                        <tr><td>Insertion Sort</td><td class="good">O(n)</td><td class="bad">O(n²)</td><td class="bad">O(n²)</td><td class="good">O(1)</td></tr>
+                        <tr><td>Merge Sort</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="bad">O(n)</td></tr>
+                        <tr><td>Quick Sort</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="bad">O(n²)</td><td class="ok">O(log n)</td></tr>
+                        <tr><td>Heap Sort</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(n log n)</td><td class="good">O(1)</td></tr>
+                        <tr><td>Linear Search</td><td class="good">O(1)</td><td class="ok">O(n)</td><td class="bad">O(n)</td><td class="good">O(1)</td></tr>
+                        <tr><td>Binary Search</td><td class="good">O(1)</td><td class="good">O(log n)</td><td class="good">O(log n)</td><td class="good">O(1)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="reveal d4">
+                <table class="tbl">
+                    <thead><tr><th>Data Structure</th><th>Access</th><th>Search</th><th>Insert</th><th>Delete</th></tr></thead>
+                    <tbody>
+                        <tr><td>Array</td><td class="good">O(1)</td><td class="ok">O(n)</td><td class="bad">O(n)</td><td class="bad">O(n)</td></tr>
+                        <tr><td>Linked List</td><td class="bad">O(n)</td><td class="bad">O(n)</td><td class="good">O(1)</td><td class="good">O(1)</td></tr>
+                        <tr><td>Stack</td><td class="bad">O(n)</td><td class="bad">O(n)</td><td class="good">O(1)</td><td class="good">O(1)</td></tr>
+                        <tr><td>Queue</td><td class="bad">O(n)</td><td class="bad">O(n)</td><td class="good">O(1)</td><td class="good">O(1)</td></tr>
+                        <tr><td>Hash Map</td><td>—</td><td class="good">O(1)*</td><td class="good">O(1)*</td><td class="good">O(1)*</td></tr>
+                        <tr><td>BST (balanced)</td><td class="ok">O(log n)</td><td class="ok">O(log n)</td><td class="ok">O(log n)</td><td class="ok">O(log n)</td></tr>
+                        <tr><td>Heap</td><td class="ok">O(log n)</td><td class="bad">O(n)</td><td class="ok">O(log n)</td><td class="ok">O(log n)</td></tr>
+                        <tr><td>Trie</td><td class="ok">O(k)</td><td class="ok">O(k)</td><td class="ok">O(k)</td><td class="ok">O(k)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <span class="snum">37 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 38 — COMMON MISTAKES
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-38">
+    <div class="sec">Common Mistakes</div>
+    <div class="slide-content">
+        <div class="rule coral reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Common Complexity Analysis Mistakes</h2>
+        <div class="two-col">
+            <div>
+                <div class="dcard coral reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--coral);">Ignoring the inner loop's range</div><p>Assuming inner loop is always O(n) when it actually depends on i. Always substitute and sum: Σᵢ₌₀ⁿ i = n(n+1)/2.</p></div>
+                <div class="dcard coral reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--coral);">Confusing O with Θ</div><p>O(n) is correct for bubble sort worst case — but so is O(n²). Always state the tightest correct bound: Θ(n²) worst, Θ(n) best.</p></div>
+                <div class="dcard coral reveal d4"><div class="lbl" style="color:var(--coral);">Forgetting input size definition</div><p>For graph algorithms: n = vertices, m = edges. O(V+E) is different from O(V²). Always define what n means for your problem.</p></div>
+            </div>
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl">Adding instead of multiplying loops</div><p>Sequential loops add: O(n)+O(n)=O(n). Nested loops multiply: O(n)×O(n)=O(n²). The distinction is critical.</p></div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Ignoring hidden function costs</div><p><code style="font-family:var(--font-m);">str.join(list)</code> is O(total length). <code style="font-family:var(--font-m);">in</code> on a list is O(n). Always check what built-in operations cost.</p></div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl">Confusing time and space</div><p>Recursion depth adds to space complexity. A recursive O(n) algorithm may use O(n) stack space even if it "looks" like O(1) space.</p></div>
+                <div class="dcard reveal d5"><div class="lbl">Best-case thinking</div><p>Reporting O(1) best case for linear search as if it's the algorithm's complexity. Always clarify: "O(1) best, O(n) worst, O(n) average."</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">38 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 39 — PRACTICAL TIPS
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-39">
+    <div class="sec">Practical Tips</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Complexity Analysis — Practical Tips</h2>
+        <div class="two-col">
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl">Step 1: Identify the dominant operation</div><p>Find the innermost loop body (the primitive operation that runs most). Count how many times it executes as a function of n.</p></div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Step 2: Count loop iterations</div><p>For each loop: determine upper/lower bounds on iterations. Substitution or closed-form sum to get f(n). Multiply for nested, add for sequential.</p></div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl">Step 3: Drop constants &amp; lower terms</div><p>5n² + 3n + 100 → O(n²). Always simplify to the single dominant term.</p></div>
+                <div class="dcard reveal d5"><div class="lbl">Step 4: Check all cases</div><p>State best, average, and worst case separately. Use Θ when all cases are equal, O for worst, Ω for best.</p></div>
+            </div>
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl">Quick recognition patterns</div>
+                <table class="tbl" style="margin-top:var(--sgap);font-size:var(--small-size);">
+                    <tr><th>Code Pattern</th><th>Complexity</th></tr>
+                    <tr><td>Single loop 0 to n</td><td class="ok">O(n)</td></tr>
+                    <tr><td>Loop i *= 2</td><td class="good">O(log n)</td></tr>
+                    <tr><td>Two nested loops to n</td><td class="bad">O(n²)</td></tr>
+                    <tr><td>Halving at each step</td><td class="good">O(log n)</td></tr>
+                    <tr><td>Divide &amp; conquer halving</td><td class="ok">O(n log n)</td></tr>
+                    <tr><td>All subsets</td><td class="ugly">O(2ⁿ)</td></tr>
+                    <tr><td>All permutations</td><td class="ugly">O(n!)</td></tr>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">39 / 40</span>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     SLIDE 40 — KEY TAKEAWAYS
+═══════════════════════════════════════════════ -->
+<section class="slide" id="slide-40">
+    <div class="orb" style="width:clamp(200px,35vw,400px);height:clamp(200px,35vw,400px);background:var(--gold);right:-10%;bottom:-15%;"></div>
+    <div class="orb" style="width:clamp(150px,25vw,280px);height:clamp(150px,25vw,280px);background:var(--rose);left:-8%;top:-10%;"></div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Key Takeaways</h2>
+        <div class="two-col">
+            <ul class="pts g">
+                <li class="reveal d1">Algorithm analysis measures <strong>growth rate</strong> — not exact counts. Drop constants and lower-order terms.</li>
+                <li class="reveal d2"><strong>Big-O</strong> is the asymptotic upper bound (worst case). <strong>Ω</strong> is lower bound. <strong>Θ</strong> is tight (both).</li>
+                <li class="reveal d3">Formal definition: f=O(g) iff ∃c,n₀ such that f(n)≤c·g(n) for all n≥n₀.</li>
+                <li class="reveal d4">Complexity hierarchy: O(1) &lt; O(log n) &lt; O(n) &lt; O(n log n) &lt; O(n²) &lt; O(2ⁿ) &lt; O(n!).</li>
+                <li class="reveal d5">O(n log n) is the <strong>optimal lower bound</strong> for comparison-based sorting — proven via decision tree argument.</li>
+            </ul>
+            <ul class="pts r">
+                <li class="reveal d1">Count loop iterations to derive T(n): single loop→O(n), halving loop→O(log n), nested→multiply.</li>
+                <li class="reveal d2"><strong>Recurrence relations</strong> describe recursive algorithms. Solve via substitution, recursion tree, or Master Theorem.</li>
+                <li class="reveal d3">Master Theorem: T(n)=aT(n/b)+f(n). Compare f(n) to n^(log_b a) → 3 cases → closed form.</li>
+                <li class="reveal d4"><strong>Amortised O(1)</strong>: expensive ops are rare enough that average over sequence is O(1). Example: dynamic array append.</li>
+                <li class="reveal d5">Space complexity counts memory use. Distinguish <em>auxiliary space</em> from total. Recursion uses O(depth) stack space.</li>
+            </ul>
+        </div>
+    </div>
+    <span class="snum">40 / 40</span>
+</section>
+
+<script>
+class SlidePresentation {
+    constructor(){
+        this.slides=document.querySelectorAll('.slide');this.total=this.slides.length;
+        this.current=0;this.progressBar=document.getElementById('progress-bar');
+        this.navDotsEl=document.getElementById('nav-dots');
+        this.setupObserver();this.buildDots();this.setupKeyboard();this.setupTouch();this.setupWheel();this.updateProgress(0);
+    }
+    setupObserver(){
+        const obs=new IntersectionObserver(entries=>{
+            entries.forEach(e=>{
+                if(e.isIntersecting){
+                    e.target.classList.add('visible');
+                    const i=[...this.slides].indexOf(e.target);
+                    this.current=i;this.updateProgress(i);this.updateDots(i);
+                }
+            });
+        },{threshold:0.5});
+        this.slides.forEach(s=>obs.observe(s));
+    }
+    buildDots(){
+        this.slides.forEach((_,i)=>{
+            const b=document.createElement('button');
+            b.className='nav-dot'+(i===0?' active':'');b.setAttribute('aria-label','Slide '+(i+1));
+            b.addEventListener('click',()=>this.goTo(i));this.navDotsEl.appendChild(b);
+        });
+    }
+    updateDots(i){document.querySelectorAll('.nav-dot').forEach((d,j)=>d.classList.toggle('active',i===j));}
+    updateProgress(i){this.progressBar.style.width=(this.total>1?(i/(this.total-1))*100:100)+'%';}
+    goTo(i){this.slides[i].scrollIntoView({behavior:'smooth'});}
+    setupKeyboard(){
+        document.addEventListener('keydown',e=>{
+            if(this.editor&&this.editor.isActive)return;
+            const map={'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1};
+            if(map[e.key]!==undefined){e.preventDefault();this.goTo(Math.max(0,Math.min(this.total-1,this.current+map[e.key])));}
+        });
+    }
+    setupTouch(){
+        let sy=0;
+        document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});
+        document.addEventListener('touchend',e=>{const dy=sy-e.changedTouches[0].clientY;if(Math.abs(dy)>50)this.goTo(Math.max(0,Math.min(this.total-1,this.current+(dy>0?1:-1))));},{passive:true});
+    }
+    setupWheel(){
+        let last=0;
+        document.addEventListener('wheel',e=>{const now=Date.now();if(now-last<700)return;last=now;this.goTo(Math.max(0,Math.min(this.total-1,this.current+(e.deltaY>0?1:-1))));},{passive:true});
+    }
+}
+class InlineEditor {
+    constructor(){
+        this.isActive=false;this.toggle=document.getElementById('editToggle');this.hotzone=document.getElementById('editHotzone');this.hideTimeout=null;
+        this.setupHover();this.setupKeys();this.loadSaved();
+    }
+    setupHover(){
+        const show=()=>{clearTimeout(this.hideTimeout);this.toggle.classList.add('show');};
+        const hide=()=>{this.hideTimeout=setTimeout(()=>{if(!this.isActive)this.toggle.classList.remove('show');},400);};
+        this.hotzone.addEventListener('mouseenter',show);this.hotzone.addEventListener('mouseleave',hide);
+        this.toggle.addEventListener('mouseenter',show);this.toggle.addEventListener('mouseleave',hide);
+        this.hotzone.addEventListener('click',()=>this.toggleEdit());this.toggle.addEventListener('click',()=>this.toggleEdit());
+    }
+    setupKeys(){
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&!e.target.getAttribute('contenteditable'))this.toggleEdit();
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'&&this.isActive){e.preventDefault();this.save();}
+        });
+    }
+    toggleEdit(){
+        this.isActive=!this.isActive;this.toggle.textContent=this.isActive?'💾 Save (Ctrl+S)':'✏ Edit';
+        this.toggle.classList.toggle('active',this.isActive);this.toggle.classList.add('show');
+        const targets=document.querySelectorAll('h1,h2,h3,p,li,.cb');
+        if(this.isActive){targets.forEach(el=>{el.setAttribute('contenteditable','true');el.setAttribute('spellcheck','false');});}
+        else{targets.forEach(el=>el.removeAttribute('contenteditable'));this.save();}
+    }
+    save(){
+        const data={};document.querySelectorAll('.slide').forEach((s,i)=>{data['s'+i]=s.innerHTML;});
+        localStorage.setItem('complexity_slides_v1',JSON.stringify(data));
+        if(this.isActive){this.toggle.textContent='✓ Saved!';setTimeout(()=>{this.toggle.textContent='💾 Save (Ctrl+S)';},1400);}
+    }
+    loadSaved(){
+        try{const raw=localStorage.getItem('complexity_slides_v1');if(!raw)return;const data=JSON.parse(raw);document.querySelectorAll('.slide').forEach((s,i)=>{if(data['s'+i])s.innerHTML=data['s'+i];});}catch(e){}
+    }
+}
+const presentation=new SlidePresentation();const editor=new InlineEditor();presentation.editor=editor;
+</script>
+</body>
+</html>

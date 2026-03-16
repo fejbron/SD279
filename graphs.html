@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphs — Data Structures</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+/* ===================================================
+   THEME: Electric Studio — split panel, high contrast
+   Colors: near-black bg, white panels, electric blue
+=================================================== */
+:root {
+    --bg-dark: #0a0a0a;
+    --bg-panel: #ffffff;
+    --bg-mid: #f2f4f8;
+    --accent-blue: #2d6be4;
+    --accent-blue-soft: rgba(45,107,228,0.1);
+    --accent-blue-mid: rgba(45,107,228,0.25);
+    --text-dark: #0a0a0a;
+    --text-light: #ffffff;
+    --text-muted: #888;
+    --text-body: #444;
+    --border: #e0e4ec;
+    --code-bg: #f0f2f8;
+    --green: #16a34a;
+    --orange: #d97706;
+    --red: #dc2626;
+
+    --font: 'Manrope', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+
+    --title-size: clamp(1.8rem, 5.2vw, 4.8rem);
+    --h2-size: clamp(1.25rem, 3vw, 2.5rem);
+    --h3-size: clamp(0.95rem, 1.9vw, 1.5rem);
+    --body-size: clamp(0.75rem, 1.35vw, 1rem);
+    --small-size: clamp(0.62rem, 0.95vw, 0.82rem);
+    --mono-size: clamp(0.68rem, 1.1vw, 0.9rem);
+
+    --slide-pad: clamp(1.5rem, 4.5vw, 4.5rem);
+    --gap: clamp(0.6rem, 1.6vw, 1.6rem);
+    --sgap: clamp(0.3rem, 0.7vw, 0.7rem);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* === RESET & VIEWPORT BASE === */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow-x:hidden; }
+html { scroll-snap-type:y mandatory; scroll-behavior:smooth; }
+
+.slide {
+    width:100vw; height:100vh; height:100dvh;
+    overflow:hidden; scroll-snap-align:start;
+    display:flex; flex-direction:column; position:relative;
+    background: var(--bg-dark);
+    font-family: var(--font);
+}
+.slide-content {
+    flex:1; display:flex; flex-direction:column;
+    justify-content:center; max-height:100%; overflow:hidden;
+    padding: var(--slide-pad); position:relative; z-index:1;
+}
+
+/* === TYPOGRAPHY === */
+h1 { font-size:var(--title-size); font-weight:800; line-height:1.0; letter-spacing:-0.03em; color:var(--text-light); }
+h2 { font-size:var(--h2-size); font-weight:800; line-height:1.1; letter-spacing:-0.02em; }
+h3 { font-size:var(--h3-size); font-weight:700; line-height:1.2; }
+p, li { font-size:var(--body-size); line-height:1.6; }
+code { font-family:var(--mono); font-size:var(--mono-size); }
+
+/* === DOT GRID BG === */
+.dot-bg::before {
+    content:''; position:absolute; inset:0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: clamp(20px,3vw,40px) clamp(20px,3vw,40px);
+    pointer-events:none; z-index:0;
+}
+
+/* === PROGRESS BAR === */
+#progress-bar {
+    position:fixed; top:0; left:0; height:3px;
+    background: var(--accent-blue); width:0%;
+    z-index:9999; transition:width 0.3s ease;
+}
+
+/* === NAV DOTS === */
+#nav-dots {
+    position:fixed; right:clamp(0.5rem,1.2vw,1rem); top:50%;
+    transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:5px; z-index:9998;
+}
+.nav-dot {
+    width:5px; height:5px; border-radius:50%;
+    background:rgba(255,255,255,0.2); border:none; cursor:pointer;
+    transition:all 0.3s ease;
+}
+.nav-dot.active { background:var(--accent-blue); height:16px; border-radius:3px; }
+
+/* === REVEAL ANIMATIONS === */
+.reveal { opacity:0; transform:translateY(24px); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.reveal-left { opacity:0; transform:translateX(-36px); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.reveal-scale { opacity:0; transform:scale(0.92); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.slide.visible .reveal, .slide.visible .reveal-left, .slide.visible .reveal-scale { opacity:1; transform:none; }
+.reveal:nth-child(1),.reveal-left:nth-child(1),.reveal-scale:nth-child(1) { transition-delay:0.05s; }
+.reveal:nth-child(2),.reveal-left:nth-child(2),.reveal-scale:nth-child(2) { transition-delay:0.15s; }
+.reveal:nth-child(3),.reveal-left:nth-child(3),.reveal-scale:nth-child(3) { transition-delay:0.25s; }
+.reveal:nth-child(4),.reveal-left:nth-child(4),.reveal-scale:nth-child(4) { transition-delay:0.35s; }
+.reveal:nth-child(5) { transition-delay:0.45s; }
+.reveal:nth-child(6) { transition-delay:0.55s; }
+
+/* === SLIDE NUMBER === */
+.snum {
+    position:absolute; bottom:clamp(0.8rem,2vw,1.5rem); right:clamp(1rem,2.5vw,2rem);
+    font-family:var(--mono); font-size:var(--small-size);
+    color:rgba(255,255,255,0.18); letter-spacing:0.1em; z-index:10;
+}
+.snum.dark { color:rgba(0,0,0,0.2); }
+
+/* ===================================================
+   LAYOUT HELPERS
+=================================================== */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:clamp(1rem,2.5vw,2.5rem); align-items:start; }
+.two-col-wide { display:grid; grid-template-columns:1.15fr 0.85fr; gap:clamp(1rem,2.5vw,2.5rem); align-items:start; }
+.three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(0.5rem,1.2vw,1.2rem); }
+.four-col { display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(0.4rem,1vw,1rem); }
+
+/* === ACCENT STRIPE === */
+.stripe {
+    width:clamp(36px,5vw,64px); height:4px;
+    background:var(--accent-blue); margin-bottom:var(--sgap);
+}
+.stripe-sm { width:clamp(20px,3vw,36px); height:3px; background:var(--accent-blue); margin-bottom:var(--sgap); }
+
+/* === WHITE PANEL (light cards on dark slide) === */
+.panel {
+    background:var(--bg-panel);
+    padding:clamp(0.8rem,2vw,1.8rem);
+    border-radius:2px;
+}
+.panel h2, .panel h3 { color:var(--text-dark); }
+.panel p, .panel li { color:var(--text-body); }
+
+/* === BULLET LIST === */
+ul.pts { list-style:none; display:flex; flex-direction:column; gap:var(--sgap); }
+ul.pts li { display:flex; align-items:flex-start; gap:0.65em; font-size:var(--body-size); color:rgba(255,255,255,0.75); line-height:1.55; }
+ul.pts li::before { content:'›'; color:var(--accent-blue); font-weight:800; font-size:1.1em; flex-shrink:0; margin-top:-0.05em; }
+ul.pts.dark li { color:var(--text-body); }
+ul.pts.dark li::before { color:var(--accent-blue); }
+
+/* === CODE BLOCK === */
+.cb {
+    background:var(--bg-dark); border-left:3px solid var(--accent-blue);
+    padding:clamp(0.6rem,1.4vw,1.1rem) clamp(0.8rem,1.8vw,1.4rem);
+    font-family:var(--mono); font-size:var(--mono-size);
+    line-height:1.75; color:#c9d1d9; border-radius:0 4px 4px 0;
+    overflow:hidden;
+}
+.cb .kw { color:#79c0ff; font-weight:700; }
+.cb .fn { color:#d2a8ff; }
+.cb .cm { color:#8b949e; font-style:italic; }
+.cb .st { color:#a5d6ff; }
+.cb .nm { color:#ffa657; }
+.cb .op { color:#79c0ff; }
+
+/* === CALLOUT === */
+.callout {
+    border-left:4px solid var(--accent-blue);
+    padding:clamp(0.6rem,1.5vw,1.2rem) clamp(0.8rem,2vw,1.5rem);
+    background:var(--accent-blue-soft);
+}
+.callout p { font-weight:700; font-size:var(--h3-size); color:var(--text-light); line-height:1.35; }
+.callout.dark p { color:var(--text-dark); }
+
+/* === CARD === */
+.card {
+    border:1.5px solid rgba(255,255,255,0.1);
+    padding:clamp(0.6rem,1.4vw,1.2rem);
+    border-radius:2px;
+}
+.card .card-label {
+    font-family:var(--mono); font-size:var(--small-size);
+    color:var(--accent-blue); text-transform:uppercase;
+    letter-spacing:0.1em; margin-bottom:0.35em;
+}
+.card p { color:rgba(255,255,255,0.7); font-size:var(--body-size); }
+.card.light { border-color:var(--border); }
+.card.light p { color:var(--text-body); }
+
+/* === TABLE === */
+.tbl { width:100%; border-collapse:collapse; font-size:var(--body-size); }
+.tbl th { font-weight:800; text-align:left; padding:0.5em 0.7em; border-bottom:2px solid var(--accent-blue); color:var(--text-light); }
+.tbl td { padding:0.4em 0.7em; border-bottom:1px solid rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); }
+.tbl.light th { color:var(--text-dark); border-bottom:2px solid var(--text-dark); }
+.tbl.light td { color:var(--text-body); border-bottom:1px solid var(--border); }
+.good { color:#4ade80 !important; font-weight:700; font-family:var(--mono); }
+.bad  { color:#f87171 !important; font-weight:700; font-family:var(--mono); }
+.ok   { color:#fbbf24 !important; font-weight:700; font-family:var(--mono); }
+
+/* === TAG / BADGE === */
+.badge {
+    display:inline-block; font-family:var(--mono); font-size:var(--small-size);
+    background:var(--accent-blue-soft); border:1px solid var(--accent-blue);
+    color:var(--accent-blue); padding:0.15em 0.55em; border-radius:3px;
+}
+.badge.green { background:rgba(22,163,74,0.1); border-color:var(--green); color:var(--green); }
+.badge.orange { background:rgba(217,119,6,0.1); border-color:var(--orange); color:var(--orange); }
+.badge.red { background:rgba(220,38,38,0.1); border-color:var(--red); color:var(--red); }
+
+/* === SECTION DIVIDER === */
+.divider .slide-content { justify-content:center; }
+.divider h2 { color:var(--text-light); }
+
+/* === SUMMARY (blue BG) === */
+.blue-slide { background: var(--accent-blue); }
+.blue-slide .snum { color:rgba(255,255,255,0.3); }
+.blue-slide .stripe { background:#fff; }
+
+/* ===================================================
+   SVG GRAPH DIAGRAMS — pure inline SVG nodes/edges
+   These use CSS vars so they adapt to theme
+=================================================== */
+.graph-svg { width:100%; max-height:min(45vh,320px); }
+
+/* ===================================================
+   RESPONSIVE
+=================================================== */
+@media (max-height:700px) {
+    :root { --slide-pad:clamp(0.8rem,3vw,2rem); --gap:clamp(0.4rem,1.2vw,1rem); --h2-size:clamp(1.1rem,2.6vw,2rem); }
+}
+@media (max-height:600px) {
+    :root { --slide-pad:clamp(0.5rem,2.5vw,1.5rem); --gap:clamp(0.3rem,0.8vw,0.7rem); --body-size:clamp(0.68rem,1.1vw,0.88rem); }
+    #nav-dots { display:none; }
+}
+@media (max-width:680px) {
+    .two-col, .two-col-wide, .three-col, .four-col { grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion:reduce) {
+    *, *::before, *::after { animation-duration:0.01ms !important; transition-duration:0.2s !important; }
+    html { scroll-behavior:auto; }
+}
+
+/* === INLINE EDIT === */
+.edit-hotzone { position:fixed; top:0; left:0; width:80px; height:80px; z-index:10000; cursor:pointer; }
+.edit-toggle {
+    position:fixed; top:14px; left:14px;
+    background:var(--accent-blue); color:#fff;
+    border:none; border-radius:3px; padding:6px 12px;
+    font-family:var(--mono); font-size:0.73rem; cursor:pointer;
+    z-index:10001; opacity:0; pointer-events:none; transition:opacity 0.3s;
+}
+.edit-toggle.show, .edit-toggle.active { opacity:1; pointer-events:auto; }
+[contenteditable]:focus { outline:2px dashed var(--accent-blue); outline-offset:2px; }
+    </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<nav id="nav-dots" aria-label="Slide navigation"></nav>
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle">✏ Edit</button>
+
+<!-- ================================================
+     SLIDE 1 — TITLE
+================================================ -->
+<section class="slide dot-bg" id="slide-1">
+    <div class="slide-content" style="justify-content:flex-end; padding-bottom:clamp(2.5rem,7vh,5.5rem);">
+        <div class="reveal" style="margin-bottom:var(--gap);">
+            <span class="badge" style="font-size:var(--small-size); letter-spacing:0.15em; text-transform:uppercase;">CS — Data Structures</span>
+        </div>
+        <h1 class="reveal" style="line-height:0.95;">Graphs</h1>
+        <p class="reveal" style="font-size:var(--h3-size); color:rgba(255,255,255,0.45); margin-top:var(--sgap); font-weight:400;">Representation, traversal, and algorithms</p>
+        <div class="reveal" style="margin-top:clamp(1rem,2.5vh,2rem); border-top:1px solid rgba(255,255,255,0.12); padding-top:clamp(0.6rem,1.5vh,1.2rem); display:flex; flex-direction:column; gap:0.2em;">
+            <p style="font-family:var(--mono); font-size:var(--small-size); color:rgba(255,255,255,0.4); line-height:1.5;">Faculty of Computing and Mathematical Sciences</p>
+            <p style="font-family:var(--mono); font-size:var(--small-size); color:rgba(255,255,255,0.4); line-height:1.5;">Cyber Security and Information Systems Department</p>
+            <p style="font-family:var(--mono); font-size:var(--small-size); color:rgba(255,255,255,0.6); line-height:1.5; margin-top:0.3em;">Presented by: Frederick Edem Broni</p>
+        </div>
+        <!-- decorative large G -->
+        <div style="position:absolute; right:clamp(1rem,4vw,4rem); top:50%; transform:translateY(-50%); font-family:var(--font); font-weight:800; font-size:clamp(8rem,22vw,20rem); color:rgba(255,255,255,0.03); line-height:1; user-select:none; pointer-events:none;">G</div>
+    </div>
+    <span class="snum">01 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 2 — AGENDA
+================================================ -->
+<section class="slide" id="slide-2">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Today's Agenda</h2>
+        <div class="two-col">
+            <ul class="pts">
+                <li class="reveal">Graph definition &amp; real-world motivation</li>
+                <li class="reveal">Core terminology</li>
+                <li class="reveal">Types of graphs</li>
+                <li class="reveal">Graph representations (Matrix &amp; List)</li>
+                <li class="reveal">Depth-First Search (DFS)</li>
+                <li class="reveal">Breadth-First Search (BFS)</li>
+            </ul>
+            <ul class="pts">
+                <li class="reveal">Cycle detection</li>
+                <li class="reveal">Topological sort</li>
+                <li class="reveal">Shortest path: Dijkstra's</li>
+                <li class="reveal">Minimum Spanning Tree (Kruskal's)</li>
+                <li class="reveal">Graph coloring intro</li>
+                <li class="reveal">Complexity summary</li>
+            </ul>
+        </div>
+    </div>
+    <span class="snum">02 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 3 — WHAT IS A GRAPH?
+================================================ -->
+<section class="slide dot-bg" id="slide-3">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">What Is a Graph?</h2>
+        <div class="two-col-wide">
+            <div>
+                <div class="callout reveal" style="margin-bottom:var(--gap);">
+                    <p>A graph G = (V, E) consists of a set of <em>vertices</em> V and a set of <em>edges</em> E connecting pairs of vertices.</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal">Trees are a <strong>special case</strong> of graphs (connected, acyclic)</li>
+                    <li class="reveal">Graphs can model any pairwise relationship</li>
+                    <li class="reveal">Can be <strong>directed</strong> or <strong>undirected</strong></li>
+                    <li class="reveal">Can be <strong>weighted</strong> or <strong>unweighted</strong></li>
+                    <li class="reveal">Can have <strong>cycles</strong> — unlike trees</li>
+                </ul>
+            </div>
+            <!-- SVG: simple undirected graph -->
+            <div class="reveal-scale" style="display:flex; align-items:center; justify-content:center;">
+                <svg viewBox="0 0 260 220" class="graph-svg" xmlns="http://www.w3.org/2000/svg">
+                    <!-- edges -->
+                    <line x1="130" y1="40" x2="60" y2="130" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+                    <line x1="130" y1="40" x2="200" y2="130" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+                    <line x1="60" y1="130" x2="130" y2="190" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+                    <line x1="200" y1="130" x2="130" y2="190" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+                    <line x1="60" y1="130" x2="200" y2="130" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+                    <!-- nodes -->
+                    <circle cx="130" cy="40" r="22" fill="#2d6be4" stroke="none"/>
+                    <text x="130" y="45" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="14">A</text>
+                    <circle cx="60" cy="130" r="22" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                    <text x="60" y="135" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="14">B</text>
+                    <circle cx="200" cy="130" r="22" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                    <text x="200" y="135" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="14">C</text>
+                    <circle cx="130" cy="190" r="22" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                    <text x="130" y="195" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="14">D</text>
+                    <!-- labels -->
+                    <text x="130" y="215" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="JetBrains Mono" font-size="10">Undirected Graph</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <span class="snum">03 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 4 — REAL-WORLD USES
+================================================ -->
+<section class="slide" id="slide-4">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Why Graphs Matter</h2>
+        <div class="four-col">
+            <div class="card reveal">
+                <div class="card-label">Social</div>
+                <p>Friend networks, followers, influence spreading</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Navigation</div>
+                <p>Maps, GPS routing, road &amp; flight networks</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Web</div>
+                <p>Hyperlink graphs, PageRank, crawlers</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Networks</div>
+                <p>Internet routing, packet switching, LANs</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Biology</div>
+                <p>Protein interaction, gene regulatory nets</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Compilers</div>
+                <p>Dependency graphs, CFGs, register allocation</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Databases</div>
+                <p>Knowledge graphs, graph DBs like Neo4j</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Games / AI</div>
+                <p>State spaces, decision trees, pathfinding</p>
+            </div>
+        </div>
+    </div>
+    <span class="snum">04 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 5 — TERMINOLOGY
+================================================ -->
+<section class="slide dot-bg" id="slide-5">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Key Terminology</h2>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(0.5rem,1.2vw,1.2rem);">
+            <div class="card reveal"><div class="card-label">Vertex / Node</div><p>A fundamental unit of the graph; stores data</p></div>
+            <div class="card reveal"><div class="card-label">Edge</div><p>A connection between two vertices; can be directed or undirected</p></div>
+            <div class="card reveal"><div class="card-label">Degree</div><p>Number of edges connected to a vertex (in/out for directed)</p></div>
+            <div class="card reveal"><div class="card-label">Path</div><p>A sequence of vertices where each pair is connected by an edge</p></div>
+            <div class="card reveal"><div class="card-label">Cycle</div><p>A path that starts and ends at the same vertex</p></div>
+            <div class="card reveal"><div class="card-label">Connected</div><p>A graph where every vertex is reachable from every other</p></div>
+        </div>
+    </div>
+    <span class="snum">05 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 6 — DIRECTED vs UNDIRECTED
+================================================ -->
+<section class="slide" id="slide-6">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Directed vs. Undirected</h2>
+        <div class="two-col">
+            <div class="panel reveal">
+                <h3 style="margin-bottom:var(--sgap);">Undirected Graph</h3>
+                <p style="margin-bottom:var(--sgap);">Edges have <strong>no direction</strong> — if A connects to B, B connects to A.</p>
+                <svg viewBox="0 0 220 140" style="width:100%; max-height:130px;" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="50" y1="70" x2="110" y2="30" stroke="#2d6be4" stroke-width="2"/>
+                    <line x1="110" y1="30" x2="170" y2="70" stroke="#2d6be4" stroke-width="2"/>
+                    <line x1="50" y1="70" x2="110" y2="110" stroke="#2d6be4" stroke-width="2"/>
+                    <line x1="170" y1="70" x2="110" y2="110" stroke="#2d6be4" stroke-width="2"/>
+                    <line x1="50" y1="70" x2="170" y2="70" stroke="#2d6be4" stroke-width="2"/>
+                    <circle cx="50" cy="70" r="18" fill="#2d6be4"/>
+                    <circle cx="110" cy="30" r="18" fill="#2d6be4"/>
+                    <circle cx="170" cy="70" r="18" fill="#2d6be4"/>
+                    <circle cx="110" cy="110" r="18" fill="#2d6be4"/>
+                    <text x="50" y="74" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">1</text>
+                    <text x="110" y="34" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">2</text>
+                    <text x="170" y="74" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">3</text>
+                    <text x="110" y="114" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">4</text>
+                </svg>
+                <ul class="pts dark" style="margin-top:var(--sgap);">
+                    <li>Edge (u,v) = edge (v,u)</li>
+                    <li>Used for: social nets, roads</li>
+                </ul>
+            </div>
+            <div class="panel reveal">
+                <h3 style="margin-bottom:var(--sgap);">Directed Graph (Digraph)</h3>
+                <p style="margin-bottom:var(--sgap);">Edges have a <strong>direction</strong> — A→B does not imply B→A.</p>
+                <svg viewBox="0 0 220 140" style="width:100%; max-height:130px;" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L8,3 z" fill="#dc2626"/>
+                        </marker>
+                    </defs>
+                    <line x1="50" y1="70" x2="96" y2="36" stroke="#dc2626" stroke-width="2" marker-end="url(#arr)"/>
+                    <line x1="110" y1="30" x2="156" y2="60" stroke="#dc2626" stroke-width="2" marker-end="url(#arr)"/>
+                    <line x1="170" y1="70" x2="124" y2="102" stroke="#dc2626" stroke-width="2" marker-end="url(#arr)"/>
+                    <line x1="110" y1="110" x2="64" y2="80" stroke="#dc2626" stroke-width="2" marker-end="url(#arr)"/>
+                    <circle cx="50" cy="70" r="18" fill="#1a1a2e" stroke="#dc2626" stroke-width="2"/>
+                    <circle cx="110" cy="30" r="18" fill="#1a1a2e" stroke="#dc2626" stroke-width="2"/>
+                    <circle cx="170" cy="70" r="18" fill="#1a1a2e" stroke="#dc2626" stroke-width="2"/>
+                    <circle cx="110" cy="110" r="18" fill="#1a1a2e" stroke="#dc2626" stroke-width="2"/>
+                    <text x="50" y="74" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">1</text>
+                    <text x="110" y="34" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">2</text>
+                    <text x="170" y="74" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">3</text>
+                    <text x="110" y="114" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">4</text>
+                </svg>
+                <ul class="pts dark" style="margin-top:var(--sgap);">
+                    <li>Edge (u,v) ≠ edge (v,u)</li>
+                    <li>Used for: web pages, dependencies</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <span class="snum">06 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 7 — WEIGHTED GRAPHS
+================================================ -->
+<section class="slide dot-bg" id="slide-7">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Weighted Graphs</h2>
+        <div class="two-col-wide">
+            <div>
+                <div class="callout reveal" style="margin-bottom:var(--gap);">
+                    <p>Each edge carries a numeric <em>weight</em> — representing cost, distance, time, or capacity.</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal">Used when edges are <strong>not equal</strong> in importance</li>
+                    <li class="reveal">Shortest path algorithms operate on weighted graphs</li>
+                    <li class="reveal">Can be directed or undirected</li>
+                    <li class="reveal">Negative weights require special handling (Bellman-Ford)</li>
+                </ul>
+            </div>
+            <div class="reveal-scale" style="display:flex; align-items:center; justify-content:center;">
+                <svg viewBox="0 0 260 200" class="graph-svg" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="wa" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L8,3 z" fill="#2d6be4"/>
+                        </marker>
+                    </defs>
+                    <line x1="50" y1="100" x2="128" y2="40" stroke="rgba(255,255,255,0.2)" stroke-width="2" marker-end="url(#wa)"/>
+                    <line x1="50" y1="100" x2="128" y2="160" stroke="rgba(255,255,255,0.2)" stroke-width="2" marker-end="url(#wa)"/>
+                    <line x1="140" y1="40" x2="208" y2="100" stroke="rgba(255,255,255,0.2)" stroke-width="2" marker-end="url(#wa)"/>
+                    <line x1="140" y1="160" x2="208" y2="100" stroke="rgba(255,255,255,0.2)" stroke-width="2" marker-end="url(#wa)"/>
+                    <line x1="140" y1="40" x2="140" y2="152" stroke="rgba(255,255,255,0.2)" stroke-width="2" marker-end="url(#wa)"/>
+                    <!-- weight labels -->
+                    <rect x="80" y="55" width="22" height="16" rx="2" fill="#0a0a0a"/>
+                    <text x="91" y="67" text-anchor="middle" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" font-weight="700">4</text>
+                    <rect x="80" y="125" width="22" height="16" rx="2" fill="#0a0a0a"/>
+                    <text x="91" y="137" text-anchor="middle" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" font-weight="700">7</text>
+                    <rect x="168" y="55" width="22" height="16" rx="2" fill="#0a0a0a"/>
+                    <text x="179" y="67" text-anchor="middle" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" font-weight="700">2</text>
+                    <rect x="168" y="125" width="22" height="16" rx="2" fill="#0a0a0a"/>
+                    <text x="179" y="137" text-anchor="middle" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" font-weight="700">5</text>
+                    <rect x="130" y="92" width="22" height="16" rx="2" fill="#0a0a0a"/>
+                    <text x="141" y="104" text-anchor="middle" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" font-weight="700">3</text>
+                    <!-- nodes -->
+                    <circle cx="50" cy="100" r="22" fill="#2d6be4"/><text x="50" y="105" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="13">A</text>
+                    <circle cx="140" cy="40" r="22" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><text x="140" y="45" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="13">B</text>
+                    <circle cx="210" cy="100" r="22" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><text x="210" y="105" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="13">C</text>
+                    <circle cx="140" cy="160" r="22" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><text x="140" y="165" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="13">D</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <span class="snum">07 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 8 — SECTION: REPRESENTATIONS
+================================================ -->
+<section class="slide divider dot-bg" id="slide-8">
+    <div class="slide-content" style="justify-content:center;">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal">Graph Representations</h2>
+        <p class="reveal" style="color:rgba(255,255,255,0.45); font-size:var(--h3-size); margin-top:var(--sgap);">How to store a graph in memory</p>
+    </div>
+    <span class="snum">08 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 9 — ADJACENCY MATRIX
+================================================ -->
+<section class="slide" id="slide-9">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Adjacency Matrix</h2>
+        <div class="two-col-wide">
+            <div>
+                <div class="callout reveal" style="margin-bottom:var(--gap);">
+                    <p>A V×V matrix where entry [i][j] = 1 (or weight) if edge (i→j) exists, else 0.</p>
+                </div>
+                <ul class="pts" style="margin-bottom:var(--gap);">
+                    <li class="reveal"><strong>Space:</strong> O(V²) — expensive for sparse graphs</li>
+                    <li class="reveal"><strong>Edge lookup:</strong> O(1) — instant!</li>
+                    <li class="reveal"><strong>Add edge:</strong> O(1)</li>
+                    <li class="reveal"><strong>Find all neighbors:</strong> O(V)</li>
+                    <li class="reveal">Best for <strong>dense graphs</strong> (many edges)</li>
+                </ul>
+            </div>
+            <div class="reveal-scale">
+                <div class="cb" style="line-height:1.85;">
+<span class="cm"># Graph: 0-1, 0-2, 1-3, 2-3</span><br>
+matrix = [<br>
+&nbsp;&nbsp;<span class="cm">#  0  1  2  3</span><br>
+&nbsp;&nbsp;[<span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">1</span>, <span class="nm">0</span>],  <span class="cm"># 0</span><br>
+&nbsp;&nbsp;[<span class="nm">1</span>, <span class="nm">0</span>, <span class="nm">0</span>, <span class="nm">1</span>],  <span class="cm"># 1</span><br>
+&nbsp;&nbsp;[<span class="nm">1</span>, <span class="nm">0</span>, <span class="nm">0</span>, <span class="nm">1</span>],  <span class="cm"># 2</span><br>
+&nbsp;&nbsp;[<span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">1</span>, <span class="nm">0</span>],  <span class="cm"># 3</span><br>
+]<br>
+<span class="cm"># Check edge (0→2):</span><br>
+matrix[<span class="nm">0</span>][<span class="nm">2</span>]  <span class="cm"># → 1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">09 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 10 — ADJACENCY LIST
+================================================ -->
+<section class="slide dot-bg" id="slide-10">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Adjacency List</h2>
+        <div class="two-col-wide">
+            <div>
+                <div class="callout reveal" style="margin-bottom:var(--gap);">
+                    <p>Each vertex stores a list of its neighbors. The most common graph representation.</p>
+                </div>
+                <ul class="pts" style="margin-bottom:var(--gap);">
+                    <li class="reveal"><strong>Space:</strong> O(V + E) — efficient for sparse graphs</li>
+                    <li class="reveal"><strong>Edge lookup:</strong> O(degree of vertex)</li>
+                    <li class="reveal"><strong>Find all neighbors:</strong> O(degree) — fast!</li>
+                    <li class="reveal">Best for <strong>sparse graphs</strong> (real-world default)</li>
+                </ul>
+            </div>
+            <div class="reveal-scale">
+                <div class="cb" style="line-height:1.85;">
+<span class="cm"># Adjacency List (dict of lists)</span><br>
+graph = {<br>
+&nbsp;&nbsp;<span class="nm">0</span>: [<span class="nm">1</span>, <span class="nm">2</span>],<br>
+&nbsp;&nbsp;<span class="nm">1</span>: [<span class="nm">0</span>, <span class="nm">3</span>],<br>
+&nbsp;&nbsp;<span class="nm">2</span>: [<span class="nm">0</span>, <span class="nm">3</span>],<br>
+&nbsp;&nbsp;<span class="nm">3</span>: [<span class="nm">1</span>, <span class="nm">2</span>],<br>
+}<br>
+<br>
+<span class="cm"># Add edge (0 → 4):</span><br>
+graph[<span class="nm">0</span>].<span class="fn">append</span>(<span class="nm">4</span>)
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">10 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 11 — MATRIX vs LIST COMPARISON
+================================================ -->
+<section class="slide" id="slide-11">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Matrix vs. List — Comparison</h2>
+        <div class="reveal">
+            <table class="tbl">
+                <thead><tr><th>Operation</th><th>Adj. Matrix</th><th>Adj. List</th><th>Use When</th></tr></thead>
+                <tbody>
+                    <tr><td>Space</td><td class="bad">O(V²)</td><td class="good">O(V+E)</td><td>Almost always prefer List</td></tr>
+                    <tr><td>Add vertex</td><td class="bad">O(V²)</td><td class="good">O(1)</td><td>Dynamic graphs → List</td></tr>
+                    <tr><td>Add edge</td><td class="good">O(1)</td><td class="good">O(1)</td><td>Tie</td></tr>
+                    <tr><td>Remove edge</td><td class="good">O(1)</td><td class="ok">O(E)</td><td>Frequent removal → Matrix</td></tr>
+                    <tr><td>Check edge (u,v)</td><td class="good">O(1)</td><td class="ok">O(deg)</td><td>Many lookups → Matrix</td></tr>
+                    <tr><td>Iterate neighbors</td><td class="bad">O(V)</td><td class="good">O(deg)</td><td>Traversal → List</td></tr>
+                    <tr><td>Dense graph</td><td class="good">✓ Good</td><td class="ok">Wastes nothing</td><td>Depends on ops</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout reveal" style="margin-top:var(--gap);">
+            <p>Default to Adjacency List — it handles sparse graphs efficiently and is the standard in interviews.</p>
+        </div>
+    </div>
+    <span class="snum">11 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 12 — SECTION: TRAVERSALS
+================================================ -->
+<section class="slide divider dot-bg" id="slide-12">
+    <div class="slide-content" style="justify-content:center;">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal">Graph Traversals</h2>
+        <p class="reveal" style="color:rgba(255,255,255,0.45); font-size:var(--h3-size); margin-top:var(--sgap);">DFS and BFS — visiting every vertex</p>
+    </div>
+    <span class="snum">12 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 13 — DFS
+================================================ -->
+<section class="slide" id="slide-13">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Depth-First Search (DFS)</h2>
+        <div class="two-col">
+            <div>
+                <ul class="pts" style="margin-bottom:var(--gap);">
+                    <li class="reveal">Explore as <strong>deep as possible</strong> before backtracking</li>
+                    <li class="reveal">Uses a <strong>stack</strong> (or recursion call stack)</li>
+                    <li class="reveal">Must track <strong>visited</strong> nodes — graphs can cycle!</li>
+                    <li class="reveal">Time: <span class="badge">O(V + E)</span> &nbsp; Space: <span class="badge">O(V)</span></li>
+                    <li class="reveal">Applications: path finding, cycle detection, topological sort</li>
+                </ul>
+                <div class="cb reveal">
+<span class="kw">def</span> <span class="fn">dfs</span>(graph, start):<br>
+&nbsp;&nbsp;visited = <span class="fn">set</span>()<br>
+&nbsp;&nbsp;stack = [start]<br>
+&nbsp;&nbsp;<span class="kw">while</span> stack:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;node = stack.<span class="fn">pop</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> node <span class="kw">not in</span> visited:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;visited.<span class="fn">add</span>(node)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(node)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> nb <span class="kw">in</span> graph[node]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stack.<span class="fn">append</span>(nb)
+                </div>
+            </div>
+            <div class="reveal-scale" style="display:flex; align-items:center; justify-content:center;">
+                <svg viewBox="0 0 240 200" class="graph-svg" xmlns="http://www.w3.org/2000/svg">
+                    <!-- edges -->
+                    <line x1="120" y1="30" x2="55" y2="95" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                    <line x1="120" y1="30" x2="185" y2="95" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                    <line x1="55" y1="95" x2="30" y2="165" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                    <line x1="55" y1="95" x2="100" y2="165" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                    <line x1="185" y1="95" x2="210" y2="165" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                    <!-- DFS path highlight -->
+                    <line x1="120" y1="30" x2="55" y2="95" stroke="#2d6be4" stroke-width="3" stroke-dasharray="6,3"/>
+                    <line x1="55" y1="95" x2="30" y2="165" stroke="#2d6be4" stroke-width="3" stroke-dasharray="6,3"/>
+                    <!-- nodes: numbered in DFS order -->
+                    <circle cx="120" cy="30" r="20" fill="#2d6be4"/><text x="120" y="35" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">1</text>
+                    <circle cx="55" cy="95" r="20" fill="#2d6be4" opacity="0.8"/><text x="55" y="100" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">2</text>
+                    <circle cx="185" cy="95" r="20" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><text x="185" y="100" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">5</text>
+                    <circle cx="30" cy="165" r="20" fill="#2d6be4" opacity="0.6"/><text x="30" y="170" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">3</text>
+                    <circle cx="100" cy="165" r="20" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><text x="100" y="170" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">4</text>
+                    <circle cx="210" cy="165" r="20" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><text x="210" y="170" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">6</text>
+                    <text x="120" y="195" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="JetBrains Mono" font-size="10">DFS visit order: 1→2→3→4→5→6</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <span class="snum">13 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 14 — BFS
+================================================ -->
+<section class="slide dot-bg" id="slide-14">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Breadth-First Search (BFS)</h2>
+        <div class="two-col">
+            <div>
+                <ul class="pts" style="margin-bottom:var(--gap);">
+                    <li class="reveal">Explore all neighbors <strong>level by level</strong></li>
+                    <li class="reveal">Uses a <strong>queue</strong> (FIFO)</li>
+                    <li class="reveal">Guarantees <strong>shortest path</strong> in unweighted graphs</li>
+                    <li class="reveal">Time: <span class="badge">O(V + E)</span> &nbsp; Space: <span class="badge">O(V)</span></li>
+                    <li class="reveal">Applications: shortest path, level-order, network flow</li>
+                </ul>
+                <div class="cb reveal">
+<span class="kw">from</span> collections <span class="kw">import</span> deque<br>
+<span class="kw">def</span> <span class="fn">bfs</span>(graph, start):<br>
+&nbsp;&nbsp;visited = {start}<br>
+&nbsp;&nbsp;q = <span class="fn">deque</span>([start])<br>
+&nbsp;&nbsp;<span class="kw">while</span> q:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;node = q.<span class="fn">popleft</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(node)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> nb <span class="kw">in</span> graph[node]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> nb <span class="kw">not in</span> visited:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;visited.<span class="fn">add</span>(nb)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;q.<span class="fn">append</span>(nb)
+                </div>
+            </div>
+            <div class="reveal-scale" style="display:flex; align-items:center; justify-content:center;">
+                <svg viewBox="0 0 240 200" class="graph-svg" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="120" y1="30" x2="55" y2="95" stroke="#2d6be4" stroke-width="3" stroke-dasharray="6,3"/>
+                    <line x1="120" y1="30" x2="185" y2="95" stroke="#2d6be4" stroke-width="3" stroke-dasharray="6,3"/>
+                    <line x1="55" y1="95" x2="30" y2="165" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                    <line x1="55" y1="95" x2="100" y2="165" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                    <line x1="185" y1="95" x2="210" y2="165" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                    <circle cx="120" cy="30" r="20" fill="#2d6be4"/><text x="120" y="35" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">1</text>
+                    <circle cx="55" cy="95" r="20" fill="#2d6be4" opacity="0.75"/><text x="55" y="100" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">2</text>
+                    <circle cx="185" cy="95" r="20" fill="#2d6be4" opacity="0.75"/><text x="185" y="100" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">3</text>
+                    <circle cx="30" cy="165" r="20" fill="#2d6be4" opacity="0.5"/><text x="30" y="170" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">4</text>
+                    <circle cx="100" cy="165" r="20" fill="#2d6be4" opacity="0.5"/><text x="100" y="170" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">5</text>
+                    <circle cx="210" cy="165" r="20" fill="#2d6be4" opacity="0.5"/><text x="210" y="170" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">6</text>
+                    <text x="120" y="195" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="JetBrains Mono" font-size="10">BFS visit order: 1→2→3→4→5→6</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <span class="snum">14 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 15 — DFS vs BFS COMPARISON
+================================================ -->
+<section class="slide" id="slide-15">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">DFS vs. BFS — When to Use</h2>
+        <div class="two-col">
+            <div class="card reveal" style="border-color:var(--accent-blue);">
+                <div class="card-label">Use DFS when…</div>
+                <ul class="pts" style="margin-top:var(--sgap);">
+                    <li>Exploring all paths in a maze / game</li>
+                    <li>Detecting cycles in a graph</li>
+                    <li>Topological sorting (DAGs)</li>
+                    <li>Finding connected components</li>
+                    <li>Memory is constrained (stack &lt; queue)</li>
+                    <li>Solving puzzles with backtracking</li>
+                </ul>
+            </div>
+            <div class="card reveal" style="border-color:#22aa55;">
+                <div class="card-label" style="color:#4ade80;">Use BFS when…</div>
+                <ul class="pts" style="margin-top:var(--sgap);">
+                    <li>Finding the <strong>shortest path</strong> (unweighted)</li>
+                    <li>Finding all nodes within distance k</li>
+                    <li>Peer-to-peer networks (broadcast)</li>
+                    <li>Web crawlers (level by level)</li>
+                    <li>Social network friend suggestions</li>
+                    <li>GPS / navigation systems</li>
+                </ul>
+            </div>
+        </div>
+        <div class="callout reveal" style="margin-top:var(--gap);">
+            <p>Both are O(V+E). The choice depends on the <em>shape of your problem</em>, not performance.</p>
+        </div>
+    </div>
+    <span class="snum">15 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 16 — CYCLE DETECTION
+================================================ -->
+<section class="slide dot-bg" id="slide-16">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Cycle Detection</h2>
+        <div class="two-col">
+            <div>
+                <p class="reveal" style="color:rgba(255,255,255,0.65); margin-bottom:var(--gap);">A cycle exists when you can travel from a vertex and return to it. Detection differs for directed vs. undirected graphs.</p>
+                <div class="card reveal" style="margin-bottom:var(--sgap);">
+                    <div class="card-label">Undirected Graph</div>
+                    <p>Use DFS — if you visit an already-visited node that's not the parent, a cycle exists.</p>
+                </div>
+                <div class="card reveal">
+                    <div class="card-label">Directed Graph</div>
+                    <p>Track 3 states: <span class="badge">unvisited</span> <span class="badge orange">in-stack</span> <span class="badge green">done</span>. Back edge to an in-stack node = cycle.</p>
+                </div>
+            </div>
+            <div class="reveal-scale">
+                <div class="cb" style="line-height:1.8;">
+<span class="cm"># Undirected cycle detection</span><br>
+<span class="kw">def</span> <span class="fn">has_cycle</span>(graph, V):<br>
+&nbsp;&nbsp;visited = [<span class="kw">False</span>] * V<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">dfs</span>(v, parent):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;visited[v] = <span class="kw">True</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> nb <span class="kw">in</span> graph[v]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> visited[nb]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> <span class="fn">dfs</span>(nb, v):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return True</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">elif</span> nb != parent:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return True</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return False</span><br>
+&nbsp;&nbsp;<span class="kw">return</span> <span class="fn">dfs</span>(<span class="nm">0</span>, <span class="nm">-1</span>)
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">16 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 17 — TOPOLOGICAL SORT
+================================================ -->
+<section class="slide" id="slide-17">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Topological Sort</h2>
+        <div class="two-col-wide">
+            <div>
+                <div class="callout reveal" style="margin-bottom:var(--gap);">
+                    <p>A linear ordering of vertices in a <em>Directed Acyclic Graph (DAG)</em> such that for every edge u→v, u appears before v.</p>
+                </div>
+                <ul class="pts" style="margin-bottom:var(--gap);">
+                    <li class="reveal">Only valid on <strong>DAGs</strong> (no cycles)</li>
+                    <li class="reveal">Used for <strong>task scheduling</strong> with dependencies</li>
+                    <li class="reveal">Two approaches: DFS (push to stack after visiting) or Kahn's Algorithm (BFS + in-degree)</li>
+                    <li class="reveal">Time: O(V + E)</li>
+                </ul>
+            </div>
+            <div class="reveal-scale">
+                <p style="font-family:var(--mono); font-size:var(--small-size); color:var(--accent-blue); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:var(--sgap);">Course prerequisite example</p>
+                <svg viewBox="0 0 220 170" style="width:100%; max-height:160px;" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="ta" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L7,3 z" fill="rgba(255,255,255,0.4)"/>
+                        </marker>
+                    </defs>
+                    <line x1="40" y1="50" x2="90" y2="50" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#ta)"/>
+                    <line x1="40" y1="50" x2="40" y2="120" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#ta)"/>
+                    <line x1="110" y1="50" x2="160" y2="50" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#ta)"/>
+                    <line x1="110" y1="50" x2="110" y2="120" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#ta)"/>
+                    <line x1="55" y1="130" x2="95" y2="130" stroke="rgba(255,255,255,0.3)" stroke-width="2" marker-end="url(#ta)"/>
+                    <!-- nodes -->
+                    <rect x="5" y="30" width="65" height="32" rx="3" fill="#2d6be4"/>
+                    <text x="37" y="50" text-anchor="middle" fill="white" font-family="Manrope" font-weight="700" font-size="10">Math 101</text>
+                    <rect x="80" y="30" width="65" height="32" rx="3" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                    <text x="112" y="50" text-anchor="middle" fill="white" font-family="Manrope" font-weight="700" font-size="10">Math 201</text>
+                    <rect x="150" y="30" width="65" height="32" rx="3" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                    <text x="182" y="50" text-anchor="middle" fill="white" font-family="Manrope" font-weight="700" font-size="10">Math 301</text>
+                    <rect x="5" y="110" width="65" height="32" rx="3" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                    <text x="37" y="130" text-anchor="middle" fill="white" font-family="Manrope" font-weight="700" font-size="10">CS 101</text>
+                    <rect x="80" y="110" width="65" height="32" rx="3" fill="#1a1a2e" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                    <text x="112" y="130" text-anchor="middle" fill="white" font-family="Manrope" font-weight="700" font-size="10">CS 201</text>
+                    <text x="110" y="165" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-family="JetBrains Mono" font-size="9">Math101 → Math201 → Math301</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <span class="snum">17 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 18 — TOPOLOGICAL SORT CODE (KAHN'S)
+================================================ -->
+<section class="slide dot-bg" id="slide-18">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Kahn's Algorithm (BFS Topo Sort)</h2>
+        <div class="two-col">
+            <div class="cb reveal" style="font-size:var(--mono-size);">
+<span class="kw">from</span> collections <span class="kw">import</span> deque<br>
+<br>
+<span class="kw">def</span> <span class="fn">topo_sort</span>(graph, V):<br>
+&nbsp;&nbsp;in_degree = [<span class="nm">0</span>] * V<br>
+&nbsp;&nbsp;<span class="kw">for</span> u <span class="kw">in</span> graph:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> v <span class="kw">in</span> graph[u]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;in_degree[v] += <span class="nm">1</span><br>
+<br>
+&nbsp;&nbsp;<span class="cm"># Start with all zero-in-degree nodes</span><br>
+&nbsp;&nbsp;q = <span class="fn">deque</span>([i <span class="kw">for</span> i <span class="kw">in range</span>(V)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> in_degree[i] == <span class="nm">0</span>])<br>
+&nbsp;&nbsp;order = []<br>
+&nbsp;&nbsp;<span class="kw">while</span> q:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;node = q.<span class="fn">popleft</span>()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;order.<span class="fn">append</span>(node)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> nb <span class="kw">in</span> graph[node]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;in_degree[nb] -= <span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> in_degree[nb] == <span class="nm">0</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;q.<span class="fn">append</span>(nb)<br>
+&nbsp;&nbsp;<span class="kw">return</span> order
+            </div>
+            <div>
+                <div class="card reveal" style="margin-bottom:var(--sgap);">
+                    <div class="card-label">How it works</div>
+                    <p>Track how many incoming edges (in-degree) each node has. Process nodes with in-degree 0 first, then reduce neighbors' in-degree.</p>
+                </div>
+                <div class="card reveal" style="margin-bottom:var(--sgap);">
+                    <div class="card-label">Cycle detection bonus</div>
+                    <p>If <code>len(order) &lt; V</code>, the graph has a cycle — no valid topological order exists.</p>
+                </div>
+                <div class="callout reveal">
+                    <p>Time: O(V + E) &nbsp;·&nbsp; Space: O(V)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">18 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 19 — SECTION: SHORTEST PATH
+================================================ -->
+<section class="slide divider dot-bg" id="slide-19">
+    <div class="slide-content" style="justify-content:center;">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal">Shortest Path Algorithms</h2>
+        <p class="reveal" style="color:rgba(255,255,255,0.45); font-size:var(--h3-size); margin-top:var(--sgap);">Finding the minimum-cost path between vertices</p>
+    </div>
+    <span class="snum">19 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 20 — DIJKSTRA'S ALGORITHM
+================================================ -->
+<section class="slide" id="slide-20">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Dijkstra's Algorithm</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal" style="margin-bottom:var(--gap);">
+                    <p>Finds the shortest path from a <em>source</em> to all other vertices in a graph with <em>non-negative weights</em>.</p>
+                </div>
+                <ul class="pts" style="margin-bottom:var(--gap);">
+                    <li class="reveal">Uses a <strong>min-heap / priority queue</strong></li>
+                    <li class="reveal">Greedily picks the <strong>closest unvisited</strong> vertex</li>
+                    <li class="reveal">Time: <span class="badge">O((V+E) log V)</span> with heap</li>
+                    <li class="reveal"><strong>Does NOT work</strong> with negative edge weights</li>
+                    <li class="reveal">Use <strong>Bellman-Ford</strong> for negative weights</li>
+                </ul>
+            </div>
+            <div class="cb reveal" style="font-size:var(--mono-size);">
+<span class="kw">import</span> heapq<br>
+<br>
+<span class="kw">def</span> <span class="fn">dijkstra</span>(graph, src, V):<br>
+&nbsp;&nbsp;dist = [<span class="fn">float</span>(<span class="st">'inf'</span>)] * V<br>
+&nbsp;&nbsp;dist[src] = <span class="nm">0</span><br>
+&nbsp;&nbsp;pq = [(<span class="nm">0</span>, src)]  <span class="cm"># (dist, node)</span><br>
+<br>
+&nbsp;&nbsp;<span class="kw">while</span> pq:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;d, u = heapq.<span class="fn">heappop</span>(pq)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> d &gt; dist[u]: <span class="kw">continue</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> v, w <span class="kw">in</span> graph[u]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> dist[u] + w &lt; dist[v]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dist[v] = dist[u] + w<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;heapq.<span class="fn">heappush</span>(pq,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(dist[v], v))<br>
+&nbsp;&nbsp;<span class="kw">return</span> dist
+            </div>
+        </div>
+    </div>
+    <span class="snum">20 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 21 — DIJKSTRA WALKTHROUGH
+================================================ -->
+<section class="slide dot-bg" id="slide-21">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Dijkstra — Step-by-Step</h2>
+        <div class="two-col-wide">
+            <div>
+                <p class="reveal" style="color:rgba(255,255,255,0.6); margin-bottom:var(--gap);">Starting from node <strong style="color:#fff;">A</strong>, find shortest path to all other nodes.</p>
+                <div style="display:flex; flex-direction:column; gap:var(--sgap);">
+                    <div class="card reveal"><div class="card-label">Step 1</div><p>Set dist[A]=0, all others = ∞. Push A to heap.</p></div>
+                    <div class="card reveal"><div class="card-label">Step 2</div><p>Pop A (dist 0). Update neighbors: B=4, C=2.</p></div>
+                    <div class="card reveal"><div class="card-label">Step 3</div><p>Pop C (dist 2). Update: D=2+5=7, B=min(4,2+1)=3.</p></div>
+                    <div class="card reveal"><div class="card-label">Step 4</div><p>Pop B (dist 3). Update D=min(7,3+1)=4.</p></div>
+                    <div class="card reveal"><div class="card-label">Done</div><p>Final: A=0, B=3, C=2, D=4.</p></div>
+                </div>
+            </div>
+            <div class="reveal-scale" style="display:flex; align-items:center; justify-content:center;">
+                <svg viewBox="0 0 220 180" class="graph-svg" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="da" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L7,3 z" fill="rgba(255,255,255,0.3)"/>
+                        </marker>
+                    </defs>
+                    <line x1="50" y1="90" x2="108" y2="44" stroke="rgba(255,255,255,0.25)" stroke-width="2" marker-end="url(#da)"/>
+                    <line x1="50" y1="90" x2="108" y2="136" stroke="#4ade80" stroke-width="3" marker-end="url(#da)"/>
+                    <line x1="120" y1="40" x2="170" y2="90" stroke="rgba(255,255,255,0.25)" stroke-width="2" marker-end="url(#da)"/>
+                    <line x1="120" y1="140" x2="170" y2="90" stroke="rgba(255,255,255,0.25)" stroke-width="2" marker-end="url(#da)"/>
+                    <line x1="120" y1="40" x2="120" y2="132" stroke="#4ade80" stroke-width="3" marker-end="url(#da)"/>
+                    <!-- weights -->
+                    <text x="74" y="57" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" font-weight="700">4</text>
+                    <text x="74" y="120" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" font-weight="700">2</text>
+                    <text x="148" y="57" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" font-weight="700">1</text>
+                    <text x="148" y="128" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" font-weight="700">5</text>
+                    <text x="115" y="96" fill="#fbbf24" font-family="JetBrains Mono" font-size="11" font-weight="700">1</text>
+                    <!-- nodes with final distances -->
+                    <circle cx="50" cy="90" r="22" fill="#2d6be4"/>
+                    <text x="50" y="88" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">A</text>
+                    <text x="50" y="100" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-family="JetBrains Mono" font-size="9">0</text>
+                    <circle cx="120" cy="40" r="22" fill="#1a1a2e" stroke="#4ade80" stroke-width="2"/>
+                    <text x="120" y="38" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">B</text>
+                    <text x="120" y="50" text-anchor="middle" fill="#4ade80" font-family="JetBrains Mono" font-size="9">3</text>
+                    <circle cx="120" cy="140" r="22" fill="#1a1a2e" stroke="#4ade80" stroke-width="2"/>
+                    <text x="120" y="138" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">C</text>
+                    <text x="120" y="150" text-anchor="middle" fill="#4ade80" font-family="JetBrains Mono" font-size="9">2</text>
+                    <circle cx="185" cy="90" r="22" fill="#1a1a2e" stroke="#4ade80" stroke-width="2"/>
+                    <text x="185" y="88" text-anchor="middle" fill="white" font-family="Manrope" font-weight="800" font-size="12">D</text>
+                    <text x="185" y="100" text-anchor="middle" fill="#4ade80" font-family="JetBrains Mono" font-size="9">4</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <span class="snum">21 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 22 — MINIMUM SPANNING TREE
+================================================ -->
+<section class="slide" id="slide-22">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Minimum Spanning Tree (MST)</h2>
+        <div class="two-col-wide">
+            <div>
+                <div class="callout reveal" style="margin-bottom:var(--gap);">
+                    <p>A spanning tree that connects all V vertices with exactly V-1 edges, minimizing the total edge weight.</p>
+                </div>
+                <ul class="pts" style="margin-bottom:var(--gap);">
+                    <li class="reveal">Two famous algorithms: <strong>Kruskal's</strong> and <strong>Prim's</strong></li>
+                    <li class="reveal"><strong>Kruskal's:</strong> Sort edges by weight, add if no cycle (Union-Find)</li>
+                    <li class="reveal"><strong>Prim's:</strong> Grow tree from a vertex, always pick cheapest edge</li>
+                    <li class="reveal">Both run in <span class="badge">O(E log E)</span></li>
+                    <li class="reveal">Used in: network design, cluster analysis, image segmentation</li>
+                </ul>
+            </div>
+            <div class="reveal-scale" style="display:flex; flex-direction:column; gap:var(--sgap);">
+                <div class="cb" style="font-size:var(--mono-size);">
+<span class="cm"># Kruskal's — Union Find</span><br>
+<span class="kw">def</span> <span class="fn">kruskal</span>(V, edges):<br>
+&nbsp;&nbsp;parent = <span class="fn">list</span>(<span class="fn">range</span>(V))<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">find</span>(x):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> parent[x] != x:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;parent[x] = <span class="fn">find</span>(parent[x])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> parent[x]<br>
+&nbsp;&nbsp;edges.<span class="fn">sort</span>(key=<span class="kw">lambda</span> e: e[<span class="nm">2</span>])<br>
+&nbsp;&nbsp;mst = []<br>
+&nbsp;&nbsp;<span class="kw">for</span> u, v, w <span class="kw">in</span> edges:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> <span class="fn">find</span>(u) != <span class="fn">find</span>(v):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;parent[<span class="fn">find</span>(u)] = <span class="fn">find</span>(v)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mst.<span class="fn">append</span>((u,v,w))<br>
+&nbsp;&nbsp;<span class="kw">return</span> mst
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">22 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 23 — SPECIAL GRAPH TYPES
+================================================ -->
+<section class="slide dot-bg" id="slide-23">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Special Graph Types</h2>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(0.5rem,1.2vw,1.2rem);">
+            <div class="card reveal">
+                <div class="card-label">DAG</div>
+                <p>Directed Acyclic Graph — no cycles. Used for dependency resolution, topo sort.</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Complete Graph</div>
+                <p>Every pair of vertices is connected. V vertices → V(V-1)/2 edges.</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Bipartite Graph</div>
+                <p>Vertices split into two groups; edges only between groups. Used in matching problems.</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Tree</div>
+                <p>Connected, acyclic undirected graph. V vertices → V-1 edges exactly.</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Planar Graph</div>
+                <p>Can be drawn on a plane with no edge crossings. Maps, circuit boards.</p>
+            </div>
+            <div class="card reveal">
+                <div class="card-label">Sparse vs Dense</div>
+                <p>Sparse: E ≈ O(V). Dense: E ≈ O(V²). Affects choice of representation.</p>
+            </div>
+        </div>
+    </div>
+    <span class="snum">23 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 24 — COMPLEXITY SUMMARY
+================================================ -->
+<section class="slide" id="slide-24">
+    <div class="slide-content">
+        <div class="stripe reveal"></div>
+        <h2 class="reveal" style="color:var(--text-light); margin-bottom:var(--gap);">Complexity Summary</h2>
+        <div class="two-col">
+            <div class="reveal">
+                <table class="tbl">
+                    <thead><tr><th>Algorithm</th><th>Time</th><th>Space</th></tr></thead>
+                    <tbody>
+                        <tr><td>DFS</td><td class="good">O(V+E)</td><td class="good">O(V)</td></tr>
+                        <tr><td>BFS</td><td class="good">O(V+E)</td><td class="good">O(V)</td></tr>
+                        <tr><td>Topological Sort</td><td class="good">O(V+E)</td><td class="good">O(V)</td></tr>
+                        <tr><td>Cycle Detection</td><td class="good">O(V+E)</td><td class="good">O(V)</td></tr>
+                        <tr><td>Dijkstra's</td><td class="ok">O((V+E)logV)</td><td class="ok">O(V)</td></tr>
+                        <tr><td>Bellman-Ford</td><td class="bad">O(VE)</td><td class="good">O(V)</td></tr>
+                        <tr><td>Kruskal's (MST)</td><td class="ok">O(E log E)</td><td class="ok">O(V)</td></tr>
+                        <tr><td>Prim's (MST)</td><td class="ok">O(E log V)</td><td class="ok">O(V)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <table class="tbl reveal" style="margin-bottom:var(--gap);">
+                    <thead><tr><th>Representation</th><th>Space</th><th>Best For</th></tr></thead>
+                    <tbody>
+                        <tr><td>Adj. Matrix</td><td class="bad">O(V²)</td><td>Dense, fast lookup</td></tr>
+                        <tr><td>Adj. List</td><td class="good">O(V+E)</td><td>Sparse (default)</td></tr>
+                        <tr><td>Edge List</td><td class="good">O(E)</td><td>MST algorithms</td></tr>
+                    </tbody>
+                </table>
+                <div class="callout reveal">
+                    <p>V = vertices, E = edges. For sparse graphs, E ≈ V, so O(V+E) ≈ O(V).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">24 / 25</span>
+</section>
+
+<!-- ================================================
+     SLIDE 25 — SUMMARY (BLUE)
+================================================ -->
+<section class="slide blue-slide dot-bg" id="slide-25">
+    <div class="slide-content">
+        <div class="stripe reveal" style="background:#fff;"></div>
+        <h2 class="reveal" style="color:#fff; margin-bottom:var(--gap);">Key Takeaways</h2>
+        <div class="two-col">
+            <ul class="pts">
+                <li class="reveal">A graph G = (V, E) models pairwise relationships between objects</li>
+                <li class="reveal">Directed vs. undirected, weighted vs. unweighted — pick the right model</li>
+                <li class="reveal">Use <strong style="color:#fff;">Adjacency List</strong> by default (O(V+E) space)</li>
+                <li class="reveal"><strong style="color:#fff;">DFS</strong>: depth first, stack, O(V+E) — cycles, topo sort</li>
+                <li class="reveal"><strong style="color:#fff;">BFS</strong>: breadth first, queue, O(V+E) — shortest path (unweighted)</li>
+            </ul>
+            <ul class="pts">
+                <li class="reveal"><strong style="color:#fff;">Topological Sort</strong> only valid on DAGs — use Kahn's or DFS</li>
+                <li class="reveal"><strong style="color:#fff;">Dijkstra's</strong>: shortest path with non-negative weights, O((V+E)logV)</li>
+                <li class="reveal"><strong style="color:#fff;">Bellman-Ford</strong>: handles negative weights, O(VE)</li>
+                <li class="reveal"><strong style="color:#fff;">MST</strong> (Kruskal's / Prim's): connect all vertices at minimum cost</li>
+                <li class="reveal">Graphs are everywhere — master them and unlock most algorithm problems</li>
+            </ul>
+        </div>
+    </div>
+    <span class="snum">25 / 25</span>
+</section>
+
+<script>
+/* ================================================
+   SLIDE PRESENTATION CONTROLLER
+================================================ */
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.total = this.slides.length;
+        this.current = 0;
+        this.progressBar = document.getElementById('progress-bar');
+        this.navDotsEl = document.getElementById('nav-dots');
+        this.setupObserver();
+        this.buildDots();
+        this.setupKeyboard();
+        this.setupTouch();
+        this.setupWheel();
+        this.updateProgress(0);
+    }
+
+    setupObserver() {
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('visible');
+                    const i = [...this.slides].indexOf(e.target);
+                    this.current = i;
+                    this.updateProgress(i);
+                    this.updateDots(i);
+                }
+            });
+        }, { threshold: 0.5 });
+        this.slides.forEach(s => obs.observe(s));
+    }
+
+    buildDots() {
+        this.slides.forEach((_, i) => {
+            const b = document.createElement('button');
+            b.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            b.setAttribute('aria-label', 'Slide ' + (i + 1));
+            b.addEventListener('click', () => this.goTo(i));
+            this.navDotsEl.appendChild(b);
+        });
+    }
+
+    updateDots(i) {
+        document.querySelectorAll('.nav-dot').forEach((d, j) => d.classList.toggle('active', i === j));
+    }
+
+    updateProgress(i) {
+        this.progressBar.style.width = (this.total > 1 ? (i / (this.total - 1)) * 100 : 100) + '%';
+    }
+
+    goTo(i) { this.slides[i].scrollIntoView({ behavior: 'smooth' }); }
+
+    setupKeyboard() {
+        document.addEventListener('keydown', e => {
+            if (this.editor && this.editor.isActive) return;
+            const map = { 'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1 };
+            if (map[e.key] !== undefined) {
+                e.preventDefault();
+                this.goTo(Math.max(0, Math.min(this.total - 1, this.current + map[e.key])));
+            }
+        });
+    }
+
+    setupTouch() {
+        let sy = 0;
+        document.addEventListener('touchstart', e => { sy = e.touches[0].clientY; }, { passive: true });
+        document.addEventListener('touchend', e => {
+            const dy = sy - e.changedTouches[0].clientY;
+            if (Math.abs(dy) > 50) this.goTo(Math.max(0, Math.min(this.total - 1, this.current + (dy > 0 ? 1 : -1))));
+        }, { passive: true });
+    }
+
+    setupWheel() {
+        let last = 0;
+        document.addEventListener('wheel', e => {
+            const now = Date.now();
+            if (now - last < 700) return;
+            last = now;
+            this.goTo(Math.max(0, Math.min(this.total - 1, this.current + (e.deltaY > 0 ? 1 : -1))));
+        }, { passive: true });
+    }
+}
+
+/* ================================================
+   INLINE EDITOR
+================================================ */
+class InlineEditor {
+    constructor() {
+        this.isActive = false;
+        this.toggle = document.getElementById('editToggle');
+        this.hotzone = document.getElementById('editHotzone');
+        this.hideTimeout = null;
+        this.setupHover();
+        this.setupKeys();
+        this.loadSaved();
+    }
+
+    setupHover() {
+        const show = () => { clearTimeout(this.hideTimeout); this.toggle.classList.add('show'); };
+        const hide = () => { this.hideTimeout = setTimeout(() => { if (!this.isActive) this.toggle.classList.remove('show'); }, 400); };
+        this.hotzone.addEventListener('mouseenter', show);
+        this.hotzone.addEventListener('mouseleave', hide);
+        this.toggle.addEventListener('mouseenter', show);
+        this.toggle.addEventListener('mouseleave', hide);
+        this.hotzone.addEventListener('click', () => this.toggleEdit());
+        this.toggle.addEventListener('click', () => this.toggleEdit());
+    }
+
+    setupKeys() {
+        document.addEventListener('keydown', e => {
+            if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) this.toggleEdit();
+            if ((e.ctrlKey || e.metaKey) && e.key === 's' && this.isActive) { e.preventDefault(); this.save(); }
+        });
+    }
+
+    toggleEdit() {
+        this.isActive = !this.isActive;
+        this.toggle.textContent = this.isActive ? '💾 Save (Ctrl+S)' : '✏ Edit';
+        this.toggle.classList.toggle('active', this.isActive);
+        this.toggle.classList.add('show');
+        const targets = document.querySelectorAll('h1,h2,h3,p,li,.cb');
+        if (this.isActive) {
+            targets.forEach(el => { el.setAttribute('contenteditable','true'); el.setAttribute('spellcheck','false'); });
+        } else {
+            targets.forEach(el => el.removeAttribute('contenteditable'));
+            this.save();
+        }
+    }
+
+    save() {
+        const data = {};
+        document.querySelectorAll('.slide').forEach((s, i) => { data['s' + i] = s.innerHTML; });
+        localStorage.setItem('graphs_slides_v1', JSON.stringify(data));
+        if (this.isActive) { this.toggle.textContent = '✓ Saved!'; setTimeout(() => { this.toggle.textContent = '💾 Save (Ctrl+S)'; }, 1200); }
+    }
+
+    loadSaved() {
+        try {
+            const raw = localStorage.getItem('graphs_slides_v1');
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            document.querySelectorAll('.slide').forEach((s, i) => { if (data['s' + i]) s.innerHTML = data['s' + i]; });
+        } catch(e) {}
+    }
+}
+
+const presentation = new SlidePresentation();
+const editor = new InlineEditor();
+presentation.editor = editor;
+</script>
+</body>
+</html>

@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="SD279 Data Structures and Algorithms — University of Mines and Technology, 2025/26">
+<title>SD279 — Data Structures &amp; Algorithms</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================
+   SD279 — Course Portal
+   UMaT green × dark charcoal × electric lime accent
+   Syne (display) · IBM Plex Sans (body) · JetBrains Mono
+===================================================== */
+:root {
+    --bg:        #0d0d0d;
+    --bg2:       #141414;
+    --bg3:       #1c1c1c;
+    --bg4:       #242424;
+    --green:     #1a7a3c;
+    --green2:    #22a050;
+    --green3:    #28c060;
+    --lime:      #c8f000;
+    --lime2:     #a0c800;
+    --white:     #f4f4f0;
+    --muted:     #888880;
+    --dim:       #333330;
+    --gold:      #d4a832;
+    --red:       #e05040;
+
+    --font-d:    'Syne', sans-serif;
+    --font-b:    'IBM Plex Sans', sans-serif;
+    --font-m:    'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: var(--font-b);
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+/* ── NOISE TEXTURE ── */
+body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:0;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--green); border-radius:3px; }
+
+/* ══════════════════════════════════
+   HERO
+══════════════════════════════════ */
+.hero {
+    position:relative;
+    min-height: 100vh;
+    display:flex; flex-direction:column; justify-content:flex-end;
+    padding: clamp(2rem,6vw,6rem);
+    overflow:hidden;
+}
+
+/* Big BG text */
+.hero-bg-text {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    font-family:var(--font-d);
+    font-weight:800;
+    font-size:clamp(8rem,22vw,22rem);
+    color:rgba(255,255,255,0.02);
+    white-space:nowrap;
+    user-select:none;
+    pointer-events:none;
+    letter-spacing:-0.04em;
+    z-index:0;
+}
+
+/* Green accent lines */
+.hero::before {
+    content:'';
+    position:absolute;
+    top:0; left:0;
+    width:100%; height:3px;
+    background: linear-gradient(90deg, var(--green3), var(--lime), transparent);
+    z-index:2;
+}
+
+.hero-content { position:relative; z-index:1; }
+
+.hero-tag {
+    display:inline-flex; align-items:center; gap:0.6em;
+    font-family:var(--font-m);
+    font-size:clamp(0.62rem,1vw,0.78rem);
+    color:var(--lime);
+    border:1px solid rgba(200,240,0,0.3);
+    background:rgba(200,240,0,0.06);
+    padding:0.3em 0.8em;
+    border-radius:2px;
+    text-transform:uppercase;
+    letter-spacing:0.15em;
+    margin-bottom:clamp(1rem,2vh,1.8rem);
+    animation: fadeUp 0.8s var(--ease) both;
+}
+.hero-tag::before {
+    content:'';
+    width:6px; height:6px;
+    background:var(--lime);
+    border-radius:50%;
+    animation:pulse 2s infinite;
+}
+@keyframes pulse {
+    0%,100%{opacity:1;transform:scale(1);}
+    50%{opacity:0.4;transform:scale(0.7);}
+}
+
+.hero h1 {
+    font-family:var(--font-d);
+    font-weight:800;
+    font-size:clamp(2.5rem,8vw,7rem);
+    line-height:0.95;
+    letter-spacing:-0.03em;
+    color:var(--white);
+    animation:fadeUp 0.8s 0.1s var(--ease) both;
+}
+
+.hero h1 em {
+    font-style:normal;
+    color:var(--green3);
+}
+
+.hero-sub {
+    font-size:clamp(0.9rem,1.8vw,1.25rem);
+    color:var(--muted);
+    margin-top:clamp(0.8rem,2vh,1.5rem);
+    max-width:600px;
+    font-weight:300;
+    animation:fadeUp 0.8s 0.2s var(--ease) both;
+}
+
+.hero-meta {
+    display:flex;
+    flex-wrap:wrap;
+    gap:clamp(0.8rem,2vw,1.5rem);
+    margin-top:clamp(2rem,5vh,4rem);
+    animation:fadeUp 0.8s 0.3s var(--ease) both;
+}
+
+.meta-pill {
+    display:flex; align-items:center; gap:0.5em;
+    background:var(--bg3);
+    border:1px solid var(--dim);
+    padding:0.5em 1em;
+    border-radius:2px;
+    font-family:var(--font-m);
+    font-size:clamp(0.6rem,0.9vw,0.75rem);
+    color:var(--muted);
+}
+.meta-pill span { color:var(--white); font-weight:500; }
+.meta-pill .dot { width:4px; height:4px; border-radius:50%; background:var(--green3); flex-shrink:0; }
+
+.scroll-hint {
+    position:absolute;
+    bottom:clamp(1.5rem,3vh,2.5rem);
+    left:clamp(2rem,6vw,6rem);
+    display:flex; align-items:center; gap:0.6em;
+    font-family:var(--font-m); font-size:0.68rem; color:var(--dim);
+    text-transform:uppercase; letter-spacing:0.15em;
+    animation:fadeUp 0.8s 0.6s var(--ease) both;
+    z-index:1;
+}
+.scroll-hint::before {
+    content:'';
+    width:30px; height:1px;
+    background:var(--dim);
+}
+
+/* ══════════════════════════════════
+   SECTION WRAPPER
+══════════════════════════════════ */
+section {
+    position:relative; z-index:1;
+    padding:clamp(3rem,8vh,7rem) clamp(1.5rem,6vw,6rem);
+}
+
+.section-label {
+    font-family:var(--font-m);
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.2em;
+    color:var(--dim);
+    margin-bottom:clamp(0.8rem,2vh,1.5rem);
+}
+
+.section-title {
+    font-family:var(--font-d);
+    font-weight:800;
+    font-size:clamp(1.5rem,3.5vw,2.8rem);
+    color:var(--white);
+    line-height:1.05;
+    margin-bottom:clamp(2rem,5vh,4rem);
+}
+.section-title em { font-style:normal; color:var(--green3); }
+
+.divider {
+    width:100%;
+    height:1px;
+    background: linear-gradient(90deg, var(--green), transparent);
+    opacity:0.3;
+    margin-bottom:clamp(3rem,8vh,7rem);
+}
+
+/* ══════════════════════════════════
+   INSTRUCTOR CARD
+══════════════════════════════════ */
+.instructor-section { background:var(--bg2); }
+
+.instructor-grid {
+    display:grid;
+    grid-template-columns: auto 1fr;
+    gap:clamp(2rem,5vw,5rem);
+    align-items:start;
+    max-width:900px;
+}
+
+.instructor-avatar {
+    width:clamp(80px,12vw,140px);
+    height:clamp(80px,12vw,140px);
+    border-radius:4px;
+    background: linear-gradient(135deg, var(--green), var(--green3));
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-d);
+    font-weight:800;
+    font-size:clamp(1.5rem,3vw,2.5rem);
+    color:#fff;
+    flex-shrink:0;
+    position:relative;
+    overflow:hidden;
+}
+.instructor-avatar::after {
+    content:'';
+    position:absolute; inset:0;
+    background:linear-gradient(135deg,rgba(200,240,0,0.2),transparent);
+}
+
+.instructor-info h3 {
+    font-family:var(--font-d);
+    font-weight:700;
+    font-size:clamp(1.2rem,2.5vw,1.8rem);
+    color:var(--white);
+    margin-bottom:0.3em;
+}
+
+.instructor-role {
+    font-family:var(--font-m);
+    font-size:clamp(0.65rem,1vw,0.78rem);
+    color:var(--green3);
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    margin-bottom:clamp(0.8rem,2vh,1.2rem);
+}
+
+.instructor-details {
+    display:flex;
+    flex-direction:column;
+    gap:0.5em;
+}
+.instructor-detail {
+    display:flex; align-items:center; gap:0.8em;
+    font-size:clamp(0.75rem,1.2vw,0.9rem);
+    color:var(--muted);
+}
+.instructor-detail strong {
+    color:var(--white);
+    font-family:var(--font-m);
+    font-size:0.85em;
+    min-width:50px;
+}
+.instructor-detail a {
+    color:var(--lime);
+    text-decoration:none;
+}
+.instructor-detail a:hover { text-decoration:underline; }
+
+/* ══════════════════════════════════
+   COURSE INFO CARDS
+══════════════════════════════════ */
+.info-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap:clamp(0.8rem,1.5vw,1.2rem);
+    margin-bottom:clamp(2rem,5vh,4rem);
+}
+
+.info-card {
+    background:var(--bg3);
+    border:1px solid var(--dim);
+    border-top:2px solid var(--green3);
+    padding:clamp(1rem,2vw,1.5rem);
+    border-radius:0 0 3px 3px;
+}
+.info-card .ic-label {
+    font-family:var(--font-m);
+    font-size:0.65rem;
+    text-transform:uppercase;
+    letter-spacing:0.15em;
+    color:var(--green3);
+    margin-bottom:0.4em;
+}
+.info-card .ic-value {
+    font-family:var(--font-d);
+    font-weight:700;
+    font-size:clamp(1rem,1.8vw,1.3rem);
+    color:var(--white);
+}
+.info-card .ic-sub {
+    font-size:0.78rem;
+    color:var(--muted);
+    margin-top:0.2em;
+}
+
+/* Assessment */
+.assessment-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap:clamp(0.6rem,1.2vw,1rem);
+}
+.assess-item {
+    background:var(--bg3);
+    border:1px solid var(--dim);
+    padding:clamp(0.8rem,1.5vw,1.2rem);
+    border-radius:3px;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap:0.5em;
+}
+.assess-item .a-name {
+    font-size:clamp(0.72rem,1.1vw,0.85rem);
+    color:var(--muted);
+    line-height:1.3;
+}
+.assess-item .a-mark {
+    font-family:var(--font-d);
+    font-weight:800;
+    font-size:clamp(1.4rem,2.5vw,2rem);
+    color:var(--lime);
+    flex-shrink:0;
+}
+.assess-item.total {
+    background: linear-gradient(135deg, var(--green), #0a4020);
+    border-color:var(--green3);
+}
+.assess-item.total .a-name { color:rgba(255,255,255,0.7); }
+.assess-item.total .a-mark { color:#fff; }
+
+/* ══════════════════════════════════
+   SCHEDULE TABLE
+══════════════════════════════════ */
+.schedule-section { background:var(--bg); }
+
+.schedule-table {
+    width:100%;
+    border-collapse:collapse;
+    font-size:clamp(0.72rem,1.2vw,0.9rem);
+}
+.schedule-table th {
+    font-family:var(--font-d);
+    font-weight:700;
+    text-align:left;
+    padding:0.7em 1em;
+    border-bottom:2px solid var(--green);
+    color:var(--green3);
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+}
+.schedule-table td {
+    padding:0.7em 1em;
+    border-bottom:1px solid rgba(51,51,48,0.6);
+    color:var(--muted);
+    vertical-align:middle;
+}
+.schedule-table tr:hover td { background:var(--bg3); color:var(--white); }
+.week-num {
+    font-family:var(--font-m);
+    font-weight:700;
+    color:var(--green3);
+    font-size:0.85rem;
+    white-space:nowrap;
+}
+.topic-name { font-weight:500; color:var(--white); }
+.slides-link {
+    display:inline-flex; align-items:center; gap:0.4em;
+    background:rgba(34,160,80,0.1);
+    border:1px solid rgba(34,160,80,0.4);
+    color:var(--green3);
+    padding:0.3em 0.7em;
+    border-radius:2px;
+    font-family:var(--font-m);
+    font-size:0.7rem;
+    text-decoration:none;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    font-weight:700;
+    transition:all 0.2s;
+    white-space:nowrap;
+}
+.slides-link:hover {
+    background:var(--green);
+    border-color:var(--green3);
+    color:#fff;
+    transform:translateX(2px);
+}
+.slides-link::after { content:'↗'; font-size:0.85em; }
+.no-slides {
+    font-family:var(--font-m);
+    font-size:0.68rem;
+    color:var(--dim);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+}
+
+/* ══════════════════════════════════
+   SLIDE DECK CARDS
+══════════════════════════════════ */
+.decks-section { background:var(--bg2); }
+
+.decks-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:clamp(1rem,2vw,1.5rem);
+}
+
+.deck-card {
+    background:var(--bg3);
+    border:1px solid var(--dim);
+    border-radius:4px;
+    padding:clamp(1.2rem,2.5vw,2rem);
+    text-decoration:none;
+    display:flex; flex-direction:column;
+    gap:var(--card-gap, 0.8rem);
+    position:relative;
+    overflow:hidden;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.deck-card::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0;
+    height:2px;
+    background:var(--card-color, var(--green3));
+    opacity:0.8;
+    transition:height 0.25s;
+}
+.deck-card:hover {
+    transform:translateY(-3px);
+    border-color:var(--card-color, var(--green3));
+    box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+.deck-card:hover::before { height:3px; opacity:1; }
+
+.deck-week {
+    font-family:var(--font-m);
+    font-size:0.65rem;
+    text-transform:uppercase;
+    letter-spacing:0.15em;
+    color:var(--card-color, var(--green3));
+}
+.deck-title {
+    font-family:var(--font-d);
+    font-weight:700;
+    font-size:clamp(1rem,1.8vw,1.3rem);
+    color:var(--white);
+    line-height:1.2;
+}
+.deck-desc {
+    font-size:clamp(0.7rem,1.1vw,0.82rem);
+    color:var(--muted);
+    line-height:1.5;
+    flex:1;
+}
+.deck-footer {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:0.4rem;
+}
+.deck-slides-count {
+    font-family:var(--font-m);
+    font-size:0.68rem;
+    color:var(--dim);
+}
+.deck-arrow {
+    width:28px; height:28px;
+    border:1px solid var(--dim);
+    border-radius:2px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--muted);
+    font-size:0.8rem;
+    transition:all 0.2s;
+}
+.deck-card:hover .deck-arrow {
+    background:var(--card-color, var(--green3));
+    border-color:var(--card-color, var(--green3));
+    color:#000;
+}
+
+/* ══════════════════════════════════
+   OBJECTIVES
+══════════════════════════════════ */
+.objectives-section { background:var(--bg); }
+
+.objectives-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+    gap:clamp(0.8rem,1.5vw,1.2rem);
+}
+.obj-card {
+    background:var(--bg3);
+    border:1px solid var(--dim);
+    border-radius:3px;
+    padding:clamp(1rem,2vw,1.5rem);
+    position:relative;
+    padding-left:clamp(1.3rem,2.5vw,1.8rem);
+}
+.obj-card::before {
+    content:'';
+    position:absolute; left:0; top:0; bottom:0;
+    width:3px;
+    background:var(--green3);
+    border-radius:3px 0 0 3px;
+    opacity:0.6;
+}
+.obj-num {
+    font-family:var(--font-m);
+    font-size:0.65rem;
+    color:var(--green3);
+    text-transform:uppercase;
+    letter-spacing:0.15em;
+    margin-bottom:0.4em;
+}
+.obj-text {
+    font-size:clamp(0.78rem,1.2vw,0.9rem);
+    color:var(--muted);
+    line-height:1.55;
+}
+.obj-text strong { color:var(--white); }
+
+/* ══════════════════════════════════
+   FOOTER
+══════════════════════════════════ */
+footer {
+    background:var(--bg2);
+    border-top:1px solid var(--dim);
+    padding:clamp(2rem,5vh,4rem) clamp(1.5rem,6vw,6rem);
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    align-items:center;
+    gap:1.5rem;
+    position:relative; z-index:1;
+}
+.footer-brand {
+    font-family:var(--font-d);
+    font-weight:800;
+    font-size:1.1rem;
+    color:var(--white);
+}
+.footer-brand span { color:var(--green3); }
+.footer-info {
+    font-family:var(--font-m);
+    font-size:0.68rem;
+    color:var(--dim);
+    text-align:right;
+    line-height:1.8;
+}
+.footer-info a { color:var(--muted); text-decoration:none; }
+.footer-info a:hover { color:var(--lime); }
+
+/* ══════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════ */
+:root { --ease: cubic-bezier(0.16,1,0.3,1); }
+@keyframes fadeUp {
+    from { opacity:0; transform:translateY(24px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+
+.fade-in {
+    opacity:0;
+    transform:translateY(20px);
+    transition:opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.fade-in.visible {
+    opacity:1;
+    transform:translateY(0);
+}
+
+/* stagger children */
+.stagger > * { opacity:0; transform:translateY(16px); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.stagger.visible > *:nth-child(1)  { opacity:1;transform:none;transition-delay:0.05s; }
+.stagger.visible > *:nth-child(2)  { opacity:1;transform:none;transition-delay:0.10s; }
+.stagger.visible > *:nth-child(3)  { opacity:1;transform:none;transition-delay:0.15s; }
+.stagger.visible > *:nth-child(4)  { opacity:1;transform:none;transition-delay:0.20s; }
+.stagger.visible > *:nth-child(5)  { opacity:1;transform:none;transition-delay:0.25s; }
+.stagger.visible > *:nth-child(6)  { opacity:1;transform:none;transition-delay:0.30s; }
+.stagger.visible > *:nth-child(7)  { opacity:1;transform:none;transition-delay:0.35s; }
+.stagger.visible > *:nth-child(8)  { opacity:1;transform:none;transition-delay:0.40s; }
+.stagger.visible > *:nth-child(9)  { opacity:1;transform:none;transition-delay:0.45s; }
+.stagger.visible > *:nth-child(10) { opacity:1;transform:none;transition-delay:0.50s; }
+.stagger.visible > *:nth-child(11) { opacity:1;transform:none;transition-delay:0.55s; }
+.stagger.visible > *:nth-child(12) { opacity:1;transform:none;transition-delay:0.60s; }
+.stagger.visible > *:nth-child(13) { opacity:1;transform:none;transition-delay:0.65s; }
+
+/* ══════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════ */
+@media (max-width:600px) {
+    .instructor-grid { grid-template-columns:1fr; }
+    .info-grid { grid-template-columns:repeat(2,1fr); }
+    .footer-info { text-align:left; }
+    .schedule-table { font-size:0.72rem; }
+    .schedule-table th, .schedule-table td { padding:0.5em 0.6em; }
+}
+@media (prefers-reduced-motion:reduce) {
+    *, *::before, *::after { animation-duration:0.01ms !important; transition-duration:0.2s !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     HERO
+════════════════════════════════ -->
+<header class="hero">
+    <div class="hero-bg-text" aria-hidden="true">DSA</div>
+    <div class="hero-content">
+        <div class="hero-tag">2025/26 · Semester 1 · SD279</div>
+        <h1>Data Structures<br>&amp; <em>Algorithms</em></h1>
+        <p class="hero-sub">University of Mines and Technology — Faculty of Computing and Mathematical Sciences · Cyber Security and Information Systems</p>
+        <div class="hero-meta">
+            <div class="meta-pill"><div class="dot"></div> <span>Frederick Broni Jnr</span> &nbsp;·&nbsp; Lecturer</div>
+            <div class="meta-pill"><div class="dot"></div> Course Code: <span>SD279</span></div>
+            <div class="meta-pill"><div class="dot"></div> Level: <span>Undergraduate</span></div>
+            <div class="meta-pill"><div class="dot"></div> Dept: <span>Mathematics Science</span></div>
+        </div>
+    </div>
+    <div class="scroll-hint" aria-hidden="true">Scroll to explore</div>
+</header>
+
+<!-- ════════════════════════════════
+     INSTRUCTOR
+════════════════════════════════ -->
+<section class="instructor-section" id="instructor">
+    <div class="section-label fade-in">Instructor</div>
+    <div class="instructor-grid fade-in">
+        <div class="instructor-avatar" aria-hidden="true">FB</div>
+        <div class="instructor-info">
+            <h3>Frederick Broni Jnr</h3>
+            <div class="instructor-role">Lecturer — Cyber Security &amp; Information Systems</div>
+            <div class="instructor-details">
+                <div class="instructor-detail">
+                    <strong>Email</strong>
+                    <a href="mailto:fejbroni@umat.edu.gh">fejbroni@umat.edu.gh</a>
+                </div>
+                <div class="instructor-detail">
+                    <strong>Office</strong>
+                    Top Floor, Old Mining Block
+                </div>
+                <div class="instructor-detail">
+                    <strong>Hours</strong>
+                    Scheduled — contact via email to arrange
+                </div>
+                <div class="instructor-detail">
+                    <strong>Note</strong>
+                    Office hours are for clarifying lecture material, not for re-running lectures missed
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ════════════════════════════════
+     COURSE OVERVIEW
+════════════════════════════════ -->
+<section class="objectives-section" id="overview">
+    <div class="section-label fade-in">Course Overview</div>
+    <h2 class="section-title fade-in">About <em>This Course</em></h2>
+
+    <div class="info-grid stagger">
+        <div class="info-card">
+            <div class="ic-label">Course Code</div>
+            <div class="ic-value">SD279</div>
+            <div class="ic-sub">2025/26 First Semester</div>
+        </div>
+        <div class="info-card">
+            <div class="ic-label">Level</div>
+            <div class="ic-value">Undergraduate</div>
+            <div class="ic-sub">Mathematics Science Dept.</div>
+        </div>
+        <div class="info-card">
+            <div class="ic-label">Delivery</div>
+            <div class="ic-value">Hybrid</div>
+            <div class="ic-sub">Face-to-face + VLE online</div>
+        </div>
+        <div class="info-card">
+            <div class="ic-label">Duration</div>
+            <div class="ic-value">13 Weeks</div>
+            <div class="ic-sub">+ Project Presentation</div>
+        </div>
+    </div>
+
+    <div class="section-label fade-in" style="margin-top:clamp(2rem,5vh,4rem);">Learning Objectives</div>
+    <div class="objectives-grid stagger" style="margin-bottom:clamp(2rem,5vh,4rem);">
+        <div class="obj-card">
+            <div class="obj-num">01</div>
+            <div class="obj-text">Understand fundamental <strong>data structures</strong> including arrays, lists, stacks, queues, trees, graphs and hash tables</div>
+        </div>
+        <div class="obj-card">
+            <div class="obj-num">02</div>
+            <div class="obj-text">Design and implement <strong>efficient algorithms</strong> for searching, sorting and manipulation of data structures</div>
+        </div>
+        <div class="obj-card">
+            <div class="obj-num">03</div>
+            <div class="obj-text">Perform <strong>complexity analysis</strong> using asymptotic notation (Big-O, Ω, Θ) to compare algorithmic efficiency</div>
+        </div>
+        <div class="obj-card">
+            <div class="obj-num">04</div>
+            <div class="obj-text">Apply <strong>abstract data type</strong> concepts and distinguish between interface and implementation</div>
+        </div>
+        <div class="obj-card">
+            <div class="obj-num">05</div>
+            <div class="obj-text">Use <strong>mathematical models</strong> of data — sets, lists, graphs — to solve computational problems</div>
+        </div>
+        <div class="obj-card">
+            <div class="obj-num">06</div>
+            <div class="obj-text">Identify <strong>application areas</strong> for each data structure and algorithm in real-world software systems</div>
+        </div>
+    </div>
+
+    <div class="section-label fade-in">Assessment Breakdown</div>
+    <div class="assessment-grid stagger">
+        <div class="assess-item">
+            <div class="a-name">Quizzes<br>(Pop-up, unannounced)</div>
+            <div class="a-mark">10</div>
+        </div>
+        <div class="assess-item">
+            <div class="a-name">Presentation</div>
+            <div class="a-mark">5</div>
+        </div>
+        <div class="assess-item">
+            <div class="a-name">Class Attendance</div>
+            <div class="a-mark">10</div>
+        </div>
+        <div class="assess-item">
+            <div class="a-name">Class Participation</div>
+            <div class="a-mark">5</div>
+        </div>
+        <div class="assess-item">
+            <div class="a-name">Project Work</div>
+            <div class="a-mark">10</div>
+        </div>
+        <div class="assess-item">
+            <div class="a-name">End of Semester Exam</div>
+            <div class="a-mark">60</div>
+        </div>
+        <div class="assess-item total">
+            <div class="a-name">Total</div>
+            <div class="a-mark">100</div>
+        </div>
+    </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ════════════════════════════════
+     LECTURE SLIDE DECKS
+════════════════════════════════ -->
+<section class="decks-section" id="slides">
+    <div class="section-label fade-in">Lecture Materials</div>
+    <h2 class="section-title fade-in">Slide <em>Decks</em></h2>
+
+    <div class="decks-grid stagger">
+
+        <a class="deck-card" href="intro_dsa_arrays.html" style="--card-color:#c8f000;">
+            <div class="deck-week">Week 2 &amp; 4</div>
+            <div class="deck-title">Intro to DSA &amp; Arrays</div>
+            <div class="deck-desc">What are data structures and algorithms? Abstract Data Types, complexity recap, categories of DS, and a deep dive into the Array ADT — memory layout, operations, patterns.</div>
+            <div class="deck-footer">
+                <div class="deck-slides-count">25 slides</div>
+                <div class="deck-arrow">↗</div>
+            </div>
+        </a>
+
+        <a class="deck-card" href="complexity_analysis.html" style="--card-color:#d4a832;">
+            <div class="deck-week">Week 3</div>
+            <div class="deck-title">Asymptotic &amp; Complexity Analysis</div>
+            <div class="deck-desc">Big-O, Big-Ω, Big-Θ, little-o and little-ω. Formal proofs, loop analysis rules, nested loops, recurrence relations, Master Theorem, and amortised analysis.</div>
+            <div class="deck-footer">
+                <div class="deck-slides-count">40 slides</div>
+                <div class="deck-arrow">↗</div>
+            </div>
+        </a>
+
+        <a class="deck-card" href="stacks_queues.html" style="--card-color:#ff8c60;">
+            <div class="deck-week">Week 5</div>
+            <div class="deck-title">Stacks &amp; Queues</div>
+            <div class="deck-desc">LIFO and FIFO principles, push/pop/enqueue/dequeue operations, array and linked list implementations, balanced brackets, BFS, deque, priority queue, and classic interview problems.</div>
+            <div class="deck-footer">
+                <div class="deck-slides-count">25 slides</div>
+                <div class="deck-arrow">↗</div>
+            </div>
+        </a>
+
+        <a class="deck-card" href="linked_lists.html" style="--card-color:#00d4aa;">
+            <div class="deck-week">Week 6</div>
+            <div class="deck-title">Linked Lists</div>
+            <div class="deck-desc">Singly, doubly and circular linked lists. Traversal, insert, delete operations with visual traces. Floyd's cycle detection, reversal, find middle, merge sorted lists.</div>
+            <div class="deck-footer">
+                <div class="deck-slides-count">25 slides</div>
+                <div class="deck-arrow">↗</div>
+            </div>
+        </a>
+
+        <a class="deck-card" href="hash_maps.html" style="--card-color:#ff6b35;">
+            <div class="deck-week">Week 7</div>
+            <div class="deck-title">Hash Maps</div>
+            <div class="deck-desc">Hash functions, collision handling (chaining vs open addressing), load factor, rehashing, LRU cache, hash sets, consistent hashing, and common patterns like two-sum and anagram grouping.</div>
+            <div class="deck-footer">
+                <div class="deck-slides-count">25 slides</div>
+                <div class="deck-arrow">↗</div>
+            </div>
+        </a>
+
+        <a class="deck-card" href="binary_trees_bst.html" style="--card-color:#c084fc;">
+            <div class="deck-week">Week 8</div>
+            <div class="deck-title">Binary Trees &amp; BSTs</div>
+            <div class="deck-desc">Tree terminology, binary tree types, node structure, DFS traversals (inorder, preorder, postorder), BFS level-order, BST property, search/insert/delete, balancing and complexity.</div>
+            <div class="deck-footer">
+                <div class="deck-slides-count">18 slides</div>
+                <div class="deck-arrow">↗</div>
+            </div>
+        </a>
+
+        <a class="deck-card" href="graphs.html" style="--card-color:#2d6be4;">
+            <div class="deck-week">Week 10</div>
+            <div class="deck-title">Graphs</div>
+            <div class="deck-desc">Graph theory, directed vs undirected, weighted graphs, adjacency matrix and list representations, DFS, BFS, cycle detection, topological sort, Dijkstra's, Kruskal's MST.</div>
+            <div class="deck-footer">
+                <div class="deck-slides-count">25 slides</div>
+                <div class="deck-arrow">↗</div>
+            </div>
+        </a>
+
+        <a class="deck-card" href="algorithms.html" style="--card-color:#7ec8a4;">
+            <div class="deck-week">Week 11–12</div>
+            <div class="deck-title">Sorting &amp; Searching Algorithms</div>
+            <div class="deck-desc">Bubble, Selection, Insertion, Merge, Quick, Heap sort. Counting and Radix sort. Linear search, Binary search and its variants. Full complexity table and real-world implementations.</div>
+            <div class="deck-footer">
+                <div class="deck-slides-count">28 slides</div>
+                <div class="deck-arrow">↗</div>
+            </div>
+        </a>
+
+    </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ════════════════════════════════
+     WEEKLY SCHEDULE
+════════════════════════════════ -->
+<section class="schedule-section" id="schedule">
+    <div class="section-label fade-in">Weekly Outline</div>
+    <h2 class="section-title fade-in">Course <em>Schedule</em></h2>
+
+    <div class="fade-in" style="overflow-x:auto;">
+        <table class="schedule-table">
+            <thead>
+                <tr>
+                    <th>Week</th>
+                    <th>Topic</th>
+                    <th>Slides</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="week-num">01</span></td>
+                    <td><span class="topic-name">Python OOP Concepts</span></td>
+                    <td><span class="no-slides">— coming soon</span></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">02</span></td>
+                    <td><span class="topic-name">Introduction to Data Structures</span></td>
+                    <td><a class="slides-link" href="intro_dsa_arrays.html">View Slides</a></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">03</span></td>
+                    <td><span class="topic-name">Complexity (Asymptotic) Analysis</span></td>
+                    <td><a class="slides-link" href="complexity_analysis.html">View Slides</a></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">04</span></td>
+                    <td><span class="topic-name">Arrays and Lists</span></td>
+                    <td><a class="slides-link" href="intro_dsa_arrays.html">View Slides</a></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">05</span></td>
+                    <td><span class="topic-name">Stacks &amp; Queues</span></td>
+                    <td><a class="slides-link" href="stacks_queues.html">View Slides</a></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">06</span></td>
+                    <td><span class="topic-name">Linked Lists</span></td>
+                    <td><a class="slides-link" href="linked_lists.html">View Slides</a></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">07</span></td>
+                    <td><span class="topic-name">Hash Maps</span></td>
+                    <td><a class="slides-link" href="hash_maps.html">View Slides</a></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">08</span></td>
+                    <td><span class="topic-name">Trees — Binary Search Trees</span></td>
+                    <td><a class="slides-link" href="binary_trees_bst.html">View Slides</a></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">09</span></td>
+                    <td><span class="topic-name">Heaps and Priority Queues</span></td>
+                    <td><span class="no-slides">— coming soon</span></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">10</span></td>
+                    <td><span class="topic-name">Graphs</span></td>
+                    <td><a class="slides-link" href="graphs.html">View Slides</a></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">11</span></td>
+                    <td><span class="topic-name">Searching and Sorting Algorithms</span></td>
+                    <td><a class="slides-link" href="algorithms.html">View Slides</a></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">12</span></td>
+                    <td><span class="topic-name">Searching and Sorting Algorithms (cont.)</span></td>
+                    <td><a class="slides-link" href="algorithms.html">View Slides</a></td>
+                </tr>
+                <tr>
+                    <td><span class="week-num">13</span></td>
+                    <td><span class="topic-name">Project Presentations</span></td>
+                    <td><span class="no-slides">— in class</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ════════════════════════════════
+     POLICY HIGHLIGHTS
+════════════════════════════════ -->
+<section class="objectives-section" id="policies" style="background:var(--bg2);">
+    <div class="section-label fade-in">Key Policies</div>
+    <h2 class="section-title fade-in">Important <em>Guidelines</em></h2>
+    <div class="objectives-grid stagger">
+        <div class="obj-card" style="--left-color:var(--red);">
+            <div class="obj-num" style="color:var(--red);">Quizzes</div>
+            <div class="obj-text"><strong>Unannounced pop-up quizzes.</strong> No make-ups for missed quizzes. One lowest quiz score will be dropped at end of semester.</div>
+        </div>
+        <div class="obj-card">
+            <div class="obj-num">Late Work</div>
+            <div class="obj-text">Submissions lose <strong>40% per late day.</strong> One day late = 60% max. Two days late = 20% max. Submit before the deadline.</div>
+        </div>
+        <div class="obj-card">
+            <div class="obj-num" style="color:var(--red);">Integrity</div>
+            <div class="obj-text"><strong>All code must be your own.</strong> Copying or sharing code results in failing the project and referral to HOD. Discuss bugs but never share solutions.</div>
+        </div>
+        <div class="obj-card">
+            <div class="obj-num">Submission</div>
+            <div class="obj-text">Submit as a <strong>zip file</strong> named with your ID. Include README, source code, test files, and documentation explaining your solution.</div>
+        </div>
+        <div class="obj-card">
+            <div class="obj-num">Office Hours</div>
+            <div class="obj-text">Office hours are for <strong>clarifying lecture content</strong> or resolving serious problems — not for re-running missed lectures or getting assignment answers.</div>
+        </div>
+        <div class="obj-card">
+            <div class="obj-num">Attendance</div>
+            <div class="obj-text">Attendance counts for <strong>10 marks.</strong> Class participation counts for 5. Regular attendance and engagement are essential for success.</div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════
+     FOOTER
+════════════════════════════════ -->
+<footer>
+    <div>
+        <div class="footer-brand">SD279 — <span>DSA</span></div>
+        <p style="font-size:0.75rem;color:var(--dim);margin-top:0.3em;">University of Mines and Technology · 2025/26</p>
+    </div>
+    <div class="footer-info">
+        Frederick Broni Jnr · <a href="mailto:fejbroni@umat.edu.gh">fejbroni@umat.edu.gh</a><br>
+        Faculty of Computing and Mathematical Sciences<br>
+        Cyber Security and Information Systems Department
+    </div>
+</footer>
+
+<script>
+// Intersection Observer for scroll animations
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-in, .stagger').forEach(el => observer.observe(el));
+
+// Smooth active nav highlight (if you add a nav later)
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+    });
+});
+</script>
+</body>
+</html>

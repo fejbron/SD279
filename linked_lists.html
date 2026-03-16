@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linked Lists</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#0055cc;--blue2:#0066ff;--blue3:#1a7fff;--dark:#0e0e14;--dark2:#161620;--dark3:#20202e;--neon:#d4ff00;--white:#f0f4ff;--muted:#8890b0;--dim:#3a3d55;--rose:#ff6b8a;--teal:#00d4aa;--font-d:'Syne',sans-serif;--font-b:'Space Mono',monospace;--font-m:'JetBrains Mono',monospace;--ts:clamp(1.9rem,5.5vw,5rem);--h2:clamp(1.2rem,2.8vw,2.4rem);--h3:clamp(0.92rem,1.8vw,1.35rem);--bs:clamp(0.7rem,1.25vw,0.92rem);--ss:clamp(0.58rem,0.88vw,0.74rem);--ms:clamp(0.62rem,1vw,0.82rem);--pad:clamp(1.6rem,4.5vw,4.5rem);--gap:clamp(0.6rem,1.5vw,1.5rem);--sg:clamp(0.28rem,0.7vw,0.65rem);--ease:cubic-bezier(0.16,1,0.3,1);}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow-x:hidden;}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth;}
+.slide{width:100vw;height:100vh;height:100dvh;overflow:hidden;scroll-snap-align:start;display:flex;flex-direction:column;position:relative;background:var(--dark);font-family:var(--font-b);}
+.sc{flex:1;display:flex;flex-direction:column;justify-content:center;max-height:100%;overflow:hidden;padding:var(--pad);position:relative;z-index:2;}
+.sp::before{content:'';position:absolute;left:0;top:0;bottom:0;width:clamp(180px,32vw,360px);background:var(--blue2);z-index:0;}
+.sp::after{content:'';position:absolute;left:0;top:0;bottom:0;width:clamp(180px,32vw,360px);z-index:1;background-image:linear-gradient(rgba(0,0,0,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.1) 1px,transparent 1px);background-size:28px 28px;}
+.vb{position:absolute;left:clamp(180px,32vw,360px);top:0;bottom:0;width:3px;background:var(--neon);z-index:3;}
+#pb{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--blue2),var(--neon));width:0%;z-index:9999;transition:width 0.3s;}
+#nd{position:fixed;right:clamp(0.6rem,1.2vw,1rem);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:9998;}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--dim);border:none;cursor:pointer;transition:all 0.3s;}
+.dot.active{background:var(--neon);height:14px;border-radius:2px;}
+.sn{position:absolute;bottom:clamp(0.8rem,2vh,1.5rem);right:clamp(1.6rem,4vw,4rem);font-family:var(--font-m);font-size:var(--ss);color:var(--dim);z-index:10;}
+.sec{position:absolute;top:clamp(0.8rem,2vh,1.5rem);left:var(--pad);font-family:var(--font-m);font-size:var(--ss);color:var(--dim);letter-spacing:0.18em;text-transform:uppercase;z-index:10;}
+h1{font-family:var(--font-d);font-weight:800;font-size:var(--ts);line-height:0.95;letter-spacing:-0.02em;color:var(--white);}
+h2{font-family:var(--font-d);font-weight:700;font-size:var(--h2);line-height:1.05;color:var(--white);}
+h3{font-family:var(--font-d);font-weight:700;font-size:var(--h3);color:var(--white);}
+p{font-family:var(--font-b);font-size:var(--bs);color:var(--muted);line-height:1.6;}
+li{font-family:var(--font-b);font-size:var(--bs);color:var(--muted);line-height:1.55;}
+em{color:var(--neon);font-style:normal;}strong{color:var(--white);font-weight:700;}
+.rl{width:clamp(32px,5vw,56px);height:2px;background:var(--neon);margin-bottom:var(--sg);}
+.rl.r{background:var(--rose);}.rl.t{background:var(--teal);}
+.bdg{display:inline-block;font-family:var(--font-m);font-size:var(--ss);padding:0.18em 0.65em;border-radius:2px;border:1px solid;font-weight:700;}
+.bdg.n{color:var(--neon);border-color:var(--neon);background:rgba(212,255,0,0.08);}
+.dc{background:var(--dark3);border:1px solid var(--dim);padding:clamp(0.5rem,1.2vw,1rem);border-radius:3px;}
+.dc .lb{font-family:var(--font-m);font-size:var(--ss);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.35em;font-weight:700;color:var(--neon);}
+.dc.b .lb{color:var(--blue3);}.dc.r .lb{color:var(--rose);}.dc.t .lb{color:var(--teal);}
+.dc p{font-size:var(--bs);}
+.cl{border-left:3px solid var(--neon);padding:clamp(0.45rem,1.1vw,0.9rem) clamp(0.7rem,1.8vw,1.4rem);background:rgba(212,255,0,0.05);border-radius:0 3px 3px 0;}
+.cl.b{border-color:var(--blue3);background:rgba(0,127,255,0.07);}
+.cl.r{border-color:var(--rose);background:rgba(255,107,138,0.07);}
+.cl.t{border-color:var(--teal);background:rgba(0,212,170,0.07);}
+.cl p{font-family:var(--font-d);font-weight:700;font-size:var(--h3);color:var(--white);line-height:1.35;}
+.cb{background:#060609;border-left:3px solid var(--neon);border-radius:0 3px 3px 0;padding:clamp(0.55rem,1.3vw,1rem) clamp(0.7rem,1.7vw,1.3rem);font-family:var(--font-m);font-size:var(--ms);line-height:1.8;color:#b8c0d8;overflow:hidden;}
+.cb.b{border-color:var(--blue3);}.cb.r{border-color:var(--rose);}.cb.t{border-color:var(--teal);}
+.kw{color:#d4ff00;font-weight:700;}.fn{color:#00d4aa;}.cm{color:#3a3d55;font-style:italic;}.nm{color:#ff8c42;}.st{color:#88c8a8;}
+.tb{width:100%;border-collapse:collapse;font-size:var(--bs);}
+.tb th{font-family:var(--font-d);font-weight:700;text-align:left;padding:0.45em 0.7em;border-bottom:2px solid var(--neon);color:var(--neon);}
+.tb td{padding:0.38em 0.7em;border-bottom:1px solid var(--dim);color:var(--muted);}
+.tb tr:last-child td{border-bottom:none;}
+.go{color:var(--teal)!important;font-weight:700;font-family:var(--font-m);}.ok{color:var(--neon)!important;font-weight:700;font-family:var(--font-m);}.ba{color:var(--rose)!important;font-weight:700;font-family:var(--font-m);}
+ul.pt{list-style:none;display:flex;flex-direction:column;gap:var(--sg);}
+ul.pt li{display:flex;align-items:flex-start;gap:0.65em;}
+ul.pt li::before{content:'//';font-family:var(--font-m);font-size:0.8em;flex-shrink:0;margin-top:0.1em;font-weight:700;}
+ul.pt.n li::before{color:var(--neon);}ul.pt.b li::before{color:var(--blue3);}ul.pt.r li::before{color:var(--rose);}ul.pt.t li::before{color:var(--teal);}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:clamp(0.8rem,2.2vw,2.2rem);align-items:start;}
+.tcw{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(0.8rem,2.2vw,2.2rem);align-items:start;}
+.thc{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(0.5rem,1.2vw,1.2rem);}
+.lr{display:flex;align-items:center;gap:0;flex-wrap:wrap;}
+.lnd{display:flex;align-items:stretch;flex-shrink:0;}
+.nd{padding:clamp(6px,1.2vh,11px) clamp(8px,1.5vw,14px);background:var(--dark3);border:2px solid var(--neon);font-family:var(--font-m);font-weight:700;font-size:var(--ms);color:var(--white);min-width:clamp(30px,4.5vw,48px);text-align:center;border-right:1px solid var(--dim);}
+.nx{padding:clamp(6px,1.2vh,11px) clamp(5px,1vw,9px);background:var(--dark3);border:2px solid var(--neon);border-left:none;font-family:var(--font-m);font-size:var(--ss);color:var(--muted);min-width:clamp(24px,3.2vw,36px);text-align:center;}
+.na{display:flex;align-items:center;padding:0 clamp(3px,0.5vw,5px);color:var(--neon);font-size:clamp(0.9rem,1.4vw,1.2rem);font-weight:700;}
+.nl{padding:clamp(5px,1vh,10px) clamp(6px,1.2vw,12px);font-family:var(--font-m);font-size:var(--ss);color:var(--dim);border:1px dashed var(--dim);border-radius:2px;display:flex;align-items:center;}
+.nd.hi{border-color:var(--rose);background:rgba(255,107,138,0.15);color:var(--rose);}
+.nx.hi{border-color:var(--rose);border-left:none;}
+.nd.nw{border-color:var(--teal);background:rgba(0,212,170,0.15);color:var(--teal);}
+.nx.nw{border-color:var(--teal);border-left:none;}
+.nd.mk{border-color:var(--neon);background:rgba(212,255,0,0.12);color:var(--neon);}
+.nx.mk{border-color:var(--neon);border-left:none;}
+.nl2{font-family:var(--font-m);font-size:var(--ss);text-align:center;margin-top:2px;color:var(--dim);}
+.nl2.n{color:var(--neon);}.nl2.t{color:var(--teal);}.nl2.r{color:var(--rose);}
+.ds{background:var(--dark2);}
+.ds .sc{justify-content:center;}
+.rv{opacity:0;transform:translateY(18px);transition:opacity 0.46s var(--ease),transform 0.46s var(--ease);}
+.rvl{opacity:0;transform:translateX(-26px);transition:opacity 0.46s var(--ease),transform 0.46s var(--ease);}
+.rvs{opacity:0;transform:scale(0.94);transition:opacity 0.46s var(--ease),transform 0.46s var(--ease);}
+.slide.visible .rv,.slide.visible .rvl,.slide.visible .rvs{opacity:1;transform:none;}
+.d1{transition-delay:.04s}.d2{transition-delay:.12s}.d3{transition-delay:.2s}
+.d4{transition-delay:.28s}.d5{transition-delay:.36s}.d6{transition-delay:.44s}
+.d7{transition-delay:.52s}.d8{transition-delay:.6s}
+@media(max-height:700px){:root{--pad:clamp(0.8rem,3vw,2.2rem);--h2:clamp(1.05rem,2.5vw,1.9rem);}}
+@media(max-height:600px){:root{--pad:clamp(0.5rem,2.5vw,1.4rem);--bs:clamp(0.65rem,1vw,0.84rem);}#nd{display:none;}.sp::before,.sp::after,.vb{display:none;}}
+@media(max-width:640px){.tc,.tcw,.thc{grid-template-columns:1fr;}.sp::before,.sp::after,.vb{display:none;}.lr{flex-wrap:wrap;gap:4px;}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;transition-duration:0.2s!important;}html{scroll-behavior:auto;}}
+.eh{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.et{position:fixed;top:14px;left:14px;background:var(--neon);color:var(--dark);border:none;border-radius:2px;padding:6px 14px;font-family:var(--font-m);font-size:0.72rem;cursor:pointer;z-index:10001;opacity:0;pointer-events:none;transition:opacity 0.3s;font-weight:700;}
+.et.show,.et.active{opacity:1;pointer-events:auto;}
+[contenteditable]:focus{outline:1px dashed var(--neon);outline-offset:2px;}
+</style>
+</head>
+<body>
+<div id="pb"></div><nav id="nd"></nav>
+<div class="eh" id="eh"></div>
+<button class="et" id="et">✏ Edit</button>
+
+<!-- S1 TITLE -->
+<section class="slide sp" id="s1">
+<div class="vb"></div>
+<div class="sc" style="justify-content:flex-end;padding-bottom:clamp(2.5rem,7vh,6rem);">
+<div class="rv d1" style="margin-bottom:var(--sg);"><span class="bdg n" style="letter-spacing:.15em;text-transform:uppercase;">CS — Data Structures</span></div>
+<h1 class="rv d2">Linked<br><em>Lists</em></h1>
+<p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">Nodes · pointers · operations · variants</p>
+<div class="rv d4" style="margin-top:clamp(1rem,2.5vh,2rem);border-top:1px solid var(--dim);padding-top:clamp(0.6rem,1.5vh,1.2rem);display:flex;flex-direction:column;gap:.25em;">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);">Faculty of Computing and Mathematical Sciences</p>
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);">Cyber Security and Information Systems Department</p>
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--muted);margin-top:.3em;">Presented by: Frederick Edem Broni</p>
+</div></div><span class="sn">01 / 25</span></section>
+
+<!-- S2 AGENDA -->
+<section class="slide" id="s2"><div class="sec">Overview</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Agenda</h2>
+<div class="tc">
+<ul class="pt n"><li class="rv d1">What is a Linked List?</li><li class="rv d2">Arrays vs Linked Lists</li><li class="rv d3">Singly LL — node structure</li><li class="rv d4">Traversal &amp; search</li><li class="rv d5">Insert: head, tail, position</li><li class="rv d6">Delete a node</li></ul>
+<ul class="pt b"><li class="rv d1">Doubly Linked List</li><li class="rv d2">Circular Linked List</li><li class="rv d3">Reversal — iterative &amp; recursive</li><li class="rv d4">Cycle detection (Floyd's)</li><li class="rv d5">Find middle · Merge sorted</li><li class="rv d6">Complexity summary &amp; takeaways</li></ul>
+</div></div><span class="sn">02 / 25</span></section>
+
+<!-- S3 WHAT IS A LL -->
+<section class="slide sp" id="s3"><div class="vb"></div><div class="sec">Introduction</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">What Is a Linked List?</h2>
+<div class="tcw">
+<div><div class="cl rv d2" style="margin-bottom:var(--gap);"><p>A linked list stores <strong>nodes</strong> in <em>non-contiguous</em> memory. Each node holds data and a <em>pointer</em> to the next node.</p></div>
+<ul class="pt n"><li class="rv d3">No fixed size — grows &amp; shrinks dynamically</li><li class="rv d4">No random access — must traverse from head</li><li class="rv d5">Efficient front insert/delete — <strong>O(1)</strong></li><li class="rv d6">Extra memory per node for the pointer field</li><li class="rv d7">Foundation for stacks, queues, LRU cache</li></ul></div>
+<div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--gap);">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">Singly Linked List</p>
+<div><div class="lr"><div class="lnd"><div class="nd mk">10</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">20</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">30</div><div class="nx">→</div></div><div class="na">›</div><div class="nl">null</div></div>
+<div style="display:flex;gap:0;margin-top:4px;"><div class="nl2 n" style="min-width:clamp(56px,9vw,96px);">head</div><div class="nl2" style="min-width:clamp(56px,9vw,96px);"></div><div class="nl2 r" style="min-width:clamp(56px,9vw,96px);">tail</div></div></div>
+<div class="dc"><div class="lb">Each node contains</div><p>data (value) + next (pointer to next node, or null)</p></div>
+</div></div></div><span class="sn">03 / 25</span></section>
+
+<!-- S4 ARRAY vs LL -->
+<section class="slide" id="s4"><div class="sec">Introduction</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Arrays vs. Linked Lists</h2>
+<div class="rv d3" style="margin-bottom:var(--gap);">
+<table class="tb"><thead><tr><th>Property</th><th style="color:var(--neon);">Array</th><th style="color:var(--blue3);">Linked List</th></tr></thead>
+<tbody>
+<tr><td>Memory layout</td><td class="ok">Contiguous — cache-friendly</td><td>Scattered — pointer chasing</td></tr>
+<tr><td>Size</td><td>Fixed / amortised dynamic</td><td class="go">Truly dynamic</td></tr>
+<tr><td>Access by index</td><td class="go">O(1) random</td><td class="ba">O(n) traverse</td></tr>
+<tr><td>Insert at front</td><td class="ba">O(n) shift</td><td class="go">O(1) prepend</td></tr>
+<tr><td>Insert at end</td><td class="go">O(1) amortised</td><td class="go">O(1) with tail ptr</td></tr>
+<tr><td>Delete at front</td><td class="ba">O(n) shift</td><td class="go">O(1) update head</td></tr>
+<tr><td>Memory per element</td><td class="go">data only</td><td class="ba">data + pointer(s)</td></tr>
+<tr><td>Binary search</td><td class="go">O(log n)</td><td class="ba">O(n)</td></tr>
+</tbody></table></div>
+<div class="cl b rv d4"><p>Arrays win on <em>access</em>. Linked Lists win on <em>front insert/delete</em>. Choose based on your dominant operation.</p></div>
+</div><span class="sn">04 / 25</span></section>
+
+<!-- S5 NODE STRUCTURE -->
+<section class="slide sp" id="s5"><div class="vb"></div><div class="sec">Singly Linked List</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Node Structure</h2>
+<div class="tc">
+<div><div class="cl rv d2" style="margin-bottom:var(--gap);"><p>A node stores a <em>value</em> and a <em>reference</em> to the next node. The list is a reference to the head.</p></div>
+<div class="cb rv d3" style="margin-bottom:var(--gap);"><span class="kw">class</span> <span class="fn">Node</span>:<br>&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self, data):<br>&nbsp;&nbsp;&nbsp;&nbsp;self.data = data<br>&nbsp;&nbsp;&nbsp;&nbsp;self.next = <span class="kw">None</span><br><br><span class="kw">class</span> <span class="fn">LinkedList</span>:<br>&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self):<br>&nbsp;&nbsp;&nbsp;&nbsp;self.head = <span class="kw">None</span><br>&nbsp;&nbsp;&nbsp;&nbsp;self.size = <span class="nm">0</span></div>
+<ul class="pt n"><li class="rv d4"><code style="font-family:var(--font-m);">data</code> — the element value</li><li class="rv d5"><code style="font-family:var(--font-m);">next</code> — reference to next node (None if last)</li><li class="rv d6"><code style="font-family:var(--font-m);">head</code> — entry point of the list</li></ul></div>
+<div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--gap);">
+<div style="display:flex;align-items:center;gap:var(--sg);"><div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div style="font-family:var(--font-m);font-size:var(--ss);color:var(--neon);">data</div><div class="nd mk" style="width:clamp(48px,7vw,68px);height:clamp(38px,5.5vh,50px);display:flex;align-items:center;justify-content:center;font-size:var(--h3);">42</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><div style="font-family:var(--font-m);font-size:var(--ss);color:var(--muted);">next</div><div class="nx mk" style="width:clamp(48px,7vw,68px);height:clamp(38px,5.5vh,50px);display:flex;align-items:center;justify-content:center;font-size:var(--h3);">→</div></div></div>
+<div class="dc" style="margin-top:var(--sg);"><div class="lb">Addresses (example)</div><p>Nodes can be anywhere in memory — 1000, 2048, 512. No contiguous allocation needed!</p></div>
+<div class="dc b"><div class="lb" style="color:var(--blue3);">Null-terminated</div><p>Last node's <code style="font-family:var(--font-m);">next</code> is always <code style="font-family:var(--font-m);">None</code> — marks end of list.</p></div>
+</div></div></div><span class="sn">05 / 25</span></section>
+
+<!-- S6 TRAVERSAL -->
+<section class="slide" id="s6"><div class="sec">Singly Linked List</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Traversal — O(n)</h2>
+<div class="tc">
+<div><div class="cl rv d2" style="margin-bottom:var(--gap);"><p>Start at <em>head</em>, follow <code style="font-family:var(--font-m);">next</code> pointers until <code style="font-family:var(--font-m);">None</code>. Every element visited once.</p></div>
+<div class="cb rv d3"><span class="kw">def</span> <span class="fn">traverse</span>(self):<br>&nbsp;&nbsp;curr = self.head<br>&nbsp;&nbsp;<span class="kw">while</span> curr <span class="kw">is not None</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(curr.data)<br>&nbsp;&nbsp;&nbsp;&nbsp;curr = curr.next<br><br><span class="kw">def</span> <span class="fn">search</span>(self, target):<br>&nbsp;&nbsp;curr = self.head<br>&nbsp;&nbsp;<span class="kw">while</span> curr:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> curr.data == target:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> curr<br>&nbsp;&nbsp;&nbsp;&nbsp;curr = curr.next<br>&nbsp;&nbsp;<span class="kw">return None</span></div></div>
+<div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--gap);">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">Traversal trace</p>
+<div style="display:flex;flex-direction:column;gap:var(--sg);">
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-bottom:3px;">curr = head</p><div class="lr"><div class="lnd"><div class="nd mk">10</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">20</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">30</div><div class="nx">→</div></div></div></div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--neon);margin-bottom:3px;">curr = curr.next</p><div class="lr"><div class="lnd"><div class="nd">10</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd mk">20</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">30</div><div class="nx">→</div></div></div></div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--teal);margin-bottom:3px;">curr.next = None → stop</p><div class="lr"><div class="lnd"><div class="nd">10</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">20</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd mk">30</div><div class="nx mk">→</div></div><div class="na">›</div><div class="nl">null</div></div></div>
+</div></div></div></div><span class="sn">06 / 25</span></section>
+
+<!-- S7 INSERT HEAD -->
+<section class="slide sp" id="s7"><div class="vb"></div><div class="sec">Singly Linked List</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Insert at Head — O(1)</h2>
+<div class="tc">
+<div><p class="rv d2" style="margin-bottom:var(--sg);">Create new node, set its <code style="font-family:var(--font-m);">next</code> to current head, update head. Two pointer assignments — always O(1).</p>
+<div class="cb rv d3" style="margin-bottom:var(--gap);"><span class="kw">def</span> <span class="fn">insert_head</span>(self, data):<br>&nbsp;&nbsp;node = <span class="fn">Node</span>(data)<br>&nbsp;&nbsp;node.next = self.head<br>&nbsp;&nbsp;self.head = node<br>&nbsp;&nbsp;self.size += <span class="nm">1</span></div>
+<div class="dc t rv d4"><div class="lb" style="color:var(--teal);">Why O(1)?</div><p>No traversal — we always know the head. Two pointer updates regardless of list length.</p></div></div>
+<div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--sg);">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">Insert 5 at head</p>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-bottom:4px;">Before:</p><div class="lr"><div class="lnd"><div class="nd mk">10</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">20</div><div class="nx">→</div></div><div class="na">›</div><div class="nl">null</div></div><div class="nl2 n">head</div></div>
+<div style="color:var(--neon);font-family:var(--font-m);font-size:var(--bs);">1. node(5).next = head(10)<br>2. head = node(5)</div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--teal);margin-bottom:4px;">After:</p><div class="lr"><div class="lnd"><div class="nd nw">5</div><div class="nx nw">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">10</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">20</div><div class="nx">→</div></div><div class="na">›</div><div class="nl">null</div></div><div class="nl2 t">new head</div></div>
+</div></div></div><span class="sn">07 / 25</span></section>
+
+<!-- S8 INSERT TAIL/POS -->
+<section class="slide" id="s8"><div class="sec">Singly Linked List</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Insert at Tail &amp; at Position</h2>
+<div class="tc">
+<div><p class="rv d2" style="margin-bottom:var(--sg);color:var(--neon);">Insert at Tail — O(n) or O(1)*</p>
+<div class="cb rv d3" style="margin-bottom:var(--gap);"><span class="kw">def</span> <span class="fn">insert_tail</span>(self, data):<br>&nbsp;&nbsp;node = <span class="fn">Node</span>(data)<br>&nbsp;&nbsp;<span class="kw">if not</span> self.head:<br>&nbsp;&nbsp;&nbsp;&nbsp;self.head = node; <span class="kw">return</span><br>&nbsp;&nbsp;curr = self.head<br>&nbsp;&nbsp;<span class="kw">while</span> curr.next:<br>&nbsp;&nbsp;&nbsp;&nbsp;curr = curr.next<br>&nbsp;&nbsp;curr.next = node<br><span class="cm"># *O(1) with tail pointer</span></div></div>
+<div><p class="rv d2" style="margin-bottom:var(--sg);color:var(--blue3);">Insert at Position k — O(k)</p>
+<div class="cb b rv d3" style="margin-bottom:var(--gap);"><span class="kw">def</span> <span class="fn">insert_at</span>(self, k, data):<br>&nbsp;&nbsp;<span class="kw">if</span> k == <span class="nm">0</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> self.<span class="fn">insert_head</span>(data)<br>&nbsp;&nbsp;curr = self.head<br>&nbsp;&nbsp;<span class="kw">for</span> _ <span class="kw">in range</span>(k-<span class="nm">1</span>):<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> curr.next: <span class="kw">break</span><br>&nbsp;&nbsp;&nbsp;&nbsp;curr = curr.next<br>&nbsp;&nbsp;node = <span class="fn">Node</span>(data)<br>&nbsp;&nbsp;node.next = curr.next<br>&nbsp;&nbsp;curr.next = node</div>
+<div class="cl b rv d4"><p>Always set <em>new_node.next first</em>, then prev.next = new_node. Reversing this loses the rest of the list!</p></div></div>
+</div></div><span class="sn">08 / 25</span></section>
+
+<!-- S9 DELETE -->
+<section class="slide sp" id="s9"><div class="vb"></div><div class="sec">Singly Linked List</div>
+<div class="sc"><div class="rl r rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Delete a Node — O(n)</h2>
+<div class="tc">
+<div><div class="cb r rv d2" style="margin-bottom:var(--gap);"><span class="kw">def</span> <span class="fn">delete</span>(self, target):<br>&nbsp;&nbsp;<span class="kw">if not</span> self.head: <span class="kw">return</span><br>&nbsp;&nbsp;<span class="kw">if</span> self.head.data == target:<br>&nbsp;&nbsp;&nbsp;&nbsp;self.head = self.head.next<br>&nbsp;&nbsp;&nbsp;&nbsp;self.size -= <span class="nm">1</span>; <span class="kw">return</span><br>&nbsp;&nbsp;curr = self.head<br>&nbsp;&nbsp;<span class="kw">while</span> curr.next:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> curr.next.data == target:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;curr.next = curr.next.next<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.size -= <span class="nm">1</span>; <span class="kw">return</span><br>&nbsp;&nbsp;&nbsp;&nbsp;curr = curr.next</div>
+<ul class="pt r"><li class="rv d3">Find node <strong>before</strong> target — O(n)</li><li class="rv d4">Set prev.next = target.next — O(1)</li><li class="rv d5">Delete head is O(1) special case</li></ul></div>
+<div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--sg);">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">Delete node 20</p>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-bottom:4px;">Before:</p><div class="lr"><div class="lnd"><div class="nd">10</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd hi">20</div><div class="nx hi">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">30</div><div class="nx">→</div></div><div class="nl">null</div></div></div>
+<div style="color:var(--rose);font-family:var(--font-m);font-size:var(--bs);">prev(10).next = node(20).next<br>→ prev(10).next = node(30)</div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--teal);margin-bottom:4px;">After:</p><div class="lr"><div class="lnd"><div class="nd mk">10</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">30</div><div class="nx">→</div></div><div class="nl">null</div></div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--teal);margin-top:3px;">Node 20 bypassed ✓</p></div>
+</div></div></div><span class="sn">09 / 25</span></section>
+
+<!-- S10 DLL DIVIDER -->
+<section class="slide ds" id="s10"><div class="sc" style="justify-content:center;"><div class="rl rv d1"></div><h2 class="rv d2" style="font-size:var(--ts);">Doubly<br><em>Linked List</em></h2><p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">Two pointers · bidirectional traversal · O(1) delete</p></div><span class="sn">10 / 25</span></section>
+
+<!-- S11 DLL -->
+<section class="slide" id="s11"><div class="sec">Doubly Linked List</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Doubly Linked List</h2>
+<div class="tcw">
+<div><div class="cl rv d2" style="margin-bottom:var(--gap);"><p>Each node has <em>prev</em> and <em>next</em> pointers. Allows <strong>O(1) deletion</strong> given a node pointer — no need to find the predecessor.</p></div>
+<div class="cb rv d3" style="margin-bottom:var(--gap);"><span class="kw">class</span> <span class="fn">DNode</span>:<br>&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self, data):<br>&nbsp;&nbsp;&nbsp;&nbsp;self.data = data<br>&nbsp;&nbsp;&nbsp;&nbsp;self.prev = <span class="kw">None</span>&nbsp;&nbsp;<span class="cm"># ←</span><br>&nbsp;&nbsp;&nbsp;&nbsp;self.next = <span class="kw">None</span>&nbsp;&nbsp;<span class="cm"># →</span><br><br><span class="cm"># O(1) delete given node:</span><br>node.prev.next = node.next<br>node.next.prev = node.prev</div>
+<ul class="pt b"><li class="rv d4">O(1) delete with node pointer</li><li class="rv d5">Traverse <strong>both directions</strong></li><li class="rv d6">2× pointer memory vs singly</li><li class="rv d7">Used in: LRU cache, deque, OS scheduling</li></ul></div>
+<div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--gap);">
+<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+<div class="nl" style="font-size:var(--ss);">null</div>
+<div style="color:var(--blue3);font-weight:700;font-size:1rem;">‹</div>
+<div style="display:flex;border:2px solid var(--neon);border-radius:2px;overflow:hidden;"><div style="padding:6px 7px;background:var(--dark3);border-right:1px solid var(--dim);font-family:var(--font-m);font-size:var(--ss);color:var(--blue3);">←</div><div style="padding:6px 9px;background:var(--dark3);border-right:1px solid var(--dim);font-family:var(--font-m);font-weight:700;font-size:var(--ms);color:var(--white);">10</div><div style="padding:6px 7px;background:var(--dark3);font-family:var(--font-m);font-size:var(--ss);color:var(--neon);">→</div></div>
+<div style="color:var(--neon);font-weight:700;font-size:1rem;">›</div>
+<div style="display:flex;border:2px solid var(--blue3);border-radius:2px;overflow:hidden;"><div style="padding:6px 7px;background:var(--dark3);border-right:1px solid var(--dim);font-family:var(--font-m);font-size:var(--ss);color:var(--blue3);">←</div><div style="padding:6px 9px;background:var(--dark3);border-right:1px solid var(--dim);font-family:var(--font-m);font-weight:700;font-size:var(--ms);color:var(--white);">20</div><div style="padding:6px 7px;background:var(--dark3);font-family:var(--font-m);font-size:var(--ss);color:var(--neon);">→</div></div>
+<div style="color:var(--neon);font-weight:700;font-size:1rem;">›</div>
+<div style="display:flex;border:2px solid var(--blue3);border-radius:2px;overflow:hidden;"><div style="padding:6px 7px;background:var(--dark3);border-right:1px solid var(--dim);font-family:var(--font-m);font-size:var(--ss);color:var(--blue3);">←</div><div style="padding:6px 9px;background:var(--dark3);border-right:1px solid var(--dim);font-family:var(--font-m);font-weight:700;font-size:var(--ms);color:var(--white);">30</div><div style="padding:6px 7px;background:var(--dark3);font-family:var(--font-m);font-size:var(--ss);color:var(--neon);">→</div></div>
+<div style="color:var(--blue3);font-weight:700;font-size:1rem;">‹</div>
+<div class="nl" style="font-size:var(--ss);">null</div>
+</div>
+<div class="dc b"><div class="lb" style="color:var(--blue3);">Singly vs Doubly</div>
+<table class="tb" style="font-size:var(--ss);margin-top:var(--sg);"><tr><th>Op</th><th>Singly</th><th>Doubly</th></tr><tr><td>Delete given node</td><td class="ba">O(n)</td><td class="go">O(1)</td></tr><tr><td>Insert before node</td><td class="ba">O(n)</td><td class="go">O(1)</td></tr><tr><td>Memory/node</td><td class="go">1 ptr</td><td class="ba">2 ptrs</td></tr></table></div>
+</div></div></div><span class="sn">11 / 25</span></section>
+
+<!-- S12 CIRCULAR -->
+<section class="slide sp" id="s12"><div class="vb"></div><div class="sec">Circular Linked List</div>
+<div class="sc"><div class="rl t rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Circular Linked List</h2>
+<div class="tc">
+<div><div class="cl t rv d2" style="margin-bottom:var(--gap);"><p>The last node's <code style="font-family:var(--font-m);">next</code> points back to <em>head</em> — forming a circle. No null terminator.</p></div>
+<ul class="pt t"><li class="rv d3">Can be singly or doubly circular</li><li class="rv d4">Traversal loops — must track start node</li><li class="rv d5">Can start from <strong>any node</strong></li><li class="rv d6">Used in: round-robin scheduling, playlists, game turns</li></ul>
+<div class="cb t rv d6" style="margin-top:var(--gap);">curr = head<br><span class="kw">while True</span>:<br>&nbsp;&nbsp;<span class="fn">process</span>(curr)<br>&nbsp;&nbsp;curr = curr.next<br>&nbsp;&nbsp;<span class="kw">if</span> curr == head: <span class="kw">break</span></div></div>
+<div class="rvs d3" style="display:flex;align-items:center;justify-content:center;">
+<svg viewBox="0 0 200 200" style="width:100%;max-height:min(36vh,200px);" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="an" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#d4ff00"/></marker><marker id="at" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#00d4aa"/></marker></defs>
+<circle cx="100" cy="100" r="72" fill="none" stroke="#3a3d55" stroke-width="1.5" stroke-dasharray="4,3"/>
+<rect x="72" y="12" width="56" height="28" rx="3" fill="#20202e" stroke="#d4ff00" stroke-width="2"/>
+<text x="100" y="30" text-anchor="middle" fill="#d4ff00" font-family="JetBrains Mono" font-weight="700" font-size="13">10</text>
+<rect x="150" y="72" width="46" height="28" rx="3" fill="#20202e" stroke="#1a7fff" stroke-width="1.5"/>
+<text x="173" y="90" text-anchor="middle" fill="white" font-family="JetBrains Mono" font-weight="700" font-size="13">20</text>
+<rect x="72" y="160" width="56" height="28" rx="3" fill="#20202e" stroke="#1a7fff" stroke-width="1.5"/>
+<text x="100" y="178" text-anchor="middle" fill="white" font-family="JetBrains Mono" font-weight="700" font-size="13">30</text>
+<rect x="4" y="72" width="46" height="28" rx="3" fill="#20202e" stroke="#1a7fff" stroke-width="1.5"/>
+<text x="27" y="90" text-anchor="middle" fill="white" font-family="JetBrains Mono" font-weight="700" font-size="13">40</text>
+<path d="M 138,22 A 72,72 0 0,1 168,72" fill="none" stroke="#d4ff00" stroke-width="2" marker-end="url(#an)"/>
+<path d="M 174,100 A 72,72 0 0,1 138,168" fill="none" stroke="#00d4aa" stroke-width="2" marker-end="url(#at)"/>
+<path d="M 72,174 A 72,72 0 0,1 27,100" fill="none" stroke="#00d4aa" stroke-width="2" marker-end="url(#at)"/>
+<path d="M 27,72 A 72,72 0 0,1 72,22" fill="none" stroke="#00d4aa" stroke-width="2" marker-end="url(#at)"/>
+<text x="100" y="118" text-anchor="middle" fill="#d4ff00" font-family="JetBrains Mono" font-size="8">head = 10</text>
+</svg>
+</div></div></div><span class="sn">12 / 25</span></section>
+
+<!-- S13 REVERSE ITER -->
+<section class="slide" id="s13"><div class="sec">Classic Algorithms</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Reverse a Linked List — Iterative O(n) O(1)</h2>
+<div class="tc">
+<div><div class="cl rv d2" style="margin-bottom:var(--gap);"><p>Use three pointers — <em>prev</em>, <em>curr</em>, <em>next</em> — to flip each node's pointer in a single pass.</p></div>
+<div class="cb rv d3"><span class="kw">def</span> <span class="fn">reverse</span>(self):<br>&nbsp;&nbsp;prev = <span class="kw">None</span><br>&nbsp;&nbsp;curr = self.head<br>&nbsp;&nbsp;<span class="kw">while</span> curr:<br>&nbsp;&nbsp;&nbsp;&nbsp;nxt = curr.next&nbsp;&nbsp;&nbsp;<span class="cm"># save</span><br>&nbsp;&nbsp;&nbsp;&nbsp;curr.next = prev&nbsp;&nbsp;<span class="cm"># flip</span><br>&nbsp;&nbsp;&nbsp;&nbsp;prev = curr&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># advance</span><br>&nbsp;&nbsp;&nbsp;&nbsp;curr = nxt&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># advance</span><br>&nbsp;&nbsp;self.head = prev&nbsp;&nbsp;&nbsp;<span class="cm"># new head</span></div></div>
+<div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--sg);">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">Trace: 1→2→3</p>
+<div style="display:flex;flex-direction:column;gap:var(--sg);">
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-bottom:3px;">Initial: 1→2→3→null</p><div class="lr"><div class="lnd"><div class="nd mk">1</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">2</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">3</div><div class="nx">→</div></div><div class="nl">null</div></div></div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--neon);margin-bottom:3px;">Iter 1: null←1, curr=2</p><div class="lr"><div class="nl">null</div><div style="color:var(--neon);font-weight:700;padding:0 4px;">‹</div><div class="lnd"><div class="nd mk">1</div><div class="nx mk">←</div></div><div class="lnd"><div class="nd nw">2</div><div class="nx nw">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">3</div><div class="nx">→</div></div></div></div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--neon);margin-bottom:3px;">Iter 2: 1←2, curr=3</p><div class="lr"><div class="nl">null</div><div style="color:var(--neon);font-weight:700;padding:0 4px;">‹</div><div class="lnd"><div class="nd">1</div><div class="nx">←</div></div><div style="color:var(--neon);font-weight:700;padding:0 4px;">‹</div><div class="lnd"><div class="nd mk">2</div><div class="nx mk">←</div></div><div class="lnd"><div class="nd nw">3</div><div class="nx nw">→</div></div></div></div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--teal);margin-bottom:3px;">Done: 3→2→1→null ✓</p><div class="lr"><div class="lnd"><div class="nd nw">3</div><div class="nx nw">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">2</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">1</div><div class="nx">→</div></div><div class="nl">null</div></div></div>
+</div></div></div></div><span class="sn">13 / 25</span></section>
+
+<!-- S14 REVERSE RECURSIVE -->
+<section class="slide sp" id="s14"><div class="vb"></div><div class="sec">Classic Algorithms</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Reverse — Recursive</h2>
+<div class="tc">
+<div><div class="cb rv d2" style="margin-bottom:var(--gap);"><span class="kw">def</span> <span class="fn">reverse_rec</span>(self, node):<br>&nbsp;&nbsp;<span class="kw">if not</span> node <span class="kw">or not</span> node.next:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> node<br>&nbsp;&nbsp;new_head = self.<span class="fn">reverse_rec</span>(node.next)<br>&nbsp;&nbsp;node.next.next = node<br>&nbsp;&nbsp;node.next = <span class="kw">None</span><br>&nbsp;&nbsp;<span class="kw">return</span> new_head</div>
+<div class="cl rv d3"><p>Recurse to the last node, then flip each pointer on the way back up. Space: O(n) call stack.</p></div></div>
+<div>
+<div class="dc rv d2" style="margin-bottom:var(--sg);"><div class="lb">Recursive trace: 1→2→3</div><p>recurse(1)→recurse(2)→recurse(3) base<br>3.next=2, 2.next=null<br>2.next=1, 1.next=null<br>Result: 3→2→1 ✓</p></div>
+<div class="dc r rv d3" style="margin-bottom:var(--sg);"><div class="lb" style="color:var(--rose);">Iterative vs Recursive</div>
+<table class="tb" style="font-size:var(--ss);margin-top:var(--sg);"><tr><th></th><th>Time</th><th>Space</th></tr><tr><td>Iterative</td><td class="go">O(n)</td><td class="go">O(1)</td></tr><tr><td>Recursive</td><td class="go">O(n)</td><td class="ba">O(n)</td></tr></table></div>
+<div class="dc t rv d4"><div class="lb" style="color:var(--teal);">Prefer iterative</div><p>Recursive risks stack overflow on very long lists. Always prefer iterative in production.</p></div>
+</div></div></div><span class="sn">14 / 25</span></section>
+
+<!-- S15 FLOYD'S -->
+<section class="slide" id="s15"><div class="sec">Classic Algorithms</div>
+<div class="sc"><div class="rl r rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Cycle Detection — Floyd's Algorithm O(n) O(1)</h2>
+<div class="tc">
+<div><div class="cl r rv d2" style="margin-bottom:var(--gap);"><p>Slow moves 1 step, fast moves 2. If a cycle exists they <strong>must meet</strong>. If fast hits null — no cycle. Also called "Tortoise and Hare".</p></div>
+<div class="cb r rv d3"><span class="kw">def</span> <span class="fn">has_cycle</span>(head):<br>&nbsp;&nbsp;slow = fast = head<br>&nbsp;&nbsp;<span class="kw">while</span> fast <span class="kw">and</span> fast.next:<br>&nbsp;&nbsp;&nbsp;&nbsp;slow = slow.next<br>&nbsp;&nbsp;&nbsp;&nbsp;fast = fast.next.next<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> slow == fast:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return True</span><br>&nbsp;&nbsp;<span class="kw">return False</span></div>
+<ul class="pt r" style="margin-top:var(--gap);"><li class="rv d4">Time: O(n) · Space: O(1)</li><li class="rv d5">Find cycle start: reset one pointer to head, advance both by 1 — they meet at the entry point</li></ul></div>
+<div class="rvs d3">
+<svg viewBox="0 0 250 185" style="width:100%;max-height:min(35vh,185px);" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="a1" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="rgba(255,255,255,0.2)"/></marker><marker id="ar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#ff6b8a"/></marker></defs>
+<circle cx="28" cy="55" r="18" fill="#20202e" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+<text x="28" y="59" text-anchor="middle" fill="white" font-family="JetBrains Mono" font-weight="700" font-size="11">1</text>
+<line x1="46" y1="55" x2="66" y2="55" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-end="url(#a1)"/>
+<circle cx="82" cy="55" r="18" fill="#20202e" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+<text x="82" y="59" text-anchor="middle" fill="white" font-family="JetBrains Mono" font-weight="700" font-size="11">2</text>
+<line x1="100" y1="55" x2="120" y2="55" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-end="url(#a1)"/>
+<circle cx="136" cy="55" r="18" fill="#20202e" stroke="#d4ff00" stroke-width="2"/>
+<text x="136" y="59" text-anchor="middle" fill="#d4ff00" font-family="JetBrains Mono" font-weight="700" font-size="11">3</text>
+<line x1="154" y1="55" x2="172" y2="55" stroke="#ff6b8a" stroke-width="1.5" marker-end="url(#ar)"/>
+<circle cx="188" cy="55" r="18" fill="#20202e" stroke="#ff6b8a" stroke-width="1.5"/>
+<text x="188" y="59" text-anchor="middle" fill="#ff6b8a" font-family="JetBrains Mono" font-weight="700" font-size="11">4</text>
+<line x1="206" y1="55" x2="224" y2="55" stroke="#ff6b8a" stroke-width="1.5" marker-end="url(#ar)"/>
+<circle cx="232" cy="55" r="15" fill="#20202e" stroke="#ff6b8a" stroke-width="1.5"/>
+<text x="232" y="59" text-anchor="middle" fill="#ff6b8a" font-family="JetBrains Mono" font-weight="700" font-size="10">5</text>
+<line x1="232" y1="70" x2="232" y2="108" stroke="#ff6b8a" stroke-width="1.5" marker-end="url(#ar)"/>
+<circle cx="232" cy="125" r="15" fill="#20202e" stroke="#ff6b8a" stroke-width="1.5"/>
+<text x="232" y="129" text-anchor="middle" fill="#ff6b8a" font-family="JetBrains Mono" font-weight="700" font-size="10">6</text>
+<path d="M 218,130 Q 136,158 136,73" fill="none" stroke="#ff6b8a" stroke-width="1.5" marker-end="url(#ar)"/>
+<text x="28" y="82" text-anchor="middle" fill="#00d4aa" font-family="JetBrains Mono" font-size="8">slow/fast</text>
+<text x="136" y="82" text-anchor="middle" fill="#d4ff00" font-family="JetBrains Mono" font-size="8">entry</text>
+<text x="125" y="173" text-anchor="middle" fill="#00d4aa" font-family="Syne" font-weight="700" font-size="10">slow == fast → cycle detected ✓</text>
+</svg>
+</div></div></div><span class="sn">15 / 25</span></section>
+
+<!-- S16 FIND MIDDLE -->
+<section class="slide sp" id="s16"><div class="vb"></div><div class="sec">Classic Algorithms</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Find Middle Node — O(n) O(1)</h2>
+<div class="tc">
+<div><div class="cl rv d2" style="margin-bottom:var(--gap);"><p>Slow moves 1 step, fast moves 2. When fast reaches the end, slow is at the middle.</p></div>
+<div class="cb rv d3" style="margin-bottom:var(--gap);"><span class="kw">def</span> <span class="fn">find_middle</span>(head):<br>&nbsp;&nbsp;slow = fast = head<br>&nbsp;&nbsp;<span class="kw">while</span> fast <span class="kw">and</span> fast.next:<br>&nbsp;&nbsp;&nbsp;&nbsp;slow = slow.next<br>&nbsp;&nbsp;&nbsp;&nbsp;fast = fast.next.next<br>&nbsp;&nbsp;<span class="kw">return</span> slow<br><span class="cm"># [1,2,3,4,5] → 3  [1,2,3,4] → 3</span></div>
+<div class="dc t rv d4"><div class="lb" style="color:var(--teal);">Applications</div><p>Split for merge sort, palindrome check (reverse second half), find median of a stream.</p></div></div>
+<div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--sg);">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">Trace: 1→2→3→4→5</p>
+<div style="display:flex;flex-direction:column;gap:var(--sg);">
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-bottom:3px;">Start: slow=1, fast=1</p><div class="lr"><div class="lnd"><div class="nd mk">1</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">2</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">3</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">4</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">5</div><div class="nx">→</div></div></div></div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--neon);margin-bottom:3px;">Iter 1: slow=2, fast=3</p><div class="lr"><div class="lnd"><div class="nd">1</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd mk">2</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd nw">3</div><div class="nx nw">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">4</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">5</div><div class="nx">→</div></div></div></div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--teal);margin-bottom:3px;">Iter 2: slow=3, fast=5 → stop</p><div class="lr"><div class="lnd"><div class="nd">1</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">2</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd mk">3</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">4</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd nw">5</div><div class="nx nw">→</div></div></div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--teal);margin-top:3px;">Middle = 3 ✓</p></div>
+</div></div></div></div><span class="sn">16 / 25</span></section>
+
+<!-- S17 MERGE SORTED -->
+<section class="slide" id="s17"><div class="sec">Classic Algorithms</div>
+<div class="sc"><div class="rl t rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Merge Two Sorted Lists — O(n+m)</h2>
+<div class="tc">
+<div><div class="cl t rv d2" style="margin-bottom:var(--gap);"><p>Compare front nodes; append smaller; advance that pointer. Use a dummy head to simplify edge cases.</p></div>
+<div class="cb t rv d3"><span class="kw">def</span> <span class="fn">merge_sorted</span>(l1, l2):<br>&nbsp;&nbsp;dummy = <span class="fn">Node</span>(<span class="nm">0</span>)<br>&nbsp;&nbsp;curr = dummy<br>&nbsp;&nbsp;<span class="kw">while</span> l1 <span class="kw">and</span> l2:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> l1.data &lt;= l2.data:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;curr.next=l1; l1=l1.next<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">else</span>:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;curr.next=l2; l2=l2.next<br>&nbsp;&nbsp;&nbsp;&nbsp;curr=curr.next<br>&nbsp;&nbsp;curr.next = l1 <span class="kw">or</span> l2<br>&nbsp;&nbsp;<span class="kw">return</span> dummy.next</div></div>
+<div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--sg);">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">Merge 1→3→5 and 2→4→6</p>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-bottom:3px;">L1:</p><div class="lr"><div class="lnd"><div class="nd mk">1</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">3</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">5</div><div class="nx">→</div></div><div class="nl">null</div></div></div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-bottom:3px;">L2:</p><div class="lr"><div class="lnd"><div class="nd nw">2</div><div class="nx nw">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">4</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">6</div><div class="nx">→</div></div><div class="nl">null</div></div></div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--teal);margin-bottom:3px;">Result:</p><div class="lr" style="flex-wrap:wrap;gap:2px;"><div class="lnd"><div class="nd mk">1</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd nw">2</div><div class="nx nw">→</div></div><div class="na">›</div><div class="lnd"><div class="nd mk">3</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd nw">4</div><div class="nx nw">→</div></div><div class="na">›</div><div class="lnd"><div class="nd mk">5</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd nw">6</div><div class="nx nw">→</div></div><div class="nl">null</div></div></div>
+<div class="dc t"><div class="lb" style="color:var(--teal);">Dummy node trick</div><p>Avoids special-casing first node. Return dummy.next.</p></div>
+</div></div></div><span class="sn">17 / 25</span></section>
+
+<!-- S18 NTH FROM END -->
+<section class="slide sp" id="s18"><div class="vb"></div><div class="sec">Classic Algorithms</div>
+<div class="sc"><div class="rl r rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Remove N-th Node From End — O(n) O(1)</h2>
+<div class="tc">
+<div><div class="cl r rv d2" style="margin-bottom:var(--gap);"><p>Maintain a gap of n nodes. When fast hits null, slow is just before the target node.</p></div>
+<div class="cb r rv d3"><span class="kw">def</span> <span class="fn">remove_nth</span>(head, n):<br>&nbsp;&nbsp;dummy = <span class="fn">Node</span>(<span class="nm">0</span>)<br>&nbsp;&nbsp;dummy.next = head<br>&nbsp;&nbsp;slow = fast = dummy<br>&nbsp;&nbsp;<span class="kw">for</span> _ <span class="kw">in range</span>(n+<span class="nm">1</span>):<br>&nbsp;&nbsp;&nbsp;&nbsp;fast = fast.next<br>&nbsp;&nbsp;<span class="kw">while</span> fast:<br>&nbsp;&nbsp;&nbsp;&nbsp;slow=slow.next;fast=fast.next<br>&nbsp;&nbsp;slow.next = slow.next.next<br>&nbsp;&nbsp;<span class="kw">return</span> dummy.next</div></div>
+<div>
+<div class="dc r rv d2" style="margin-bottom:var(--sg);"><div class="lb" style="color:var(--rose);">Remove 2nd from end of 1→2→3→4→5</div><p>fast jumps 3 positions. Both advance until fast=null. slow.next = node 4 → remove it. Result: 1→2→3→5</p></div>
+<div class="dc rv d3" style="margin-bottom:var(--sg);"><div class="lb">Two-pointer gap pattern</div><p>Fixed gap between fast and slow solves many LL problems in a single O(n) pass — including intersection detection.</p></div>
+<div class="cl t rv d4"><p>Dummy node simplifies the edge case where we delete the head node (n = length).</p></div>
+</div></div></div><span class="sn">18 / 25</span></section>
+
+<!-- S19 PALINDROME -->
+<section class="slide" id="s19"><div class="sec">Classic Algorithms</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Palindrome Linked List — O(n) O(1)</h2>
+<div class="tc">
+<div><div class="cl rv d2" style="margin-bottom:var(--gap);"><p>Find middle → reverse second half → compare both halves. O(n) time, O(1) auxiliary space.</p></div>
+<div class="cb rv d3"><span class="kw">def</span> <span class="fn">is_palindrome</span>(head):<br>&nbsp;&nbsp;slow=fast=head<br>&nbsp;&nbsp;<span class="kw">while</span> fast <span class="kw">and</span> fast.next:<br>&nbsp;&nbsp;&nbsp;&nbsp;slow=slow.next;fast=fast.next.next<br>&nbsp;&nbsp;prev,curr=<span class="kw">None</span>,slow<br>&nbsp;&nbsp;<span class="kw">while</span> curr:<br>&nbsp;&nbsp;&nbsp;&nbsp;nxt=curr.next;curr.next=prev<br>&nbsp;&nbsp;&nbsp;&nbsp;prev=curr;curr=nxt<br>&nbsp;&nbsp;l,r=head,prev<br>&nbsp;&nbsp;<span class="kw">while</span> r:<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> l.data!=r.data: <span class="kw">return False</span><br>&nbsp;&nbsp;&nbsp;&nbsp;l=l.next;r=r.next<br>&nbsp;&nbsp;<span class="kw">return True</span></div></div>
+<div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--sg);">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">1→2→2→1 is palindrome</p>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-bottom:3px;">Original:</p><div class="lr"><div class="lnd"><div class="nd">1</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">2</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">2</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">1</div><div class="nx">→</div></div><div class="nl">null</div></div></div>
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--neon);">Middle at idx 2. Reverse second half → 1→2</p>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-bottom:3px;">Left:</p><div class="lr"><div class="lnd"><div class="nd mk">1</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd mk">2</div><div class="nx mk">→</div></div></div></div>
+<div><p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-bottom:3px;">Right (reversed):</p><div class="lr"><div class="lnd"><div class="nd nw">1</div><div class="nx nw">→</div></div><div class="na">›</div><div class="lnd"><div class="nd nw">2</div><div class="nx nw">→</div></div></div></div>
+<div class="dc t"><div class="lb" style="color:var(--teal);">1=1, 2=2 → palindrome ✓</div></div>
+</div></div></div><span class="sn">19 / 25</span></section>
+
+<!-- S20 COMPLEXITY -->
+<section class="slide sp" id="s20"><div class="vb"></div><div class="sec">Summary</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Complexity Summary</h2>
+<div class="tc">
+<div class="rv d3">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--neon);text-transform:uppercase;letter-spacing:.1em;margin-bottom:var(--sg);">Singly LL</p>
+<table class="tb" style="font-size:var(--ss);">
+<thead><tr><th>Operation</th><th>Time</th><th>Space</th></tr></thead>
+<tbody>
+<tr><td>Access by index</td><td class="ba">O(n)</td><td class="go">O(1)</td></tr>
+<tr><td>Search</td><td class="ba">O(n)</td><td class="go">O(1)</td></tr>
+<tr><td>Insert at head</td><td class="go">O(1)</td><td class="go">O(1)</td></tr>
+<tr><td>Insert at tail*</td><td class="go">O(1)*</td><td class="go">O(1)</td></tr>
+<tr><td>Insert at pos i</td><td class="ba">O(n)</td><td class="go">O(1)</td></tr>
+<tr><td>Delete at head</td><td class="go">O(1)</td><td class="go">O(1)</td></tr>
+<tr><td>Delete at pos i</td><td class="ba">O(n)</td><td class="go">O(1)</td></tr>
+<tr><td>Reverse</td><td class="ba">O(n)</td><td class="go">O(1)</td></tr>
+</tbody></table>
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);margin-top:var(--sg);">*O(1) if tail pointer maintained</p>
+</div>
+<div>
+<div class="dc b rv d3" style="margin-bottom:var(--sg);"><div class="lb" style="color:var(--blue3);">Doubly vs Singly</div>
+<table class="tb" style="font-size:var(--ss);margin-top:var(--sg);"><tr><th>Op</th><th>Singly</th><th>Doubly</th></tr><tr><td>Delete given node</td><td class="ba">O(n)</td><td class="go">O(1)</td></tr><tr><td>Memory/node</td><td class="go">1 ptr</td><td class="ba">2 ptrs</td></tr></table></div>
+<div class="dc rv d4"><div class="lb">Two-pointer algorithms</div>
+<table class="tb" style="font-size:var(--ss);margin-top:var(--sg);"><tr><th>Problem</th><th>Time</th><th>Space</th></tr><tr><td>Find middle</td><td class="ok">O(n)</td><td class="go">O(1)</td></tr><tr><td>Detect cycle</td><td class="ok">O(n)</td><td class="go">O(1)</td></tr><tr><td>Nth from end</td><td class="ok">O(n)</td><td class="go">O(1)</td></tr><tr><td>Palindrome</td><td class="ok">O(n)</td><td class="go">O(1)</td></tr></table></div>
+</div></div></div><span class="sn">20 / 25</span></section>
+
+<!-- S21 CHOOSING -->
+<section class="slide" id="s21"><div class="sec">Comparison</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Choosing the Right Structure</h2>
+<div class="thc">
+<div class="dc rv d2"><div class="lb">Array</div><ul class="pt n" style="margin-top:var(--sg);"><li>Random access by index</li><li>Cache-friendly sequential processing</li><li>Binary search needed</li><li>Mostly reads, few inserts</li></ul></div>
+<div class="dc b rv d3"><div class="lb" style="color:var(--blue3);">Singly Linked List</div><ul class="pt b" style="margin-top:var(--sg);"><li>Frequent front insert/delete</li><li>Memory-constrained (1 ptr/node)</li><li>Implementing stacks or queues</li><li>Size changes frequently</li></ul></div>
+<div class="dc t rv d4"><div class="lb" style="color:var(--teal);">Doubly Linked List</div><ul class="pt t" style="margin-top:var(--sg);"><li>O(1) delete with node pointer</li><li>Bidirectional traversal</li><li>LRU cache, deque, browser history</li><li>Memory OK for 2 ptrs/node</li></ul></div>
+</div>
+<div class="cl b rv d5" style="margin-top:var(--gap);"><p>Python <code style="font-family:var(--font-m);">collections.deque</code> is a doubly linked list — use it for production code.</p></div>
+</div><span class="sn">21 / 25</span></section>
+
+<!-- S22 APPLICATIONS -->
+<section class="slide sp" id="s22"><div class="vb"></div><div class="sec">Applications</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Real-World Applications</h2>
+<div class="tc">
+<div>
+<div class="dc rv d2" style="margin-bottom:var(--sg);"><div class="lb">Hash Table Chaining</div><p>Each bucket is a linked list of entries with the same hash. Used in Python dicts (pre-3.6), Java HashMap.</p></div>
+<div class="dc b rv d3" style="margin-bottom:var(--sg);"><div class="lb" style="color:var(--blue3);">LRU Cache</div><p>Doubly linked list + hash map. Accessed nodes move to front in O(1). Least used is at the tail.</p></div>
+<div class="dc t rv d4"><div class="lb" style="color:var(--teal);">OS Kernel</div><p>Linux uses intrusive doubly linked lists (list_head) for processes, file descriptors, network interfaces.</p></div>
+</div>
+<div>
+<div class="dc r rv d2" style="margin-bottom:var(--sg);"><div class="lb" style="color:var(--rose);">Undo / Redo</div><p>Each state is a node. Undo pops the head. Redo pushes to a separate list.</p></div>
+<div class="dc rv d3" style="margin-bottom:var(--sg);"><div class="lb">Memory Allocator</div><p>Free lists track available blocks. O(1) insert/delete without contiguous storage.</p></div>
+<div class="dc rv d4"><div class="lb">Graph Adjacency List</div><p>Each vertex's neighbours stored as a linked list. Standard for sparse graphs — O(V+E) space.</p></div>
+</div></div></div><span class="sn">22 / 25</span></section>
+
+<!-- S23 MISTAKES -->
+<section class="slide" id="s23"><div class="sec">Common Mistakes</div>
+<div class="sc"><div class="rl r rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Common Linked List Mistakes</h2>
+<div class="tc">
+<div>
+<div class="dc r rv d2" style="margin-bottom:var(--sg);"><div class="lb" style="color:var(--rose);">Losing the list on insert</div><p>Setting prev.next = new_node before new_node.next = prev.next loses the rest. Always set new_node.next first.</p></div>
+<div class="dc r rv d3" style="margin-bottom:var(--sg);"><div class="lb" style="color:var(--rose);">Not checking empty list</div><p>Always check <code style="font-family:var(--font-m);">if not self.head</code> before any operation to avoid AttributeError.</p></div>
+<div class="dc r rv d4"><div class="lb" style="color:var(--rose);">Off-by-one in kth node</div><p>Is k 0-indexed or 1-indexed? Walk k-1 steps for 1-indexed, k steps for 0-indexed. Test on a small example.</p></div>
+</div>
+<div>
+<div class="dc rv d2" style="margin-bottom:var(--sg);"><div class="lb">Forgetting to update tail</div><p>When maintaining a tail pointer, always update it when adding/removing the last node.</p></div>
+<div class="dc rv d3" style="margin-bottom:var(--sg);"><div class="lb">Infinite loop on cyclic list</div><p>Without Floyd's, traversing a cyclic list loops forever. Use fast/slow or a visited set.</p></div>
+<div class="dc rv d4"><div class="lb">Wrong stop condition</div><p><code style="font-family:var(--font-m);">while curr:</code> visits all nodes. <code style="font-family:var(--font-m);">while curr.next:</code> stops before last. Mixing them causes bugs.</p></div>
+</div></div></div><span class="sn">23 / 25</span></section>
+
+<!-- S24 FULL IMPL -->
+<section class="slide sp" id="s24"><div class="vb"></div><div class="sec">Implementation</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Complete Singly LL in Python</h2>
+<div class="tc">
+<div class="cb rv d2" style="font-size:var(--ms);"><span class="kw">class</span> <span class="fn">LinkedList</span>:<br>&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self):<br>&nbsp;&nbsp;&nbsp;&nbsp;self.head=<span class="kw">None</span>;self.size=<span class="nm">0</span><br><br>&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">prepend</span>(self, d):<br>&nbsp;&nbsp;&nbsp;&nbsp;n=<span class="fn">Node</span>(d);n.next=self.head<br>&nbsp;&nbsp;&nbsp;&nbsp;self.head=n;self.size+=<span class="nm">1</span><br><br>&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">append</span>(self, d):<br>&nbsp;&nbsp;&nbsp;&nbsp;n=<span class="fn">Node</span>(d)<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> self.head:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.head=n;self.size+=<span class="nm">1</span>;<span class="kw">return</span><br>&nbsp;&nbsp;&nbsp;&nbsp;c=self.head<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> c.next: c=c.next<br>&nbsp;&nbsp;&nbsp;&nbsp;c.next=n;self.size+=<span class="nm">1</span><br><br>&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">delete</span>(self, d):<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> self.head: <span class="kw">return</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> self.head.data==d:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.head=self.head.next<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.size-=<span class="nm">1</span>;<span class="kw">return</span><br>&nbsp;&nbsp;&nbsp;&nbsp;c=self.head<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> c <span class="kw">and</span> c.next:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> c.next.data==d:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c.next=c.next.next<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.size-=<span class="nm">1</span>;<span class="kw">return</span><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;c=c.next<br><br>&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__repr__</span>(self):<br>&nbsp;&nbsp;&nbsp;&nbsp;v=[];c=self.head<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">while</span> c:v.<span class="fn">append</span>(<span class="fn">str</span>(c.data));c=c.next<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="st">" → "</span>.<span class="fn">join</span>(v)+<span class="st">" → null"</span></div>
+<div>
+<div class="dc rv d2" style="margin-bottom:var(--sg);"><div class="lb">Usage</div>
+<div class="cb" style="margin-top:var(--sg);">ll=<span class="fn">LinkedList</span>()<br>ll.<span class="fn">append</span>(<span class="nm">10</span>)<br>ll.<span class="fn">append</span>(<span class="nm">20</span>)<br>ll.<span class="fn">prepend</span>(<span class="nm">5</span>)<br><span class="fn">print</span>(ll) <span class="cm"># 5→10→20→null</span><br>ll.<span class="fn">delete</span>(<span class="nm">10</span>)<br><span class="fn">print</span>(ll) <span class="cm"># 5→20→null</span></div></div>
+<div class="cl t rv d3"><p>Use <code style="font-family:var(--font-m);">collections.deque</code> for production — it's a battle-tested doubly linked list with O(1) at both ends.</p></div>
+</div></div></div><span class="sn">24 / 25</span></section>
+
+<!-- S25 TAKEAWAYS -->
+<section class="slide ds" id="s25">
+<div style="position:absolute;left:0;top:0;bottom:0;width:clamp(180px,32vw,360px);background:var(--blue2);opacity:0.15;"></div>
+<div style="position:absolute;left:clamp(180px,32vw,360px);top:0;bottom:0;width:3px;background:var(--neon);opacity:0.6;"></div>
+<div class="sc" style="position:relative;z-index:2;">
+<div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Key Takeaways</h2>
+<div class="tc">
+<ul class="pt n"><li class="rv d1">Linked list nodes store data + a <strong>pointer</strong> in non-contiguous memory — dynamic, no pre-allocation</li><li class="rv d2">No random access — index i requires O(n) traversal from head</li><li class="rv d3"><strong>Insert/delete at head = O(1)</strong>; anywhere else = O(n) to find the position</li><li class="rv d4">Always set <em>new_node.next first</em> before updating the previous pointer</li><li class="rv d5">Doubly LL: O(1) delete with node pointer; costs one extra pointer per node</li></ul>
+<ul class="pt b"><li class="rv d1">Circular LL: last node → head; used in round-robin scheduling</li><li class="rv d2">Two-pointer (fast/slow): <strong>find middle, cycle detection, nth from end</strong> — O(n) O(1)</li><li class="rv d3">Floyd's algorithm detects cycles in O(n) without extra space</li><li class="rv d4">Reverse iteratively in O(n) O(1). Recursive is O(n) O(n) — prefer iterative</li><li class="rv d5">Real uses: LRU cache, hash chaining, OS kernel, <code style="font-family:var(--font-m);">collections.deque</code></li></ul>
+</div></div><span class="sn">25 / 25</span></section>
+
+<script>
+class P{constructor(){this.sl=document.querySelectorAll('.slide');this.tot=this.sl.length;this.cur=0;this.pb=document.getElementById('pb');this.nd=document.getElementById('nd');this.obs();this.dots();this.kb();this.touch();this.wheel();this.upP(0);}
+obs(){const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('visible');const i=[...this.sl].indexOf(x.target);this.cur=i;this.upP(i);this.upD(i);}});},{threshold:0.5});this.sl.forEach(s=>o.observe(s));}
+dots(){this.sl.forEach((_,i)=>{const b=document.createElement('button');b.className='dot'+(i===0?' active':'');b.addEventListener('click',()=>this.go(i));this.nd.appendChild(b);});}
+upD(i){document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('active',i===j));}
+upP(i){this.pb.style.width=(this.tot>1?(i/(this.tot-1))*100:100)+'%';}
+go(i){this.sl[i].scrollIntoView({behavior:'smooth'});}
+kb(){document.addEventListener('keydown',e=>{if(this.ed&&this.ed.on)return;const m={'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1};if(m[e.key]!==undefined){e.preventDefault();this.go(Math.max(0,Math.min(this.tot-1,this.cur+m[e.key])));}});}
+touch(){let sy=0;document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});document.addEventListener('touchend',e=>{const dy=sy-e.changedTouches[0].clientY;if(Math.abs(dy)>50)this.go(Math.max(0,Math.min(this.tot-1,this.cur+(dy>0?1:-1))));},{passive:true});}
+wheel(){let l=0;document.addEventListener('wheel',e=>{const n=Date.now();if(n-l<700)return;l=n;this.go(Math.max(0,Math.min(this.tot-1,this.cur+(e.deltaY>0?1:-1))));},{passive:true});}}
+class E{constructor(){this.on=false;this.tg=document.getElementById('et');this.hz=document.getElementById('eh');this.ht=null;this.h();this.k();this.load();}
+h(){const s=()=>{clearTimeout(this.ht);this.tg.classList.add('show');};const h=()=>{this.ht=setTimeout(()=>{if(!this.on)this.tg.classList.remove('show');},400);};this.hz.addEventListener('mouseenter',s);this.hz.addEventListener('mouseleave',h);this.tg.addEventListener('mouseenter',s);this.tg.addEventListener('mouseleave',h);this.hz.addEventListener('click',()=>this.tog());this.tg.addEventListener('click',()=>this.tog());}
+k(){document.addEventListener('keydown',e=>{if((e.key==='e'||e.key==='E')&&!e.target.getAttribute('contenteditable'))this.tog();if((e.ctrlKey||e.metaKey)&&e.key==='s'&&this.on){e.preventDefault();this.save();}});}
+tog(){this.on=!this.on;this.tg.textContent=this.on?'💾 Save (Ctrl+S)':'✏ Edit';this.tg.classList.toggle('active',this.on);this.tg.classList.add('show');const t=document.querySelectorAll('h1,h2,h3,p,li,.cb');if(this.on){t.forEach(el=>{el.setAttribute('contenteditable','true');el.setAttribute('spellcheck','false');});}else{t.forEach(el=>el.removeAttribute('contenteditable'));this.save();}}
+save(){const d={};document.querySelectorAll('.slide').forEach((s,i)=>{d['s'+i]=s.innerHTML;});localStorage.setItem('ll_v2',JSON.stringify(d));if(this.on){this.tg.textContent='✓ Saved!';setTimeout(()=>{this.tg.textContent='💾 Save (Ctrl+S)';},1400);}}
+load(){try{const r=localStorage.getItem('ll_v2');if(!r)return;const d=JSON.parse(r);document.querySelectorAll('.slide').forEach((s,i)=>{if(d['s'+i])s.innerHTML=d['s'+i];});}catch(e){}}}
+const p=new P();const e=new E();p.ed=e;
+</script>
+</body>
+</html>

@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intro to DSA & Arrays</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600;1,700&family=Work+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+/* =====================================================
+   THEME: Vintage Editorial
+   Cream bg · charcoal ink · warm terracotta accent
+   Fraunces (display) + Work Sans (body) + JetBrains Mono
+===================================================== */
+:root {
+    --cream:   #f5f3ee;
+    --cream2:  #ede9e0;
+    --ink:     #1c1c1a;
+    --ink2:    #3d3d38;
+    --ink3:    #7a7a72;
+    --terra:   #c0533a;   /* terracotta accent */
+    --terra2:  #e07b5a;
+    --teal:    #2a6b6b;
+    --gold:    #b08b3a;
+    --border:  #ccc9be;
+    --border2: #e0ddd6;
+
+    --font-d: 'Fraunces', serif;
+    --font-b: 'Work Sans', sans-serif;
+    --font-m: 'JetBrains Mono', monospace;
+
+    --title-size: clamp(2rem, 6vw, 5.5rem);
+    --h2-size:    clamp(1.3rem, 3vw, 2.5rem);
+    --h3-size:    clamp(1rem, 2vw, 1.5rem);
+    --body-size:  clamp(0.75rem, 1.35vw, 1rem);
+    --small-size: clamp(0.62rem, 0.95vw, 0.8rem);
+    --mono-size:  clamp(0.65rem, 1.05vw, 0.88rem);
+
+    --pad:  clamp(2rem, 5.5vw, 6rem);
+    --gap:  clamp(0.65rem, 1.6vw, 1.6rem);
+    --sgap: clamp(0.3rem, 0.75vw, 0.75rem);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* === RESET + VIEWPORT BASE === */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow-x:hidden; }
+html { scroll-snap-type:y mandatory; scroll-behavior:smooth; }
+
+.slide {
+    width:100vw; height:100vh; height:100dvh;
+    overflow:hidden; scroll-snap-align:start;
+    display:flex; flex-direction:column; position:relative;
+    background: var(--cream);
+    font-family: var(--font-b);
+}
+
+.slide-content {
+    flex:1; display:flex; flex-direction:column; justify-content:center;
+    max-height:100%; overflow:hidden;
+    padding: var(--pad); position:relative; z-index:1;
+}
+
+/* === GEOMETRIC DECORATIONS (Vintage Editorial signature) === */
+/* Large circle outline — top right corner */
+.geo-circle {
+    position:absolute; border-radius:50%;
+    border: 1.5px solid var(--border);
+    pointer-events:none; z-index:0;
+}
+/* Horizontal rule accent */
+.geo-line {
+    position:absolute; background:var(--border);
+    pointer-events:none; z-index:0;
+}
+/* Small filled dot */
+.geo-dot {
+    position:absolute; border-radius:50%;
+    background:var(--terra); pointer-events:none; z-index:0;
+}
+
+/* === PROGRESS BAR === */
+#progress-bar {
+    position:fixed; top:0; left:0; height:3px;
+    background: linear-gradient(90deg, var(--terra), var(--gold));
+    width:0%; z-index:9999; transition:width 0.3s ease;
+}
+
+/* === NAV DOTS === */
+#nav-dots {
+    position:fixed; right:clamp(0.8rem,1.5vw,1.5rem); top:50%;
+    transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:5px; z-index:9998;
+}
+.nav-dot {
+    width:5px; height:5px; border-radius:50%;
+    background:var(--border); border:none; cursor:pointer;
+    transition:all 0.3s;
+}
+.nav-dot.active { background:var(--terra); height:16px; border-radius:3px; }
+
+/* === SLIDE NUMBER === */
+.snum {
+    position:absolute; bottom:clamp(0.8rem,2vh,1.5rem); right:clamp(2rem,5.5vw,6rem);
+    font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3); z-index:10;
+    letter-spacing:0.1em;
+}
+
+/* === TYPOGRAPHY === */
+h1 { font-family:var(--font-d); font-weight:900; font-size:var(--title-size); line-height:0.95; letter-spacing:-0.02em; color:var(--ink); }
+h2 { font-family:var(--font-d); font-weight:700; font-size:var(--h2-size); line-height:1.1; color:var(--ink); }
+h3 { font-family:var(--font-b); font-weight:700; font-size:var(--h3-size); color:var(--ink2); }
+p  { font-family:var(--font-b); font-size:var(--body-size); color:var(--ink2); line-height:1.65; }
+li { font-family:var(--font-b); font-size:var(--body-size); color:var(--ink2); line-height:1.6; }
+em { color:var(--terra); font-style:italic; }
+strong { color:var(--ink); }
+
+/* === HORIZONTAL RULE === */
+.rule { width:clamp(40px,6vw,80px); height:2px; background:var(--terra); margin-bottom:var(--sgap); }
+.rule.full { width:100%; background:var(--border); margin:var(--sgap) 0; }
+.rule.teal { background:var(--teal); }
+.rule.gold { background:var(--gold); }
+
+/* === PULL QUOTE === */
+.pquote {
+    border-left:3px solid var(--terra);
+    padding-left:clamp(0.8rem,2vw,1.8rem);
+    margin:var(--sgap) 0;
+}
+.pquote p { font-family:var(--font-d); font-style:italic; font-weight:600; font-size:var(--h3-size); color:var(--ink); line-height:1.4; }
+.pquote.teal { border-color:var(--teal); }
+.pquote.gold { border-color:var(--gold); }
+
+/* === INLINE CARD === */
+.icard {
+    background:var(--cream2); border:1px solid var(--border);
+    padding:clamp(0.5rem,1.2vw,1rem); border-radius:1px;
+}
+.icard .lbl {
+    font-family:var(--font-m); font-size:var(--small-size);
+    text-transform:uppercase; letter-spacing:0.12em;
+    margin-bottom:0.35em; font-weight:500; color:var(--terra);
+}
+.icard.teal .lbl { color:var(--teal); }
+.icard.gold .lbl { color:var(--gold); }
+.icard p { font-size:var(--body-size); }
+
+/* === BORDERED BOX === */
+.bbox {
+    border:2px solid var(--ink);
+    padding:clamp(0.6rem,1.4vw,1.2rem) clamp(0.8rem,2vw,1.8rem);
+}
+.bbox.terra { border-color:var(--terra); }
+.bbox.teal  { border-color:var(--teal); }
+.bbox p { font-family:var(--font-d); font-size:var(--h3-size); color:var(--ink); font-weight:600; line-height:1.35; }
+
+/* === CODE BLOCK === */
+.cb {
+    background:var(--ink); color:#d4cfc8;
+    border-left:3px solid var(--terra);
+    padding:clamp(0.6rem,1.4vw,1.1rem) clamp(0.8rem,1.8vw,1.4rem);
+    font-family:var(--font-m); font-size:var(--mono-size); line-height:1.75;
+    border-radius:0 2px 2px 0; overflow:hidden;
+}
+.cb.teal { border-color:var(--teal); }
+.cb.gold { border-color:var(--gold); }
+.kw { color:#e07b5a; font-weight:700; }
+.fn { color:#5ab8a8; }
+.cm { color:#6a6a60; font-style:italic; }
+.nm { color:#d4a840; }
+.st { color:#98c898; }
+
+/* === TABLE === */
+.tbl { width:100%; border-collapse:collapse; font-size:var(--body-size); }
+.tbl th { font-family:var(--font-b); font-weight:700; text-align:left; padding:0.45em 0.7em; border-bottom:2px solid var(--ink); color:var(--ink); }
+.tbl td { padding:0.4em 0.7em; border-bottom:1px solid var(--border2); color:var(--ink2); }
+.tbl tr:last-child td { border-bottom:none; }
+.good { color:var(--teal) !important; font-weight:700; font-family:var(--font-m); }
+.ok   { color:var(--gold) !important; font-weight:700; font-family:var(--font-m); }
+.bad  { color:var(--terra) !important; font-weight:700; font-family:var(--font-m); }
+
+/* === BULLET LIST === */
+ul.pts { list-style:none; display:flex; flex-direction:column; gap:var(--sgap); }
+ul.pts li { display:flex; align-items:flex-start; gap:0.6em; }
+ul.pts li::before { content:'—'; color:var(--terra); font-weight:700; flex-shrink:0; margin-top:0.05em; }
+ul.pts.teal li::before { color:var(--teal); }
+ul.pts.gold li::before { color:var(--gold); }
+
+/* === LAYOUT === */
+.two-col   { display:grid; grid-template-columns:1fr 1fr;       gap:clamp(1rem,3vw,3rem); align-items:start; }
+.two-col-w { display:grid; grid-template-columns:1.2fr 0.8fr;   gap:clamp(1rem,3vw,3rem); align-items:start; }
+.three-col { display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(0.5rem,1.3vw,1.3rem); }
+.four-col  { display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(0.4rem,1vw,1rem); }
+
+/* === TAG === */
+.tag {
+    display:inline-block; font-family:var(--font-m); font-size:var(--small-size);
+    padding:0.15em 0.6em; border:1px solid; font-weight:500; border-radius:1px;
+}
+.tag.r { color:var(--terra); border-color:var(--terra); background:rgba(192,83,58,0.07); }
+.tag.t { color:var(--teal);  border-color:var(--teal);  background:rgba(42,107,107,0.07); }
+.tag.g { color:var(--gold);  border-color:var(--gold);  background:rgba(176,139,58,0.07); }
+
+/* === ARRAY CELL VISUAL === */
+.arr-row { display:flex; align-items:stretch; gap:0; }
+.acell {
+    width:clamp(28px,4.5vw,50px); height:clamp(28px,4.5vh,44px);
+    border:1.5px solid var(--border); border-right:none;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-m); font-weight:700; font-size:var(--mono-size);
+    color:var(--ink); background:var(--cream);
+    flex-shrink:0;
+}
+.acell:last-child { border-right:1.5px solid var(--border); }
+.acell.hi     { background:rgba(192,83,58,0.12); border-color:var(--terra); color:var(--terra); }
+.acell.hl     { background:rgba(42,107,107,0.12); border-color:var(--teal); color:var(--teal); }
+.acell.gold   { background:rgba(176,139,58,0.12); border-color:var(--gold); color:var(--gold); }
+.acell.empty  { background:var(--cream2); color:var(--ink3); }
+.arr-idx { display:flex; gap:0; }
+.aidx {
+    width:clamp(28px,4.5vw,50px);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3);
+    flex-shrink:0;
+}
+
+/* === DIVIDER SLIDE === */
+.div-slide { background:var(--ink); }
+.div-slide .slide-content { justify-content:center; }
+.div-slide h2 { color:var(--cream); }
+.div-slide p  { color:rgba(245,243,238,0.5); }
+.div-slide .rule { background:var(--terra); }
+.div-slide .snum { color:rgba(245,243,238,0.2); }
+
+/* === SECTION LABEL === */
+.sec-label {
+    position:absolute; top:clamp(0.8rem,2vh,1.5rem); left:var(--pad);
+    font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3);
+    letter-spacing:0.15em; text-transform:uppercase; z-index:10;
+}
+
+/* === REVEAL ANIMATIONS === */
+.reveal       { opacity:0; transform:translateY(20px); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.reveal-left  { opacity:0; transform:translateX(-30px); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.reveal-scale { opacity:0; transform:scale(0.94);       transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.slide.visible .reveal,
+.slide.visible .reveal-left,
+.slide.visible .reveal-scale { opacity:1; transform:none; }
+.d1{transition-delay:.05s} .d2{transition-delay:.13s} .d3{transition-delay:.21s}
+.d4{transition-delay:.29s} .d5{transition-delay:.37s} .d6{transition-delay:.45s}
+.d7{transition-delay:.53s} .d8{transition-delay:.61s}
+
+/* Responsive */
+@media (max-height:700px) {
+    :root { --pad:clamp(0.8rem,3vw,2.5rem); --gap:clamp(0.4rem,1.2vw,1rem); --h2-size:clamp(1.1rem,2.6vw,2rem); }
+}
+@media (max-height:600px) {
+    :root { --pad:clamp(0.5rem,2.5vw,1.5rem); --gap:clamp(0.3rem,0.8vw,0.7rem); --body-size:clamp(0.68rem,1.1vw,0.88rem); }
+    #nav-dots { display:none; }
+}
+@media (max-width:640px) {
+    .two-col,.two-col-w,.three-col,.four-col { grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion:reduce) {
+    *,*::before,*::after { animation-duration:0.01ms !important; transition-duration:0.2s !important; }
+    html { scroll-behavior:auto; }
+}
+
+/* Inline edit */
+.edit-hotzone { position:fixed; top:0; left:0; width:80px; height:80px; z-index:10000; cursor:pointer; }
+.edit-toggle {
+    position:fixed; top:14px; left:14px;
+    background:var(--terra); color:#fff;
+    border:none; padding:6px 14px;
+    font-family:var(--font-m); font-size:0.72rem; cursor:pointer;
+    z-index:10001; opacity:0; pointer-events:none; transition:opacity 0.3s; font-weight:600;
+}
+.edit-toggle.show,.edit-toggle.active { opacity:1; pointer-events:auto; }
+[contenteditable]:focus { outline:2px dashed var(--terra); outline-offset:2px; }
+    </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<nav id="nav-dots"></nav>
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle">✏ Edit</button>
+
+<!-- ================================================ SLIDE 1 — TITLE -->
+<section class="slide" id="slide-1">
+    <!-- geometric decorations -->
+    <div class="geo-circle" style="width:clamp(180px,30vw,320px); height:clamp(180px,30vw,320px); right:calc(-1 * clamp(90px,15vw,160px)); top:calc(-1 * clamp(60px,10vw,100px));"></div>
+    <div class="geo-circle" style="width:clamp(60px,10vw,100px); height:clamp(60px,10vw,100px); right:clamp(40px,8vw,90px); bottom:clamp(40px,8vh,90px);"></div>
+    <div class="geo-dot" style="width:clamp(8px,1.2vw,14px); height:clamp(8px,1.2vw,14px); right:clamp(90px,15vw,170px); top:clamp(80px,12vh,120px);"></div>
+
+    <div class="slide-content" style="justify-content:flex-end; padding-bottom:clamp(2.5rem,7vh,6rem);">
+        <div class="reveal d1" style="margin-bottom:var(--sgap);">
+            <span class="tag r" style="letter-spacing:0.15em; text-transform:uppercase;">CS — Data Structures &amp; Algorithms</span>
+        </div>
+        <h1 class="reveal d2">Intro to<br><em>DSA</em><br>&amp; Arrays</h1>
+        <div class="rule reveal d3" style="margin-top:var(--gap);"></div>
+        <p class="reveal d4" style="font-size:var(--h3-size); color:var(--ink3); max-width:clamp(200px,50vw,500px);">Foundations of data structures, algorithms, and the Array ADT</p>
+        <div class="reveal d5" style="margin-top:clamp(1rem,2.5vh,2rem); border-top:1px solid var(--border2); padding-top:clamp(0.6rem,1.5vh,1.2rem); display:flex; flex-direction:column; gap:0.25em;">
+            <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3);">Faculty of Computing and Mathematical Sciences</p>
+            <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3);">Cyber Security and Information Systems Department</p>
+            <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink2); margin-top:0.3em;">Presented by: Frederick Edem Broni</p>
+        </div>
+    </div>
+    <span class="snum">01 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 2 — AGENDA -->
+<section class="slide" id="slide-2">
+    <div class="geo-circle" style="width:clamp(100px,18vw,200px); height:clamp(100px,18vw,200px); right:clamp(1rem,3vw,3rem); bottom:clamp(1rem,3vh,3rem);"></div>
+    <div class="sec-label">Overview</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Agenda</h2>
+        <div class="two-col">
+            <ul class="pts">
+                <li class="reveal d1">What are Data Structures?</li>
+                <li class="reveal d2">What are Algorithms?</li>
+                <li class="reveal d3">Why DSA matters</li>
+                <li class="reveal d4">Abstract Data Types (ADTs)</li>
+                <li class="reveal d5">Complexity Analysis recap</li>
+                <li class="reveal d6">Categories of Data Structures</li>
+            </ul>
+            <ul class="pts teal">
+                <li class="reveal d1">What is an Array?</li>
+                <li class="reveal d2">Memory layout of arrays</li>
+                <li class="reveal d3">Array operations &amp; complexity</li>
+                <li class="reveal d4">Static vs Dynamic arrays</li>
+                <li class="reveal d5">Multi-dimensional arrays</li>
+                <li class="reveal d6">Common array patterns &amp; applications</li>
+            </ul>
+        </div>
+    </div>
+    <span class="snum">02 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 3 — WHAT IS A DATA STRUCTURE -->
+<section class="slide" id="slide-3">
+    <div class="geo-dot" style="width:clamp(10px,1.5vw,18px); height:clamp(10px,1.5vw,18px); right:clamp(3rem,7vw,7rem); top:clamp(3rem,6vh,5rem);"></div>
+    <div class="geo-circle" style="width:clamp(120px,20vw,220px); height:clamp(120px,20vw,220px); right:clamp(-2rem,-3vw,-2rem); top:50%; transform:translateY(-50%);"></div>
+    <div class="sec-label">DSA Foundations</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">What Is a Data Structure?</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="pquote reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A <em>data structure</em> is a way of organising, storing, and managing data so it can be accessed and modified efficiently.</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d3">A container that holds data in a particular format</li>
+                    <li class="reveal d4">Defines the <strong>relationships</strong> between data elements</li>
+                    <li class="reveal d5">Defines the <strong>operations</strong> that can be applied to the data</li>
+                    <li class="reveal d6">The choice of data structure directly affects algorithm performance</li>
+                    <li class="reveal d7">Wrong choice → slow, memory-hungry, bug-prone programs</li>
+                </ul>
+            </div>
+            <div>
+                <div class="icard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Primitive DS</div><p>int, float, char, boolean — directly operated on by the CPU</p></div>
+                <div class="icard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl">Linear DS</div><p>Arrays, Linked Lists, Stacks, Queues — sequential arrangement</p></div>
+                <div class="icard reveal d5" style="margin-bottom:var(--sgap);"><div class="lbl">Non-Linear DS</div><p>Trees, Graphs, Heaps — hierarchical or networked arrangement</p></div>
+                <div class="icard reveal d6"><div class="lbl">Hash-based DS</div><p>Hash Maps, Hash Sets — key-value with O(1) access</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">03 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 4 — WHAT IS AN ALGORITHM -->
+<section class="slide" id="slide-4">
+    <div class="geo-line" style="height:1px; width:clamp(100px,18vw,200px); right:var(--pad); top:clamp(3rem,7vh,6rem);"></div>
+    <div class="geo-dot" style="width:clamp(8px,1.2vw,12px); height:clamp(8px,1.2vw,12px); right:var(--pad); top:calc(clamp(3rem,7vh,6rem) - clamp(4px,0.6vw,6px));"></div>
+    <div class="sec-label">DSA Foundations</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">What Is an Algorithm?</h2>
+        <div class="two-col">
+            <div>
+                <div class="pquote reveal d2" style="margin-bottom:var(--gap);">
+                    <p>An <em>algorithm</em> is a finite, step-by-step, unambiguous set of instructions for solving a problem or accomplishing a task.</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d3"><strong>Input:</strong> Zero or more well-defined inputs</li>
+                    <li class="reveal d4"><strong>Output:</strong> At least one well-defined output</li>
+                    <li class="reveal d5"><strong>Definiteness:</strong> Every step is clear and unambiguous</li>
+                    <li class="reveal d6"><strong>Finiteness:</strong> Terminates after a finite number of steps</li>
+                    <li class="reveal d7"><strong>Effectiveness:</strong> Each step is basic and executable</li>
+                </ul>
+            </div>
+            <div>
+                <div class="bbox terra reveal d3" style="margin-bottom:var(--gap);">
+                    <p>Data Structure + Algorithm = <em>Program</em></p>
+                    <p style="font-family:var(--font-b); font-size:var(--small-size); color:var(--ink2); margin-top:0.4em; font-style:normal;">— Niklaus Wirth</p>
+                </div>
+                <div class="icard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl">Correctness</div><p>Produces the right output for all valid inputs, including edge cases</p></div>
+                <div class="icard reveal d5" style="margin-bottom:var(--sgap);"><div class="lbl">Efficiency</div><p>Uses the minimum time and space necessary to solve the problem</p></div>
+                <div class="icard reveal d6"><div class="lbl">Simplicity</div><p>Easy to understand, implement, and maintain</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">04 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 5 — WHY DSA MATTERS -->
+<section class="slide" id="slide-5">
+    <div class="geo-circle" style="width:clamp(80px,14vw,150px); height:clamp(80px,14vw,150px); left:calc(-1 * clamp(40px,7vw,75px)); bottom:clamp(2rem,5vh,5rem);"></div>
+    <div class="sec-label">DSA Foundations</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Why Does DSA Matter?</h2>
+        <div class="two-col">
+            <div>
+                <div class="pquote teal reveal d2" style="margin-bottom:var(--gap);">
+                    <p>The difference between a bad programmer and a good one is whether they consider their code or their data structures more important.</p>
+                    <p style="font-family:var(--font-b); font-style:normal; font-size:var(--small-size); color:var(--ink3); margin-top:0.4em;">— Linus Torvalds</p>
+                </div>
+                <ul class="pts teal">
+                    <li class="reveal d3">Good DSA knowledge separates engineers who <strong>solve problems</strong> from those who just write code</li>
+                    <li class="reveal d4">A wrong data structure can make software 1000× slower on large inputs</li>
+                    <li class="reveal d5">Required for technical interviews at every top company</li>
+                    <li class="reveal d6">Foundation for systems programming, AI, databases, networking</li>
+                </ul>
+            </div>
+            <div>
+                <div class="icard teal reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--teal);">Performance</div><p>Facebook processes billions of posts with trees &amp; hash maps — O(log n) beats O(n) by millions of ops/sec</p></div>
+                <div class="icard teal reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--teal);">Problem Solving</div><p>Every hard problem reduces to: choose the right structure, then apply the right algorithm</p></div>
+                <div class="icard teal reveal d5" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--teal);">Interviews</div><p>Google, Meta, Amazon, Microsoft — all require DSA proficiency in technical screens</p></div>
+                <div class="icard teal reveal d6"><div class="lbl" style="color:var(--teal);">Career</div><p>System design, competitive programming, research — all grounded in DSA</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">05 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 6 — ABSTRACT DATA TYPES -->
+<section class="slide" id="slide-6">
+    <div class="geo-line" style="height:1px; width:clamp(60px,10vw,120px); right:var(--pad); bottom:clamp(5rem,10vh,8rem);"></div>
+    <div class="sec-label">DSA Foundations</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Abstract Data Types (ADTs)</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="pquote reveal d2" style="margin-bottom:var(--gap);">
+                    <p>An <em>ADT</em> defines <strong>what</strong> a data structure does (its interface) without specifying <strong>how</strong> it does it (its implementation).</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d3">Separates <strong>logical behaviour</strong> from implementation details</li>
+                    <li class="reveal d4">A Stack ADT says: push, pop, peek — but not whether it uses an array or linked list</li>
+                    <li class="reveal d5">Enables multiple implementations with the same interface</li>
+                    <li class="reveal d6">Foundation of object-oriented design and interfaces</li>
+                </ul>
+            </div>
+            <div>
+                <div class="reveal d3" style="margin-bottom:var(--sgap);">
+                    <table class="tbl">
+                        <thead><tr><th>ADT</th><th>Operations</th><th>Implemented by</th></tr></thead>
+                        <tbody>
+                            <tr><td>List</td><td>get, set, insert, remove</td><td>Array, Linked List</td></tr>
+                            <tr><td>Stack</td><td>push, pop, peek</td><td>Array, Linked List</td></tr>
+                            <tr><td>Queue</td><td>enqueue, dequeue</td><td>Array, Linked List</td></tr>
+                            <tr><td>Map</td><td>put, get, delete</td><td>Hash Table, BST</td></tr>
+                            <tr><td>Set</td><td>add, remove, contains</td><td>Hash Set, BST Set</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bbox teal reveal d4">
+                    <p>"Users of an ADT need not know its implementation — only its contract."</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">06 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 7 — COMPLEXITY RECAP -->
+<section class="slide" id="slide-7">
+    <div class="sec-label">DSA Foundations</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Complexity Analysis — Quick Recap</h2>
+        <div class="two-col">
+            <div>
+                <div class="pquote reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Big-O notation describes how an algorithm's <em>runtime or space grows</em> as input size n increases — ignoring constants and lower-order terms.</p>
+                </div>
+                <div class="reveal d3">
+                    <table class="tbl">
+                        <thead><tr><th>Notation</th><th>Growth</th><th>Example</th></tr></thead>
+                        <tbody>
+                            <tr><td><code style="font-family:var(--font-m);">O(1)</code></td><td class="good">Constant</td><td>Array index</td></tr>
+                            <tr><td><code style="font-family:var(--font-m);">O(log n)</code></td><td class="good">Logarithmic</td><td>Binary search</td></tr>
+                            <tr><td><code style="font-family:var(--font-m);">O(n)</code></td><td class="ok">Linear</td><td>Linear scan</td></tr>
+                            <tr><td><code style="font-family:var(--font-m);">O(n log n)</code></td><td class="ok">Linearithmic</td><td>Merge sort</td></tr>
+                            <tr><td><code style="font-family:var(--font-m);">O(n²)</code></td><td class="bad">Quadratic</td><td>Bubble sort</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div>
+                <div class="icard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl">Time Complexity</div><p>How many operations does the algorithm perform as n grows? Always report worst-case unless stated.</p></div>
+                <div class="icard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Space Complexity</div><p>How much extra memory does it use? O(1) = in-place. O(n) = extra array needed.</p></div>
+                <div class="icard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl">Best / Avg / Worst</div><p>Same algorithm can have different complexities depending on the input. Always reason about all three.</p></div>
+                <div class="bbox terra reveal d5">
+                    <p>O(1) &lt; O(log n) &lt; O(n) &lt; O(n log n) &lt; O(n²)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">07 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 8 — CATEGORIES OF DS -->
+<section class="slide" id="slide-8">
+    <div class="geo-circle" style="width:clamp(100px,16vw,180px); height:clamp(100px,16vw,180px); right:clamp(1rem,2vw,2rem); top:clamp(1rem,2vh,2rem);"></div>
+    <div class="sec-label">DSA Foundations</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Categories of Data Structures</h2>
+        <div class="two-col">
+            <div>
+                <h3 class="reveal d2" style="margin-bottom:var(--sgap); color:var(--terra);">Linear Structures</h3>
+                <ul class="pts reveal d3" style="margin-bottom:var(--gap);">
+                    <li><strong>Array</strong> — contiguous, indexed, O(1) access</li>
+                    <li><strong>Linked List</strong> — nodes with pointers, O(1) insert</li>
+                    <li><strong>Stack</strong> — LIFO (Last In, First Out)</li>
+                    <li><strong>Queue</strong> — FIFO (First In, First Out)</li>
+                    <li><strong>Deque</strong> — double-ended queue</li>
+                </ul>
+                <h3 class="reveal d4" style="margin-bottom:var(--sgap); color:var(--teal);">Hash-Based</h3>
+                <ul class="pts teal reveal d5">
+                    <li><strong>Hash Map / Dictionary</strong> — O(1) key-value lookup</li>
+                    <li><strong>Hash Set</strong> — O(1) membership test</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="reveal d2" style="margin-bottom:var(--sgap); color:var(--gold);">Non-Linear Structures</h3>
+                <ul class="pts gold reveal d3" style="margin-bottom:var(--gap);">
+                    <li><strong>Binary Tree</strong> — hierarchical, O(log n) ops</li>
+                    <li><strong>BST</strong> — ordered binary tree</li>
+                    <li><strong>Heap</strong> — priority queue, O(log n) insert/extract</li>
+                    <li><strong>Trie</strong> — prefix tree for strings</li>
+                    <li><strong>Graph</strong> — vertices + edges, general relationships</li>
+                </ul>
+                <div class="pquote gold reveal d5">
+                    <p>Today we begin with the simplest and most fundamental: the <em>Array</em>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">08 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 9 — ARRAYS SECTION DIVIDER -->
+<section class="slide div-slide" id="slide-9">
+    <div style="position:absolute; inset:0; background:var(--ink); z-index:0;"></div>
+    <div class="geo-circle" style="width:clamp(200px,35vw,400px); height:clamp(200px,35vw,400px); right:calc(-1 * clamp(100px,17vw,200px)); top:50%; transform:translateY(-50%); border-color:rgba(245,243,238,0.08);"></div>
+    <div class="geo-dot" style="right:clamp(3rem,7vw,8rem); top:clamp(3rem,6vh,5rem); background:var(--terra);"></div>
+    <div class="slide-content" style="justify-content:center;">
+        <div class="rule reveal d1" style="background:var(--terra);"></div>
+        <h2 class="reveal d2" style="font-size:var(--title-size); color:var(--cream);">Arrays</h2>
+        <p class="reveal d3" style="font-size:var(--h3-size); color:rgba(245,243,238,0.5); margin-top:var(--sgap); font-family:var(--font-d); font-style:italic;">The most fundamental data structure in computing</p>
+    </div>
+    <span class="snum" style="color:rgba(245,243,238,0.2);">09 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 10 — WHAT IS AN ARRAY -->
+<section class="slide" id="slide-10">
+    <div class="geo-circle" style="width:clamp(80px,14vw,150px); height:clamp(80px,14vw,150px); right:clamp(1rem,3vw,3rem); top:clamp(1rem,2vh,2rem);"></div>
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">What Is an Array?</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="pquote reveal d2" style="margin-bottom:var(--gap);">
+                    <p>An <em>array</em> is a collection of elements of the <strong>same data type</strong>, stored in <strong>contiguous (adjacent) memory locations</strong>, accessible by an integer index.</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d3">Stores a <strong>fixed-size</strong> sequence of elements (static array)</li>
+                    <li class="reveal d4">Index starts at <strong>0</strong> in most languages (C, Java, Python)</li>
+                    <li class="reveal d5">All elements occupy the <strong>same amount of memory</strong></li>
+                    <li class="reveal d6">Random access in <strong>O(1)</strong> — direct address computation</li>
+                    <li class="reveal d7">Declared with a type and size: <code style="font-family:var(--font-m);">int arr[5]</code></li>
+                </ul>
+            </div>
+            <div class="reveal-scale d3" style="display:flex; flex-direction:column; gap:var(--sgap);">
+                <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3); text-transform:uppercase; letter-spacing:0.1em;">Array: [10, 20, 30, 40, 50]</p>
+                <div class="arr-row">
+                    <div class="acell hi">10</div>
+                    <div class="acell">20</div>
+                    <div class="acell">30</div>
+                    <div class="acell">40</div>
+                    <div class="acell">50</div>
+                </div>
+                <div class="arr-idx">
+                    <div class="aidx">0</div>
+                    <div class="aidx">1</div>
+                    <div class="aidx">2</div>
+                    <div class="aidx">3</div>
+                    <div class="aidx">4</div>
+                </div>
+                <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3);">arr[0]=10 · arr[2]=30 · arr[4]=50</p>
+                <div class="icard" style="margin-top:var(--sgap);">
+                    <div class="lbl">Address formula</div>
+                    <p><code style="font-family:var(--font-m);">addr(arr[i]) = base + i × size_of(type)</code></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">10 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 11 — MEMORY LAYOUT -->
+<section class="slide" id="slide-11">
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Memory Layout of Arrays</h2>
+        <div class="two-col">
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--gap);">Arrays store elements in a <strong>contiguous block</strong> of memory. The CPU can compute any element's address instantly — no traversal needed.</p>
+                <div class="cb reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># int array: 4 bytes each</span><br>
+arr = [<span class="nm">10</span>, <span class="nm">20</span>, <span class="nm">30</span>, <span class="nm">40</span>]<br>
+<span class="cm"># base address = 1000</span><br>
+<span class="cm"># arr[0] → 1000</span><br>
+<span class="cm"># arr[1] → 1000 + 1×4 = 1004</span><br>
+<span class="cm"># arr[2] → 1000 + 2×4 = 1008</span><br>
+<span class="cm"># arr[3] → 1000 + 3×4 = 1012</span>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d4">O(1) access because address is a simple arithmetic formula</li>
+                    <li class="reveal d5"><strong>Cache-friendly</strong> — CPU loads a whole cache line of adjacent elements at once</li>
+                    <li class="reveal d6">This makes arrays the <em>fastest</em> data structure for sequential access</li>
+                </ul>
+            </div>
+            <div class="reveal-scale d3">
+                <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:var(--sgap);">Memory map (int arr[4], base=1000)</p>
+                <div style="display:flex; flex-direction:column; gap:3px;">
+                    <div style="display:flex; gap:var(--sgap); align-items:center;"><div style="font-family:var(--font-m); font-size:var(--small-size); width:50px; color:var(--ink3);">1000</div><div class="acell hi" style="flex:1;">10</div><div style="font-family:var(--font-m); font-size:var(--small-size); color:var(--terra); margin-left:var(--sgap);">arr[0]</div></div>
+                    <div style="display:flex; gap:var(--sgap); align-items:center;"><div style="font-family:var(--font-m); font-size:var(--small-size); width:50px; color:var(--ink3);">1004</div><div class="acell" style="flex:1;">20</div><div style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3); margin-left:var(--sgap);">arr[1]</div></div>
+                    <div style="display:flex; gap:var(--sgap); align-items:center;"><div style="font-family:var(--font-m); font-size:var(--small-size); width:50px; color:var(--ink3);">1008</div><div class="acell" style="flex:1;">30</div><div style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3); margin-left:var(--sgap);">arr[2]</div></div>
+                    <div style="display:flex; gap:var(--sgap); align-items:center;"><div style="font-family:var(--font-m); font-size:var(--small-size); width:50px; color:var(--ink3);">1012</div><div class="acell" style="flex:1;">40</div><div style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3); margin-left:var(--sgap);">arr[3]</div></div>
+                </div>
+                <div class="bbox terra reveal d5" style="margin-top:var(--gap);">
+                    <p>Contiguous memory = predictable addresses = O(1) random access</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">11 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 12 — ARRAY OPERATIONS: ACCESS & SEARCH -->
+<section class="slide" id="slide-12">
+    <div class="geo-circle" style="width:clamp(60px,10vw,110px); height:clamp(60px,10vw,110px); left:calc(-1*clamp(30px,5vw,55px)); top:clamp(2rem,5vh,4rem);"></div>
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Array Operations — Access &amp; Search</h2>
+        <div class="two-col">
+            <div>
+                <h3 class="reveal d2" style="color:var(--terra); margin-bottom:var(--sgap);">Access — O(1)</h3>
+                <p class="reveal d3" style="margin-bottom:var(--sgap);">Retrieve any element directly by index. Fastest possible operation — single memory read.</p>
+                <div class="cb reveal d3" style="margin-bottom:var(--gap);">
+arr = [<span class="nm">5</span>, <span class="nm">12</span>, <span class="nm">8</span>, <span class="nm">3</span>, <span class="nm">17</span>]<br>
+x = arr[<span class="nm">2</span>]   <span class="cm"># x = 8, O(1)</span><br>
+arr[<span class="nm">0</span>] = <span class="nm">99</span>  <span class="cm"># update in-place, O(1)</span>
+                </div>
+                <h3 class="reveal d4" style="color:var(--terra); margin-bottom:var(--sgap);">Linear Search — O(n)</h3>
+                <p class="reveal d5" style="margin-bottom:var(--sgap);">Scan every element until target found. Works on any array, sorted or not.</p>
+                <div class="cb reveal d5">
+<span class="kw">def</span> <span class="fn">linear_search</span>(arr, target):<br>
+&nbsp;&nbsp;<span class="kw">for</span> i, val <span class="kw">in</span> <span class="fn">enumerate</span>(arr):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> val == target: <span class="kw">return</span> i<br>
+&nbsp;&nbsp;<span class="kw">return</span> -<span class="nm">1</span>
+                </div>
+            </div>
+            <div>
+                <h3 class="reveal d2" style="color:var(--teal); margin-bottom:var(--sgap);">Binary Search — O(log n)</h3>
+                <p class="reveal d3" style="margin-bottom:var(--sgap);">Requires a <strong>sorted</strong> array. Halves the search space every step — extremely fast for large arrays.</p>
+                <div class="cb teal reveal d3" style="margin-bottom:var(--gap);">
+<span class="kw">def</span> <span class="fn">binary_search</span>(arr, target):<br>
+&nbsp;&nbsp;lo, hi = <span class="nm">0</span>, <span class="fn">len</span>(arr)-<span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="kw">while</span> lo &lt;= hi:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;mid = (lo+hi)//<span class="nm">2</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> arr[mid]==target: <span class="kw">return</span> mid<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">elif</span> arr[mid]&lt;target: lo=mid+<span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">else</span>: hi=mid-<span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="kw">return</span> -<span class="nm">1</span>
+                </div>
+                <div class="bbox reveal d4">
+                    <p>Binary search on 1 billion elements: max 30 comparisons.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">12 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 13 — INSERT & DELETE -->
+<section class="slide" id="slide-13">
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Array Operations — Insert &amp; Delete</h2>
+        <div class="two-col">
+            <div>
+                <h3 class="reveal d2" style="color:var(--terra); margin-bottom:var(--sgap);">Insert at index i — O(n)</h3>
+                <p class="reveal d3" style="margin-bottom:var(--sgap);">All elements from index i onwards must be <strong>shifted right</strong> to make room. Worst case: insert at index 0.</p>
+                <div style="display:flex; flex-direction:column; gap:var(--sgap);" class="reveal d3">
+                    <p style="font-size:var(--small-size); font-family:var(--font-m); color:var(--ink3);">Before: insert 99 at index 2</p>
+                    <div class="arr-row"><div class="acell">5</div><div class="acell">12</div><div class="acell hi">8</div><div class="acell">3</div><div class="acell">17</div></div>
+                    <p style="font-size:var(--small-size); font-family:var(--font-m); color:var(--ink3);">Shift right from index 2 →</p>
+                    <div class="arr-row"><div class="acell">5</div><div class="acell">12</div><div class="acell gold">99</div><div class="acell hi">8</div><div class="acell hi">3</div><div class="acell hi">17</div></div>
+                </div>
+            </div>
+            <div>
+                <h3 class="reveal d2" style="color:var(--teal); margin-bottom:var(--sgap);">Delete at index i — O(n)</h3>
+                <p class="reveal d3" style="margin-bottom:var(--sgap);">All elements after index i must be <strong>shifted left</strong> to fill the gap. Worst case: delete at index 0.</p>
+                <div style="display:flex; flex-direction:column; gap:var(--sgap);" class="reveal d3">
+                    <p style="font-size:var(--small-size); font-family:var(--font-m); color:var(--ink3);">Before: delete index 1 (value 12)</p>
+                    <div class="arr-row"><div class="acell">5</div><div class="acell hi">12</div><div class="acell">8</div><div class="acell">3</div><div class="acell">17</div></div>
+                    <p style="font-size:var(--small-size); font-family:var(--font-m); color:var(--ink3);">Shift left from index 2 →</p>
+                    <div class="arr-row"><div class="acell">5</div><div class="acell hl">8</div><div class="acell hl">3</div><div class="acell hl">17</div><div class="acell empty">—</div></div>
+                </div>
+                <div class="pquote reveal d5" style="margin-top:var(--gap);">
+                    <p>Insert/delete are expensive for arrays because of shifting — this is why linked lists exist.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">13 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 14 — COMPLEXITY SUMMARY -->
+<section class="slide" id="slide-14">
+    <div class="geo-circle" style="width:clamp(100px,17vw,180px); height:clamp(100px,17vw,180px); right:clamp(1rem,2vw,2rem); bottom:clamp(1rem,3vh,3rem);"></div>
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Array Operations — Complexity Summary</h2>
+        <div class="reveal d3" style="margin-bottom:var(--gap);">
+            <table class="tbl">
+                <thead><tr><th>Operation</th><th>Best</th><th>Average</th><th>Worst</th><th>Notes</th></tr></thead>
+                <tbody>
+                    <tr><td>Access by index</td><td class="good">O(1)</td><td class="good">O(1)</td><td class="good">O(1)</td><td>Direct address computation</td></tr>
+                    <tr><td>Update by index</td><td class="good">O(1)</td><td class="good">O(1)</td><td class="good">O(1)</td><td>Single memory write</td></tr>
+                    <tr><td>Linear Search</td><td class="good">O(1)</td><td class="ok">O(n)</td><td class="bad">O(n)</td><td>Best: element is first</td></tr>
+                    <tr><td>Binary Search</td><td class="good">O(1)</td><td class="good">O(log n)</td><td class="good">O(log n)</td><td>Requires sorted array</td></tr>
+                    <tr><td>Insert (at end)</td><td class="good">O(1)</td><td class="good">O(1)</td><td class="good">O(1)*</td><td>*Amortized for dynamic</td></tr>
+                    <tr><td>Insert (at index i)</td><td class="good">O(1)</td><td class="ok">O(n)</td><td class="bad">O(n)</td><td>Worst: insert at front</td></tr>
+                    <tr><td>Delete (at end)</td><td class="good">O(1)</td><td class="good">O(1)</td><td class="good">O(1)</td><td>No shifting needed</td></tr>
+                    <tr><td>Delete (at index i)</td><td class="good">O(1)</td><td class="ok">O(n)</td><td class="bad">O(n)</td><td>Worst: delete at front</td></tr>
+                    <tr><td>Space</td><td class="ok">O(n)</td><td class="ok">O(n)</td><td class="ok">O(n)</td><td>One slot per element</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bbox terra reveal d4">
+            <p>Arrays excel at <em>access</em>. They are weak at <em>insert/delete</em> in the middle — understand this trade-off.</p>
+        </div>
+    </div>
+    <span class="snum">14 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 15 — STATIC vs DYNAMIC -->
+<section class="slide" id="slide-15">
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Static vs. Dynamic Arrays</h2>
+        <div class="two-col">
+            <div>
+                <div class="bbox terra reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Static Array</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d3"><strong>Fixed size</strong> declared at compile time</li>
+                    <li class="reveal d4">Cannot grow or shrink at runtime</li>
+                    <li class="reveal d5">Memory allocated on the <strong>stack</strong> (fast) or heap</li>
+                    <li class="reveal d6">Used in C: <code style="font-family:var(--font-m);">int arr[10];</code></li>
+                    <li class="reveal d7">Waste space if not full; overflow if too small</li>
+                </ul>
+            </div>
+            <div>
+                <div class="bbox teal reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Dynamic Array</p>
+                </div>
+                <ul class="pts teal">
+                    <li class="reveal d3">Starts small, <strong>resizes automatically</strong> when full</li>
+                    <li class="reveal d4">Doubles capacity when capacity exceeded (<strong>amortised O(1)</strong> append)</li>
+                    <li class="reveal d5">Memory allocated on the <strong>heap</strong></li>
+                    <li class="reveal d6">Python <code style="font-family:var(--font-m);">list</code>, Java <code style="font-family:var(--font-m);">ArrayList</code>, C++ <code style="font-family:var(--font-m);">vector</code></li>
+                    <li class="reveal d7">Resize copies all elements — O(n), but rare enough to amortise to O(1)</li>
+                </ul>
+                <div class="icard teal reveal d7" style="margin-top:var(--gap);">
+                    <div class="lbl" style="color:var(--teal);">Amortised Analysis</div>
+                    <p>n appends at most trigger O(log n) resizes. Total copies: n + n/2 + n/4 + … ≤ 2n = O(n). So each append is O(1) amortised.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">15 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 16 — ARRAYS IN PYTHON/JAVA -->
+<section class="slide" id="slide-16">
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Arrays in Python &amp; Java</h2>
+        <div class="two-col">
+            <div>
+                <h3 class="reveal d2" style="color:var(--terra); margin-bottom:var(--sgap);">Python — list</h3>
+                <div class="cb reveal d3">
+<span class="cm"># Create</span><br>
+arr = [<span class="nm">10</span>, <span class="nm">20</span>, <span class="nm">30</span>]<br>
+arr = [<span class="nm">0</span>] * <span class="nm">5</span>   <span class="cm"># [0,0,0,0,0]</span><br>
+<br>
+<span class="cm"># Access / Update</span><br>
+x = arr[<span class="nm">1</span>]       <span class="cm"># 20</span><br>
+arr[<span class="nm">0</span>] = <span class="nm">99</span><br>
+<br>
+<span class="cm"># Append / Insert / Delete</span><br>
+arr.<span class="fn">append</span>(<span class="nm">40</span>)    <span class="cm"># O(1) amortised</span><br>
+arr.<span class="fn">insert</span>(<span class="nm">1</span>, <span class="nm">15</span>) <span class="cm"># O(n)</span><br>
+arr.<span class="fn">pop</span>()         <span class="cm"># remove last O(1)</span><br>
+arr.<span class="fn">pop</span>(<span class="nm">0</span>)        <span class="cm"># remove first O(n)</span><br>
+<br>
+<span class="cm"># Slicing</span><br>
+arr[<span class="nm">1</span>:<span class="nm">3</span>]          <span class="cm"># [20, 30], O(k)</span><br>
+arr[::-<span class="nm">1</span>]         <span class="cm"># reversed copy</span>
+                </div>
+            </div>
+            <div>
+                <h3 class="reveal d2" style="color:var(--teal); margin-bottom:var(--sgap);">Java — Array &amp; ArrayList</h3>
+                <div class="cb teal reveal d3">
+<span class="cm">// Static array</span><br>
+<span class="kw">int</span>[] arr = <span class="kw">new int</span>[<span class="nm">5</span>];<br>
+arr[<span class="nm">0</span>] = <span class="nm">10</span>;<br>
+<span class="kw">int</span> x = arr[<span class="nm">2</span>];  <span class="cm">// O(1)</span><br>
+<br>
+<span class="cm">// Dynamic array</span><br>
+ArrayList&lt;Integer&gt; list =<br>
+&nbsp;&nbsp;<span class="kw">new</span> ArrayList&lt;&gt;();<br>
+list.<span class="fn">add</span>(<span class="nm">10</span>);      <span class="cm">// append O(1)*</span><br>
+list.<span class="fn">add</span>(<span class="nm">1</span>, <span class="nm">99</span>);  <span class="cm">// insert O(n)</span><br>
+list.<span class="fn">get</span>(<span class="nm">0</span>);      <span class="cm">// O(1)</span><br>
+list.<span class="fn">remove</span>(<span class="nm">0</span>);   <span class="cm">// O(n)</span><br>
+list.<span class="fn">size</span>();      <span class="cm">// O(1)</span>
+                </div>
+                <div class="icard teal reveal d4" style="margin-top:var(--sgap);">
+                    <div class="lbl" style="color:var(--teal);">Python tip</div>
+                    <p>Python <code style="font-family:var(--font-m);">list</code> is a dynamic array. Use <code style="font-family:var(--font-m);">array</code> module or NumPy for true fixed-type arrays.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">16 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 17 — MULTI-DIMENSIONAL ARRAYS -->
+<section class="slide" id="slide-17">
+    <div class="geo-circle" style="width:clamp(80px,13vw,140px); height:clamp(80px,13vw,140px); right:clamp(1rem,2vw,2rem); top:50%; transform:translateY(-50%);"></div>
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Multi-Dimensional Arrays</h2>
+        <div class="two-col">
+            <div>
+                <div class="pquote reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A <em>2D array</em> is an array of arrays — think of it as a grid with rows and columns, indexed by [row][col].</p>
+                </div>
+                <div class="cb reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># 3×3 matrix in Python</span><br>
+matrix = [<br>
+&nbsp;&nbsp;[<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>],<br>
+&nbsp;&nbsp;[<span class="nm">4</span>, <span class="nm">5</span>, <span class="nm">6</span>],<br>
+&nbsp;&nbsp;[<span class="nm">7</span>, <span class="nm">8</span>, <span class="nm">9</span>]<br>
+]<br>
+x = matrix[<span class="nm">1</span>][<span class="nm">2</span>]  <span class="cm"># → 6</span><br>
+<br>
+<span class="cm"># Traverse all elements O(n×m)</span><br>
+<span class="kw">for</span> row <span class="kw">in</span> matrix:<br>
+&nbsp;&nbsp;<span class="kw">for</span> val <span class="kw">in</span> row:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(val)
+                </div>
+            </div>
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--gap);">In memory, 2D arrays are stored in <strong>row-major order</strong> (C/Python) or column-major order (Fortran/MATLAB) — one long 1D block.</p>
+                <div style="display:flex; flex-direction:column; gap:var(--sgap);" class="reveal d3">
+                    <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3);">matrix[0] → row 0</p>
+                    <div class="arr-row"><div class="acell hi">1</div><div class="acell hi">2</div><div class="acell hi">3</div></div>
+                    <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3);">matrix[1] → row 1</p>
+                    <div class="arr-row"><div class="acell hl">4</div><div class="acell hl">5</div><div class="acell gold">6</div></div>
+                    <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--ink3);">matrix[2] → row 2</p>
+                    <div class="arr-row"><div class="acell">7</div><div class="acell">8</div><div class="acell">9</div></div>
+                </div>
+                <div class="icard reveal d4" style="margin-top:var(--gap);">
+                    <div class="lbl">Applications</div>
+                    <p>Image pixels, adjacency matrices for graphs, spreadsheets, game boards, matrix multiplication</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">17 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 18 — COMMON ARRAY PATTERNS -->
+<section class="slide" id="slide-18">
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Common Array Patterns</h2>
+        <div class="two-col">
+            <div>
+                <div class="icard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl">Two Pointers</div><p>Use two indices (lo and hi) moving toward each other. Used for: pair sum, palindrome check, sorted array manipulation. O(n) instead of O(n²).</p></div>
+                <div class="icard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl">Sliding Window</div><p>Maintain a window of fixed or variable size, slide it across the array. Used for: max sum subarray, longest substring. O(n).</p></div>
+                <div class="icard reveal d4"><div class="lbl">Prefix Sum</div><p>Precompute cumulative sums so range queries cost O(1) instead of O(n). <code style="font-family:var(--font-m);">prefix[i] = arr[0]+…+arr[i]</code></p></div>
+            </div>
+            <div class="cb reveal d3">
+<span class="cm"># Two Pointers — check palindrome</span><br>
+<span class="kw">def</span> <span class="fn">is_palindrome</span>(arr):<br>
+&nbsp;&nbsp;lo, hi = <span class="nm">0</span>, <span class="fn">len</span>(arr)-<span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="kw">while</span> lo &lt; hi:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> arr[lo]!=arr[hi]: <span class="kw">return False</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;lo+=<span class="nm">1</span>; hi-=<span class="nm">1</span><br>
+&nbsp;&nbsp;<span class="kw">return True</span><br>
+<br>
+<span class="cm"># Sliding Window — max sum of size k</span><br>
+<span class="kw">def</span> <span class="fn">max_sum</span>(arr, k):<br>
+&nbsp;&nbsp;window = <span class="fn">sum</span>(arr[:k])<br>
+&nbsp;&nbsp;best = window<br>
+&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in range</span>(k, <span class="fn">len</span>(arr)):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;window += arr[i] - arr[i-k]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;best = <span class="fn">max</span>(best, window)<br>
+&nbsp;&nbsp;<span class="kw">return</span> best<br>
+<br>
+<span class="cm"># Prefix Sum build</span><br>
+prefix = [<span class="nm">0</span>] * (<span class="fn">len</span>(arr)+<span class="nm">1</span>)<br>
+<span class="kw">for</span> i, v <span class="kw">in</span> <span class="fn">enumerate</span>(arr):<br>
+&nbsp;&nbsp;prefix[i+<span class="nm">1</span>] = prefix[i] + v
+            </div>
+        </div>
+    </div>
+    <span class="snum">18 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 19 — ARRAY vs LINKED LIST -->
+<section class="slide" id="slide-19">
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Array vs. Linked List</h2>
+        <div class="reveal d3" style="margin-bottom:var(--gap);">
+            <table class="tbl">
+                <thead><tr><th>Property</th><th>Array</th><th>Linked List</th></tr></thead>
+                <tbody>
+                    <tr><td>Memory layout</td><td class="good">Contiguous — cache-friendly</td><td>Scattered — pointer chasing</td></tr>
+                    <tr><td>Access by index</td><td class="good">O(1) — random access</td><td class="bad">O(n) — must traverse</td></tr>
+                    <tr><td>Insert at front</td><td class="bad">O(n) — shift all elements</td><td class="good">O(1) — update pointer</td></tr>
+                    <tr><td>Insert at end</td><td class="good">O(1) amortised</td><td class="good">O(1) with tail pointer</td></tr>
+                    <tr><td>Delete at front</td><td class="bad">O(n) — shift left</td><td class="good">O(1) — update head</td></tr>
+                    <tr><td>Memory overhead</td><td class="good">None (values only)</td><td class="bad">One pointer per node</td></tr>
+                    <tr><td>Size flexibility</td><td class="ok">Dynamic array resizes</td><td class="good">Grows/shrinks freely</td></tr>
+                    <tr><td>Binary search</td><td class="good">O(log n)</td><td class="bad">O(n) — no random access</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pquote reveal d4">
+            <p>Use arrays when you need fast access. Use linked lists when you need fast insert/delete at arbitrary positions.</p>
+        </div>
+    </div>
+    <span class="snum">19 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 20 — COMMON MISTAKES -->
+<section class="slide" id="slide-20">
+    <div class="geo-circle" style="width:clamp(80px,14vw,150px); height:clamp(80px,14vw,150px); right:clamp(1rem,2vw,2rem); bottom:clamp(2rem,4vh,4rem);"></div>
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Common Array Mistakes &amp; Edge Cases</h2>
+        <div class="two-col">
+            <div>
+                <div class="icard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--terra);">Off-by-One Error</div><p>Valid indices are 0 to n-1. Accessing index n causes an <code style="font-family:var(--font-m);">IndexError</code>. Use <code style="font-family:var(--font-m);">range(len(arr))</code>, not <code style="font-family:var(--font-m);">range(len(arr)+1)</code>.</p></div>
+                <div class="icard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--terra);">Empty Array</div><p>Always check <code style="font-family:var(--font-m);">if not arr</code> or <code style="font-family:var(--font-m);">len(arr) == 0</code> before accessing elements or doing binary search.</p></div>
+                <div class="icard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--terra);">Mutating While Iterating</div><p>Never remove elements from a list while looping over it — iterate over a copy or build a new list.</p></div>
+                <div class="icard reveal d5"><div class="lbl" style="color:var(--terra);">Shallow Copy</div><p><code style="font-family:var(--font-m);">b = a</code> does NOT copy a list — both point to the same object. Use <code style="font-family:var(--font-m);">b = a[:]</code> or <code style="font-family:var(--font-m);">b = a.copy()</code>.</p></div>
+            </div>
+            <div>
+                <div class="icard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--teal);">Integer Overflow</div><p>In languages like C/Java, <code style="font-family:var(--font-m);">mid = (lo+hi)/2</code> can overflow. Use <code style="font-family:var(--font-m);">mid = lo + (hi-lo)/2</code> for safety.</p></div>
+                <div class="icard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--teal);">Single Element</div><p>Many algorithms break on arrays of size 1. Test this explicitly: <code style="font-family:var(--font-m);">if len(arr) == 1: return arr[0]</code>.</p></div>
+                <div class="icard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--teal);">Negative Indices (Python)</div><p>Python allows negative indices: <code style="font-family:var(--font-m);">arr[-1]</code> is the last element. Convenient but can hide bugs in other languages.</p></div>
+                <div class="icard reveal d5"><div class="lbl" style="color:var(--teal);">Wrong Slice</div><p><code style="font-family:var(--font-m);">arr[1:3]</code> includes indices 1 and 2 — not 3. The end index is exclusive in Python.</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">20 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 21 — KADANE'S ALGORITHM -->
+<section class="slide" id="slide-21">
+    <div class="sec-label">Arrays</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Classic Array Problem — Maximum Subarray (Kadane's)</h2>
+        <div class="two-col">
+            <div>
+                <div class="pquote reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Given an integer array, find the contiguous subarray with the <em>largest sum</em>.</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d3"><strong>Brute force:</strong> Try all subarrays — O(n²) or O(n³)</li>
+                    <li class="reveal d4"><strong>Kadane's algorithm:</strong> O(n) — greedily extend or restart</li>
+                    <li class="reveal d5">Key insight: if running sum goes negative, start fresh from current element</li>
+                </ul>
+                <div class="icard reveal d6" style="margin-top:var(--gap);">
+                    <div class="lbl">Trace: [-2, 1, -3, 4, -1, 2, 1, -5, 4]</div>
+                    <p>Max subarray = [4, -1, 2, 1] → sum = <strong>6</strong></p>
+                </div>
+            </div>
+            <div class="cb reveal d3">
+<span class="cm"># Kadane's Algorithm — O(n)</span><br>
+<span class="kw">def</span> <span class="fn">max_subarray</span>(arr):<br>
+&nbsp;&nbsp;best = arr[<span class="nm">0</span>]<br>
+&nbsp;&nbsp;curr = arr[<span class="nm">0</span>]<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;<span class="kw">for</span> n <span class="kw">in</span> arr[<span class="nm">1</span>:]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># extend current or restart</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;curr = <span class="fn">max</span>(n, curr + n)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;best = <span class="fn">max</span>(best, curr)<br>
+&nbsp;&nbsp;<br>
+&nbsp;&nbsp;<span class="kw">return</span> best<br>
+<br>
+arr = [-<span class="nm">2</span>, <span class="nm">1</span>, -<span class="nm">3</span>, <span class="nm">4</span>, -<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">1</span>, -<span class="nm">5</span>, <span class="nm">4</span>]<br>
+<span class="fn">print</span>(<span class="fn">max_subarray</span>(arr))  <span class="cm"># 6</span><br>
+<br>
+<span class="cm"># O(n) time · O(1) space</span><br>
+<span class="cm"># Dynamic programming pattern!</span>
+            </div>
+        </div>
+    </div>
+    <span class="snum">21 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 22 — REAL-WORLD APPLICATIONS -->
+<section class="slide" id="slide-22">
+    <div class="geo-circle" style="width:clamp(120px,20vw,220px); height:clamp(120px,20vw,220px); right:calc(-1*clamp(60px,10vw,110px)); bottom:calc(-1*clamp(40px,7vh,70px));"></div>
+    <div class="sec-label">Applications</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Real-World Applications of Arrays</h2>
+        <div class="four-col">
+            <div class="icard reveal d2"><div class="lbl">Images</div><p>A bitmap image is a 2D array of pixels. RGB values are stored as integer triplets.</p></div>
+            <div class="icard reveal d3"><div class="lbl">Audio</div><p>Audio samples stored as 1D array of amplitude values. MP3/WAV files are sequences of numbers.</p></div>
+            <div class="icard reveal d4"><div class="lbl">Databases</div><p>Columnar storage: each column is an array. Enables fast scans for aggregation queries.</p></div>
+            <div class="icard reveal d5"><div class="lbl">Machine Learning</div><p>NumPy arrays (tensors) power all ML frameworks. Matrix multiplication is the core operation.</p></div>
+            <div class="icard reveal d6"><div class="lbl">Stacks &amp; Queues</div><p>Both can be implemented using arrays. Stack: use end as top. Queue: circular buffer.</p></div>
+            <div class="icard reveal d7"><div class="lbl">Heaps</div><p>A binary heap is stored as an array. Parent of node i is at (i-1)/2; children at 2i+1, 2i+2.</p></div>
+            <div class="icard reveal d2" style="transition-delay:0.65s;"><div class="lbl">Hash Tables</div><p>The underlying structure of a hash map is an array of buckets indexed by hash value.</p></div>
+            <div class="icard reveal d3" style="transition-delay:0.73s;"><div class="lbl">String Processing</div><p>Strings are character arrays. Substring search, pattern matching, and parsing all use array ops.</p></div>
+        </div>
+    </div>
+    <span class="snum">22 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 23 — ARRAYS VS OTHER DS -->
+<section class="slide" id="slide-23">
+    <div class="sec-label">Summary</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">When to Use Arrays</h2>
+        <div class="two-col">
+            <div>
+                <h3 class="reveal d2" style="margin-bottom:var(--sgap); color:var(--teal);">Use an Array when…</h3>
+                <ul class="pts teal">
+                    <li class="reveal d3">You need <strong>fast random access</strong> by index</li>
+                    <li class="reveal d4">You know the size in advance (or use a dynamic array)</li>
+                    <li class="reveal d5">You're doing <strong>sequential processing</strong> — cache locality matters</li>
+                    <li class="reveal d6">You need the underlying structure for stacks, heaps, hash tables</li>
+                    <li class="reveal d7">You're working with mathematical data (matrices, vectors)</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="reveal d2" style="margin-bottom:var(--sgap); color:var(--terra);">Avoid Arrays when…</h3>
+                <ul class="pts">
+                    <li class="reveal d3">You frequently <strong>insert or delete</strong> in the middle → use Linked List</li>
+                    <li class="reveal d4">You need <strong>key-value lookup</strong> → use Hash Map</li>
+                    <li class="reveal d5">You need <strong>sorted dynamic data</strong> → use BST or sorted list</li>
+                    <li class="reveal d6">You need <strong>priority ordering</strong> → use Heap</li>
+                    <li class="reveal d7">You need <strong>graph relationships</strong> → use adjacency list/matrix</li>
+                </ul>
+            </div>
+        </div>
+        <div class="bbox terra reveal d8" style="margin-top:var(--gap);">
+            <p>The best engineers don't memorise rules — they understand <em>why</em> each structure exists.</p>
+        </div>
+    </div>
+    <span class="snum">23 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 24 — DSA ROADMAP -->
+<section class="slide" id="slide-24">
+    <div class="sec-label">What's Next</div>
+    <div class="slide-content">
+        <div class="rule reveal d1"></div>
+        <h2 class="reveal d2" style="margin-bottom:var(--gap);">Your DSA Learning Roadmap</h2>
+        <div class="two-col">
+            <div>
+                <h3 class="reveal d2" style="margin-bottom:var(--sgap); color:var(--terra);">Foundations (this course)</h3>
+                <ul class="pts reveal d3" style="margin-bottom:var(--gap);">
+                    <li><strong>Arrays</strong> ← You are here</li>
+                    <li>Linked Lists</li>
+                    <li>Stacks &amp; Queues</li>
+                    <li>Recursion &amp; Backtracking</li>
+                    <li>Sorting &amp; Searching</li>
+                </ul>
+                <h3 class="reveal d4" style="margin-bottom:var(--sgap); color:var(--teal);">Intermediate</h3>
+                <ul class="pts teal reveal d5">
+                    <li>Trees &amp; Binary Search Trees</li>
+                    <li>Heaps &amp; Priority Queues</li>
+                    <li>Hash Maps &amp; Hash Sets</li>
+                    <li>Graphs (BFS, DFS)</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="reveal d2" style="margin-bottom:var(--sgap); color:var(--gold);">Advanced</h3>
+                <ul class="pts gold reveal d3" style="margin-bottom:var(--gap);">
+                    <li>Dynamic Programming</li>
+                    <li>Greedy Algorithms</li>
+                    <li>Advanced Graph Algorithms</li>
+                    <li>Segment Trees, Tries, Union-Find</li>
+                    <li>Computational Geometry</li>
+                </ul>
+                <div class="pquote gold reveal d5">
+                    <p>Master the fundamentals deeply. Everything advanced is built on what you learn today.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">24 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 25 — KEY TAKEAWAYS -->
+<section class="slide div-slide" id="slide-25">
+    <div style="position:absolute; inset:0; background:var(--ink); z-index:0;"></div>
+    <div class="geo-circle" style="width:clamp(200px,35vw,400px); height:clamp(200px,35vw,400px); left:calc(-1*clamp(100px,17vw,200px)); bottom:calc(-1*clamp(80px,13vh,120px)); border-color:rgba(245,243,238,0.06);"></div>
+    <div class="geo-dot" style="right:clamp(3rem,7vw,8rem); bottom:clamp(3rem,6vh,5rem); background:var(--terra); width:clamp(10px,1.5vw,16px); height:clamp(10px,1.5vw,16px);"></div>
+    <div class="slide-content">
+        <div class="rule reveal d1" style="background:var(--terra);"></div>
+        <h2 class="reveal d2" style="color:var(--cream); margin-bottom:var(--gap);">Key Takeaways</h2>
+        <div class="two-col">
+            <ul class="pts" style="--terra: #e07b5a;">
+                <li class="reveal d1" style="color:rgba(245,243,238,0.8);">A <strong style="color:var(--cream);">Data Structure</strong> organises data; an <strong style="color:var(--cream);">Algorithm</strong> processes it — together they form programs</li>
+                <li class="reveal d2" style="color:rgba(245,243,238,0.8);">ADTs define the <em style="color:var(--terra2);">what</em>, implementations define the <em style="color:var(--terra2);">how</em></li>
+                <li class="reveal d3" style="color:rgba(245,243,238,0.8);">Big-O measures growth rate — always reason about worst case</li>
+                <li class="reveal d4" style="color:rgba(245,243,238,0.8);">An <strong style="color:var(--cream);">Array</strong> is a contiguous block of same-type elements with O(1) index access</li>
+                <li class="reveal d5" style="color:rgba(245,243,238,0.8);">Address formula: <code style="font-family:var(--font-m); color:var(--terra2);">base + i × size</code> makes O(1) access possible</li>
+            </ul>
+            <ul class="pts">
+                <li class="reveal d1" style="color:rgba(245,243,238,0.8);">Access/update = <strong style="color:var(--cream);">O(1)</strong> · Insert/delete in middle = <strong style="color:var(--terra2);">O(n)</strong></li>
+                <li class="reveal d2" style="color:rgba(245,243,238,0.8);"><strong style="color:var(--cream);">Dynamic arrays</strong> double capacity → amortised O(1) append</li>
+                <li class="reveal d3" style="color:rgba(245,243,238,0.8);">Key patterns: Two Pointers, Sliding Window, Prefix Sum</li>
+                <li class="reveal d4" style="color:rgba(245,243,238,0.8);">Arrays underlie heaps, hash tables, strings, and matrices</li>
+                <li class="reveal d5" style="color:rgba(245,243,238,0.8);">Use arrays for fast access; linked lists for fast arbitrary insert/delete</li>
+            </ul>
+        </div>
+    </div>
+    <span class="snum" style="color:rgba(245,243,238,0.2);">25 / 25</span>
+</section>
+
+<script>
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.total = this.slides.length;
+        this.current = 0;
+        this.progressBar = document.getElementById('progress-bar');
+        this.navDotsEl  = document.getElementById('nav-dots');
+        this.setupObserver(); this.buildDots();
+        this.setupKeyboard(); this.setupTouch(); this.setupWheel();
+        this.updateProgress(0);
+    }
+    setupObserver() {
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('visible');
+                    const i = [...this.slides].indexOf(e.target);
+                    this.current = i; this.updateProgress(i); this.updateDots(i);
+                }
+            });
+        }, { threshold: 0.5 });
+        this.slides.forEach(s => obs.observe(s));
+    }
+    buildDots() {
+        this.slides.forEach((_, i) => {
+            const b = document.createElement('button');
+            b.className = 'nav-dot' + (i===0?' active':'');
+            b.setAttribute('aria-label','Slide '+(i+1));
+            b.addEventListener('click', () => this.goTo(i));
+            this.navDotsEl.appendChild(b);
+        });
+    }
+    updateDots(i) { document.querySelectorAll('.nav-dot').forEach((d,j)=>d.classList.toggle('active',i===j)); }
+    updateProgress(i) { this.progressBar.style.width=(this.total>1?(i/(this.total-1))*100:100)+'%'; }
+    goTo(i) { this.slides[i].scrollIntoView({behavior:'smooth'}); }
+    setupKeyboard() {
+        document.addEventListener('keydown', e => {
+            if (this.editor && this.editor.isActive) return;
+            const map={'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1};
+            if (map[e.key]!==undefined) { e.preventDefault(); this.goTo(Math.max(0,Math.min(this.total-1,this.current+map[e.key]))); }
+        });
+    }
+    setupTouch() {
+        let sy=0;
+        document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});
+        document.addEventListener('touchend',e=>{
+            const dy=sy-e.changedTouches[0].clientY;
+            if(Math.abs(dy)>50) this.goTo(Math.max(0,Math.min(this.total-1,this.current+(dy>0?1:-1))));
+        },{passive:true});
+    }
+    setupWheel() {
+        let last=0;
+        document.addEventListener('wheel',e=>{
+            const now=Date.now(); if(now-last<700)return; last=now;
+            this.goTo(Math.max(0,Math.min(this.total-1,this.current+(e.deltaY>0?1:-1))));
+        },{passive:true});
+    }
+}
+
+class InlineEditor {
+    constructor() {
+        this.isActive=false;
+        this.toggle=document.getElementById('editToggle');
+        this.hotzone=document.getElementById('editHotzone');
+        this.hideTimeout=null;
+        this.setupHover(); this.setupKeys(); this.loadSaved();
+    }
+    setupHover() {
+        const show=()=>{clearTimeout(this.hideTimeout);this.toggle.classList.add('show');};
+        const hide=()=>{this.hideTimeout=setTimeout(()=>{if(!this.isActive)this.toggle.classList.remove('show');},400);};
+        this.hotzone.addEventListener('mouseenter',show); this.hotzone.addEventListener('mouseleave',hide);
+        this.toggle.addEventListener('mouseenter',show);  this.toggle.addEventListener('mouseleave',hide);
+        this.hotzone.addEventListener('click',()=>this.toggleEdit());
+        this.toggle.addEventListener('click',()=>this.toggleEdit());
+    }
+    setupKeys() {
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&!e.target.getAttribute('contenteditable')) this.toggleEdit();
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'&&this.isActive){e.preventDefault();this.save();}
+        });
+    }
+    toggleEdit() {
+        this.isActive=!this.isActive;
+        this.toggle.textContent=this.isActive?'💾 Save (Ctrl+S)':'✏ Edit';
+        this.toggle.classList.toggle('active',this.isActive);
+        this.toggle.classList.add('show');
+        const targets=document.querySelectorAll('h1,h2,h3,p,li,.cb');
+        if(this.isActive){targets.forEach(el=>{el.setAttribute('contenteditable','true');el.setAttribute('spellcheck','false');});}
+        else{targets.forEach(el=>el.removeAttribute('contenteditable'));this.save();}
+    }
+    save() {
+        const data={};
+        document.querySelectorAll('.slide').forEach((s,i)=>{data['s'+i]=s.innerHTML;});
+        localStorage.setItem('dsa_arrays_slides_v1',JSON.stringify(data));
+        if(this.isActive){this.toggle.textContent='✓ Saved!';setTimeout(()=>{this.toggle.textContent='💾 Save (Ctrl+S)';},1400);}
+    }
+    loadSaved() {
+        try {
+            const raw=localStorage.getItem('dsa_arrays_slides_v1');
+            if(!raw)return;
+            const data=JSON.parse(raw);
+            document.querySelectorAll('.slide').forEach((s,i)=>{if(data['s'+i])s.innerHTML=data['s'+i];});
+        } catch(e){}
+    }
+}
+
+const presentation = new SlidePresentation();
+const editor = new InlineEditor();
+presentation.editor = editor;
+</script>
+</body>
+</html>

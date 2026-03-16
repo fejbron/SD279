@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Maps — Data Structures</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+/* =====================================================
+   THEME: Bold Signal
+   Dark gradient bg · vivid accent cards · Archivo Black
+   Accent: #FF6B35 (orange) + #00C9A7 (teal)
+===================================================== */
+:root {
+    --bg:        #141414;
+    --bg2:       #1e1e1e;
+    --bg3:       #252525;
+    --accent:    #FF6B35;
+    --accent2:   #00C9A7;
+    --accent3:   #FFD166;
+    --accent4:   #6C63FF;
+    --text:      #f0ece4;
+    --text-sub:  #9a9590;
+    --text-dim:  #5a5550;
+    --border:    rgba(255,255,255,0.08);
+    --font-d:    'Archivo Black', sans-serif;
+    --font-b:    'Space Grotesk', sans-serif;
+    --font-m:    'JetBrains Mono', monospace;
+
+    --title-size: clamp(2rem, 6vw, 5.5rem);
+    --h2-size:    clamp(1.3rem, 3vw, 2.6rem);
+    --h3-size:    clamp(1rem, 2vw, 1.5rem);
+    --body-size:  clamp(0.75rem, 1.35vw, 1rem);
+    --small-size: clamp(0.62rem, 0.95vw, 0.8rem);
+    --mono-size:  clamp(0.65rem, 1.05vw, 0.88rem);
+
+    --pad:  clamp(1.8rem, 5vw, 5rem);
+    --gap:  clamp(0.65rem, 1.6vw, 1.6rem);
+    --sgap: clamp(0.3rem,  0.75vw, 0.75rem);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* === RESET + VIEWPORT BASE === */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow-x:hidden; }
+html { scroll-snap-type:y mandatory; scroll-behavior:smooth; }
+
+.slide {
+    width:100vw; height:100vh; height:100dvh;
+    overflow:hidden; scroll-snap-align:start;
+    display:flex; flex-direction:column; position:relative;
+    background: var(--bg);
+    background-image: linear-gradient(135deg, #141414 0%, #1e1e1e 50%, #141414 100%);
+    font-family: var(--font-b);
+}
+
+/* subtle noise texture overlay */
+.slide::before {
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity:0.4;
+}
+
+.slide-content {
+    flex:1; display:flex; flex-direction:column; justify-content:center;
+    max-height:100%; overflow:hidden;
+    padding: var(--pad); position:relative; z-index:1;
+}
+
+/* === SECTION NUMBER top-left === */
+.sec-num {
+    position:absolute; top:clamp(1rem,2.5vh,2rem); left:clamp(1.8rem,5vw,5rem);
+    font-family:var(--font-d); font-size:clamp(0.6rem,1vw,0.8rem);
+    letter-spacing:0.2em; text-transform:uppercase; color:var(--text-dim); z-index:10;
+}
+
+/* === SLIDE NUMBER bottom-right === */
+.snum {
+    position:absolute; bottom:clamp(0.8rem,2vh,1.5rem); right:clamp(1.8rem,5vw,5rem);
+    font-family:var(--font-m); font-size:var(--small-size); color:var(--text-dim); z-index:10;
+}
+
+/* === PROGRESS BAR === */
+#progress-bar {
+    position:fixed; top:0; left:0; height:3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width:0%; z-index:9999; transition:width 0.3s ease;
+}
+
+/* === NAV DOTS === */
+#nav-dots {
+    position:fixed; right:clamp(0.6rem,1.2vw,1.2rem); top:50%;
+    transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:5px; z-index:9998;
+}
+.nav-dot {
+    width:5px; height:5px; border-radius:50%;
+    background:rgba(255,255,255,0.15); border:none; cursor:pointer;
+    transition:all 0.3s;
+}
+.nav-dot.active { background:var(--accent); height:16px; border-radius:3px; }
+
+/* === TYPOGRAPHY === */
+h1 { font-family:var(--font-d); font-size:var(--title-size); line-height:0.95; letter-spacing:-0.01em; color:var(--text); }
+h2 { font-family:var(--font-d); font-size:var(--h2-size); line-height:1.05; color:var(--text); }
+h3 { font-family:var(--font-b); font-weight:700; font-size:var(--h3-size); color:var(--text); }
+p  { font-size:var(--body-size); color:var(--text-sub); line-height:1.6; }
+li { font-size:var(--body-size); color:var(--text-sub); line-height:1.55; }
+
+/* === ACCENT CARD — the "Bold Signal" focal element === */
+.acard {
+    background: var(--accent);
+    color: #111;
+    padding: clamp(0.6rem,1.5vw,1.4rem) clamp(0.8rem,2vw,1.8rem);
+    border-radius:2px;
+    display:inline-block;
+}
+.acard.teal   { background: var(--accent2); }
+.acard.yellow { background: var(--accent3); }
+.acard.purple { background: var(--accent4); color:#fff; }
+.acard p, .acard h3 { color:#111; }
+.acard.purple p, .acard.purple h3 { color:#fff; }
+
+/* === DARK CARD === */
+.dcard {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius:2px;
+    padding: clamp(0.6rem,1.4vw,1.2rem);
+}
+.dcard .lbl {
+    font-family:var(--font-m); font-size:var(--small-size);
+    text-transform:uppercase; letter-spacing:0.1em;
+    margin-bottom:0.35em; font-weight:500;
+}
+.dcard p { font-size:var(--body-size); }
+
+/* === CALLOUT === */
+.callout {
+    border-left:4px solid var(--accent);
+    padding:clamp(0.5rem,1.2vw,1rem) clamp(0.8rem,1.8vw,1.5rem);
+    background:rgba(255,107,53,0.07);
+    border-radius:0 2px 2px 0;
+}
+.callout.teal  { border-color:var(--accent2); background:rgba(0,201,167,0.07); }
+.callout.yell  { border-color:var(--accent3); background:rgba(255,209,102,0.07); }
+.callout p { font-family:var(--font-b); font-weight:600; font-size:var(--h3-size); color:var(--text); line-height:1.35; }
+
+/* === BULLET LIST === */
+ul.pts { list-style:none; display:flex; flex-direction:column; gap:var(--sgap); }
+ul.pts li { display:flex; align-items:flex-start; gap:0.6em; }
+ul.pts li::before { content:'›'; color:var(--accent); font-weight:800; font-size:1.1em; flex-shrink:0; margin-top:-0.05em; }
+ul.pts.teal li::before  { color:var(--accent2); }
+ul.pts.yell li::before  { color:var(--accent3); }
+ul.pts.purp li::before  { color:var(--accent4); }
+
+/* === CODE BLOCK === */
+.cb {
+    background:#0d0d0d; border-left:3px solid var(--accent);
+    border-radius:0 3px 3px 0;
+    padding:clamp(0.6rem,1.4vw,1.1rem) clamp(0.8rem,1.8vw,1.4rem);
+    font-family:var(--font-m); font-size:var(--mono-size); line-height:1.75;
+    color:#c9d1d9; overflow:hidden;
+}
+.cb.teal { border-color:var(--accent2); }
+.cb.yell { border-color:var(--accent3); }
+.kw { color:#FF6B35; font-weight:700; }
+.fn { color:#00C9A7; }
+.cm { color:#555; font-style:italic; }
+.nm { color:#FFD166; }
+.st { color:#a8d8a8; }
+.op { color:#aaa; }
+
+/* === TABLE === */
+.tbl { width:100%; border-collapse:collapse; font-size:var(--body-size); }
+.tbl th { font-family:var(--font-b); font-weight:700; text-align:left; padding:0.45em 0.7em; border-bottom:2px solid var(--accent); color:var(--text); }
+.tbl td { padding:0.4em 0.7em; border-bottom:1px solid var(--border); color:var(--text-sub); }
+.tbl tr:last-child td { border-bottom:none; }
+.good { color:#00C9A7 !important; font-weight:700; font-family:var(--font-m); }
+.ok   { color:#FFD166 !important; font-weight:700; font-family:var(--font-m); }
+.bad  { color:#FF6B35 !important; font-weight:700; font-family:var(--font-m); }
+
+/* === TAG === */
+.tag {
+    display:inline-block; font-family:var(--font-m); font-size:var(--small-size);
+    padding:0.12em 0.55em; border-radius:2px; border:1px solid; font-weight:500;
+}
+.tag.o { color:var(--accent);  border-color:var(--accent);  background:rgba(255,107,53,0.1); }
+.tag.t { color:var(--accent2); border-color:var(--accent2); background:rgba(0,201,167,0.1); }
+.tag.y { color:var(--accent3); border-color:var(--accent3); background:rgba(255,209,102,0.1); }
+
+/* === LAYOUT === */
+.two-col   { display:grid; grid-template-columns:1fr 1fr;        gap:clamp(1rem,2.5vw,2.5rem); align-items:start; }
+.two-col-w { display:grid; grid-template-columns:1.2fr 0.8fr;    gap:clamp(1rem,2.5vw,2.5rem); align-items:start; }
+.three-col { display:grid; grid-template-columns:repeat(3,1fr);  gap:clamp(0.5rem,1.3vw,1.3rem); }
+.four-col  { display:grid; grid-template-columns:repeat(4,1fr);  gap:clamp(0.4rem,1vw,1rem); }
+
+/* === REVEAL ANIMATIONS === */
+.reveal       { opacity:0; transform:translateY(22px); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.reveal-left  { opacity:0; transform:translateX(-32px); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.reveal-scale { opacity:0; transform:scale(0.93); transition:opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+.slide.visible .reveal,
+.slide.visible .reveal-left,
+.slide.visible .reveal-scale { opacity:1; transform:none; }
+.d1{transition-delay:.05s} .d2{transition-delay:.13s} .d3{transition-delay:.21s}
+.d4{transition-delay:.29s} .d5{transition-delay:.37s} .d6{transition-delay:.45s}
+.d7{transition-delay:.53s} .d8{transition-delay:.61s}
+
+/* === DIVIDER SLIDE === */
+.div-slide .slide-content { justify-content:center; }
+
+/* === HASH TABLE VISUAL === */
+.htable { display:flex; flex-direction:column; gap:3px; }
+.hrow   { display:flex; align-items:stretch; gap:3px; }
+.hidx   { width:clamp(22px,3vw,32px); display:flex; align-items:center; justify-content:center; font-family:var(--font-m); font-size:var(--small-size); color:var(--text-dim); flex-shrink:0; }
+.hbucket {
+    flex:1; min-height:clamp(22px,3.2vh,30px);
+    background:var(--bg3); border:1px solid var(--border);
+    border-radius:2px; display:flex; align-items:center;
+    padding:0 clamp(0.4rem,0.8vw,0.8rem);
+    font-family:var(--font-m); font-size:var(--small-size); color:var(--text-sub);
+    gap:0.4em;
+}
+.hbucket.filled { background:rgba(255,107,53,0.12); border-color:rgba(255,107,53,0.4); color:var(--text); }
+.hbucket.filled2 { background:rgba(0,201,167,0.1); border-color:rgba(0,201,167,0.35); color:var(--text); }
+.hbucket.collide { background:rgba(255,209,102,0.1); border-color:rgba(255,209,102,0.4); color:var(--text); }
+.hbucket .kv { font-weight:600; }
+.hbucket .arrow { color:var(--text-dim); font-size:0.85em; }
+
+/* Inline edit */
+.edit-hotzone { position:fixed; top:0; left:0; width:80px; height:80px; z-index:10000; cursor:pointer; }
+.edit-toggle {
+    position:fixed; top:14px; left:14px;
+    background:var(--accent); color:#111;
+    border:none; border-radius:2px; padding:6px 12px;
+    font-family:var(--font-m); font-size:0.72rem; cursor:pointer;
+    z-index:10001; opacity:0; pointer-events:none; transition:opacity 0.3s;
+    font-weight:700;
+}
+.edit-toggle.show,.edit-toggle.active { opacity:1; pointer-events:auto; }
+[contenteditable]:focus { outline:2px dashed var(--accent); outline-offset:2px; }
+
+/* Responsive */
+@media (max-height:700px) {
+    :root { --pad:clamp(0.8rem,3vw,2rem); --gap:clamp(0.4rem,1.2vw,1rem); --h2-size:clamp(1.1rem,2.6vw,2rem); }
+}
+@media (max-height:600px) {
+    :root { --pad:clamp(0.5rem,2.5vw,1.5rem); --gap:clamp(0.3rem,0.8vw,0.7rem); --body-size:clamp(0.68rem,1.1vw,0.88rem); }
+    #nav-dots { display:none; }
+}
+@media (max-width:640px) {
+    .two-col,.two-col-w,.three-col,.four-col { grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion:reduce) {
+    *,*::before,*::after { animation-duration:0.01ms !important; transition-duration:0.2s !important; }
+    html { scroll-behavior:auto; }
+}
+    </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<nav id="nav-dots" aria-label="Slide navigation"></nav>
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle">✏ Edit</button>
+
+<!-- ================================================ SLIDE 1 — TITLE -->
+<section class="slide" id="slide-1">
+    <div class="slide-content" style="justify-content:flex-end; padding-bottom:clamp(2.5rem,7vh,6rem);">
+        <div class="reveal d1" style="margin-bottom:var(--gap);">
+            <span class="tag o" style="letter-spacing:0.15em; text-transform:uppercase;">CS — Data Structures</span>
+        </div>
+        <h1 class="reveal d2">Hash<br><span style="color:var(--accent);">Maps</span></h1>
+        <p class="reveal d3" style="font-size:var(--h3-size); color:var(--text-sub); margin-top:var(--sgap);">Keys, hashing, collisions, and O(1) lookups</p>
+        <div class="reveal d4" style="margin-top:clamp(1rem,2.5vh,2rem); border-top:1px solid var(--border); padding-top:clamp(0.6rem,1.5vh,1.2rem); display:flex; flex-direction:column; gap:0.25em;">
+            <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--text-dim);">Faculty of Computing and Mathematical Sciences</p>
+            <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--text-dim);">Cyber Security and Information Systems Department</p>
+            <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--text-sub); margin-top:0.3em;">Presented by: Frederick Edem Broni</p>
+        </div>
+        <!-- bg decoration -->
+        <div style="position:absolute; right:clamp(1rem,4vw,5rem); top:50%; transform:translateY(-50%); font-family:var(--font-d); font-size:clamp(8rem,22vw,20rem); color:rgba(255,107,53,0.04); line-height:1; user-select:none; pointer-events:none;">#</div>
+    </div>
+    <span class="snum">01 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 2 — AGENDA -->
+<section class="slide" id="slide-2">
+    <div class="sec-num">Overview</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Agenda</h2>
+        <div class="two-col">
+            <ul class="pts">
+                <li class="reveal d1">What is a Hash Map?</li>
+                <li class="reveal d2">Hash functions — properties &amp; design</li>
+                <li class="reveal d3">The hash table structure</li>
+                <li class="reveal d4">Collision handling: Chaining</li>
+                <li class="reveal d5">Collision handling: Open Addressing</li>
+                <li class="reveal d6">Linear, Quadratic &amp; Double Hashing</li>
+            </ul>
+            <ul class="pts teal">
+                <li class="reveal d1">Load factor &amp; rehashing</li>
+                <li class="reveal d2">Hash Map operations &amp; complexity</li>
+                <li class="reveal d3">Hash Map in Python &amp; Java</li>
+                <li class="reveal d4">Hash Sets</li>
+                <li class="reveal d5">Consistent Hashing</li>
+                <li class="reveal d6">Applications &amp; key takeaways</li>
+            </ul>
+        </div>
+    </div>
+    <span class="snum">02 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 3 — WHAT IS A HASH MAP? -->
+<section class="slide" id="slide-3">
+    <div class="sec-num">Introduction</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">What Is a Hash Map?</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A data structure that maps <span style="color:var(--accent);">keys</span> to <span style="color:var(--accent2);">values</span> using a <strong>hash function</strong> to compute an array index — enabling O(1) average-case lookup, insert, and delete.</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d3">Also called: <strong>hash table, dictionary, map, associative array</strong></li>
+                    <li class="reveal d4">Keys must be <strong>unique</strong>; values can repeat</li>
+                    <li class="reveal d5">Built on top of a plain array for O(1) index access</li>
+                    <li class="reveal d6">The hash function converts any key into a valid array index</li>
+                    <li class="reveal d7">Most widely used data structure in competitive programming &amp; system design</li>
+                </ul>
+            </div>
+            <div class="reveal-scale d3" style="display:flex; flex-direction:column; gap:var(--sgap);">
+                <div class="acard" style="margin-bottom:var(--sgap);">
+                    <p style="font-family:var(--font-m); font-size:var(--small-size); margin-bottom:0.3em; opacity:0.7;">KEY → HASH → INDEX → VALUE</p>
+                    <p style="font-family:var(--font-m); font-size:var(--body-size); font-weight:700; color:#111;">"alice" → 42 → arr[42] → 95</p>
+                </div>
+                <div class="dcard"><div class="lbl" style="color:var(--accent);">Python dict</div><p><code style="font-family:var(--font-m);">d = {"alice": 95, "bob": 87}</code></p></div>
+                <div class="dcard"><div class="lbl" style="color:var(--accent2);">Java HashMap</div><p><code style="font-family:var(--font-m);">Map&lt;String,Integer&gt; m = new HashMap&lt;&gt;();</code></p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">03 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 4 — WHY HASH MAPS? -->
+<section class="slide" id="slide-4">
+    <div class="sec-num">Introduction</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Why Hash Maps?</h2>
+        <div class="reveal d2" style="margin-bottom:var(--gap);">
+            <table class="tbl">
+                <thead><tr><th>Data Structure</th><th>Search</th><th>Insert</th><th>Delete</th><th>Notes</th></tr></thead>
+                <tbody>
+                    <tr><td>Unsorted Array</td><td class="bad">O(n)</td><td class="ok">O(1)*</td><td class="bad">O(n)</td><td>Linear scan required</td></tr>
+                    <tr><td>Sorted Array</td><td class="ok">O(log n)</td><td class="bad">O(n)</td><td class="bad">O(n)</td><td>Binary search, costly insert</td></tr>
+                    <tr><td>Linked List</td><td class="bad">O(n)</td><td class="good">O(1)</td><td class="bad">O(n)</td><td>No random access</td></tr>
+                    <tr><td>BST (balanced)</td><td class="ok">O(log n)</td><td class="ok">O(log n)</td><td class="ok">O(log n)</td><td>Good but not O(1)</td></tr>
+                    <tr><td style="color:var(--accent); font-weight:700;">Hash Map</td><td class="good">O(1) avg</td><td class="good">O(1) avg</td><td class="good">O(1) avg</td><td style="color:var(--accent2); font-weight:600;">Best average performance</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout teal reveal d3">
+            <p>Hash Maps trade <strong>extra space</strong> for <strong>dramatically faster</strong> access. They are the go-to structure whenever fast key-based lookup is needed.</p>
+        </div>
+    </div>
+    <span class="snum">04 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 5 — SECTION: HASH FUNCTIONS -->
+<section class="slide div-slide" id="slide-5">
+    <div class="slide-content">
+        <div class="acard reveal d1" style="margin-bottom:var(--gap); display:inline-block;"><p style="font-family:var(--font-m); font-size:var(--small-size); font-weight:700; letter-spacing:0.15em; text-transform:uppercase;">Section 01</p></div>
+        <h2 class="reveal d2">Hash Functions</h2>
+        <p class="reveal d3" style="font-size:var(--h3-size); margin-top:var(--sgap);">The engine that makes O(1) possible</p>
+    </div>
+    <span class="snum">05 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 6 — HASH FUNCTION PROPERTIES -->
+<section class="slide" id="slide-6">
+    <div class="sec-num">Hash Functions</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Properties of a Good Hash Function</h2>
+        <div class="two-col">
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--accent);">Deterministic</div><p>Same key always produces the same hash value. No randomness at query time.</p></div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--accent);">Uniform Distribution</div><p>Hash values spread evenly across all buckets. Minimises clustering and collisions.</p></div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--accent);">Fast to Compute</div><p>Hash computation should be O(1) or O(key length) — not a bottleneck.</p></div>
+                <div class="dcard reveal d5"><div class="lbl" style="color:var(--accent);">Avalanche Effect</div><p>Small change in key → completely different hash. Prevents patterns in output.</p></div>
+            </div>
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A bad hash function turns O(1) operations into O(n) by putting everything in the same bucket.</p>
+                </div>
+                <div class="cb reveal d3">
+<span class="cm"># Simple modulo hash for integers</span><br>
+<span class="kw">def</span> <span class="fn">hash_int</span>(key, size):<br>
+&nbsp;&nbsp;<span class="kw">return</span> key % size<br>
+<br>
+<span class="cm"># Polynomial hash for strings</span><br>
+<span class="kw">def</span> <span class="fn">hash_str</span>(s, size):<br>
+&nbsp;&nbsp;h, p = <span class="nm">0</span>, <span class="nm">31</span><br>
+&nbsp;&nbsp;<span class="kw">for</span> c <span class="kw">in</span> s:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;h = (h * p + <span class="fn">ord</span>(c)) % size<br>
+&nbsp;&nbsp;<span class="kw">return</span> h
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">06 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 7 — THE HASH TABLE STRUCTURE -->
+<section class="slide" id="slide-7">
+    <div class="sec-num">Hash Functions</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">The Hash Table Structure</h2>
+        <div class="two-col-w">
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--gap);">The underlying array has a fixed number of <strong>buckets</strong> (slots). The hash function maps each key to a bucket index.</p>
+                <div class="cb reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># Inserting "alice"→95 into size-7 table</span><br>
+key = <span class="st">"alice"</span><br>
+idx = <span class="fn">hash</span>(key) % <span class="nm">7</span>   <span class="cm"># → 3</span><br>
+table[idx] = (<span class="st">"alice"</span>, <span class="nm">95</span>)<br>
+<br>
+<span class="cm"># Lookup "alice"</span><br>
+idx = <span class="fn">hash</span>(<span class="st">"alice"</span>) % <span class="nm">7</span>  <span class="cm"># → 3</span><br>
+<span class="kw">return</span> table[idx][<span class="nm">1</span>]     <span class="cm"># → 95</span>
+                </div>
+                <ul class="pts reveal d4">
+                    <li>Array size is typically a <strong>prime number</strong> — reduces clustering</li>
+                    <li>Index = <code style="font-family:var(--font-m);">hash(key) % capacity</code></li>
+                </ul>
+            </div>
+            <div class="reveal-scale d3">
+                <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--text-dim); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Table (size = 7)</p>
+                <div class="htable">
+                    <div class="hrow"><div class="hidx">0</div><div class="hbucket">—</div></div>
+                    <div class="hrow"><div class="hidx">1</div><div class="hbucket filled2"><span class="kv">"bob"</span><span class="arrow">→</span><span>87</span></div></div>
+                    <div class="hrow"><div class="hidx">2</div><div class="hbucket">—</div></div>
+                    <div class="hrow"><div class="hidx">3</div><div class="hbucket filled"><span class="kv">"alice"</span><span class="arrow">→</span><span>95</span></div></div>
+                    <div class="hrow"><div class="hidx">4</div><div class="hbucket filled2"><span class="kv">"carol"</span><span class="arrow">→</span><span>78</span></div></div>
+                    <div class="hrow"><div class="hidx">5</div><div class="hbucket">—</div></div>
+                    <div class="hrow"><div class="hidx">6</div><div class="hbucket filled"><span class="kv">"dave"</span><span class="arrow">→</span><span>91</span></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">07 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 8 — COLLISIONS SECTION -->
+<section class="slide div-slide" id="slide-8">
+    <div class="slide-content">
+        <div class="acard teal reveal d1" style="margin-bottom:var(--gap); display:inline-block;"><p style="font-family:var(--font-m); font-size:var(--small-size); font-weight:700; letter-spacing:0.15em; text-transform:uppercase;">Section 02</p></div>
+        <h2 class="reveal d2">Collision Handling</h2>
+        <p class="reveal d3" style="font-size:var(--h3-size); margin-top:var(--sgap);">What happens when two keys hash to the same index?</p>
+    </div>
+    <span class="snum">08 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 9 — WHAT IS A COLLISION? -->
+<section class="slide" id="slide-9">
+    <div class="sec-num">Collision Handling</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Collisions Are Inevitable</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout yell reveal d2" style="margin-bottom:var(--gap);">
+                    <p>By the <strong>Birthday Paradox</strong>, collisions become likely even when the table is only ~70% full — regardless of the hash function's quality.</p>
+                </div>
+                <ul class="pts yell">
+                    <li class="reveal d3">Pigeonhole principle: n keys into m buckets, if n &gt; m, collisions are guaranteed</li>
+                    <li class="reveal d4">Even with m &gt;&gt; n, probability of first collision reaches 50% at ~√m insertions</li>
+                    <li class="reveal d5">Two main strategies: <strong>Chaining</strong> and <strong>Open Addressing</strong></li>
+                </ul>
+            </div>
+            <div class="reveal-scale d3">
+                <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--text-dim); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Collision example</p>
+                <div class="htable">
+                    <div class="hrow"><div class="hidx">0</div><div class="hbucket">—</div></div>
+                    <div class="hrow"><div class="hidx">1</div><div class="hbucket filled"><span class="kv">"alice"</span><span class="arrow">→</span><span>95</span></div></div>
+                    <div class="hrow"><div class="hidx">2</div><div class="hbucket collide"><span class="kv">"bob"</span><span class="arrow">→</span><span>87</span><span style="color:var(--accent3); margin-left:0.4em;">⚠ COLLISION</span></div></div>
+                    <div class="hrow"><div class="hidx">3</div><div class="hbucket collide"><span class="kv">"carol"</span><span class="arrow">→</span><span>78</span><span style="color:var(--accent3); margin-left:0.4em;">⚠ same idx as bob</span></div></div>
+                    <div class="hrow"><div class="hidx">4</div><div class="hbucket">—</div></div>
+                </div>
+                <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--accent3); margin-top:var(--sgap);">hash("bob") % 5 = 2 = hash("carol") % 5</p>
+            </div>
+        </div>
+    </div>
+    <span class="snum">09 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 10 — CHAINING -->
+<section class="slide" id="slide-10">
+    <div class="sec-num">Collision Handling</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Separate Chaining</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Each bucket holds a <strong>linked list</strong> (or dynamic array) of all key-value pairs that hash to that index.</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d3">Simple to implement — no reshuffling on collision</li>
+                    <li class="reveal d4">Degrades to O(n) if all keys land in one bucket</li>
+                    <li class="reveal d5">Average search: O(1 + α) where α = load factor = n/m</li>
+                    <li class="reveal d6">Extra memory for pointers — not cache-friendly</li>
+                    <li class="reveal d7">Used by <strong>Java HashMap, Python dict (pre-3.6)</strong></li>
+                </ul>
+                <div class="cb reveal d7" style="margin-top:var(--gap);">
+<span class="cm"># Chaining insert</span><br>
+<span class="kw">def</span> <span class="fn">insert</span>(self, key, val):<br>
+&nbsp;&nbsp;i = <span class="fn">hash</span>(key) % self.size<br>
+&nbsp;&nbsp;<span class="kw">for</span> pair <span class="kw">in</span> self.table[i]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> pair[<span class="nm">0</span>] == key:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pair[<span class="nm">1</span>] = val; <span class="kw">return</span><br>
+&nbsp;&nbsp;self.table[i].<span class="fn">append</span>([key, val])
+                </div>
+            </div>
+            <div class="reveal-scale d3">
+                <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--text-dim); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Chained table (size=5)</p>
+                <div class="htable">
+                    <div class="hrow"><div class="hidx">0</div><div class="hbucket">—</div></div>
+                    <div class="hrow"><div class="hidx">1</div><div class="hbucket filled"><span class="kv">"alice"</span><span class="arrow">→</span>95</div></div>
+                    <div class="hrow"><div class="hidx">2</div><div class="hbucket" style="flex-direction:column; align-items:flex-start; padding:4px 8px; gap:3px;">
+                        <div style="display:flex; gap:0.4em; align-items:center;"><span class="kv" style="font-family:var(--font-m); color:var(--accent);">"bob"</span><span style="color:var(--text-dim);">→</span><span style="font-family:var(--font-m); color:var(--text-sub);">87</span><span style="color:var(--text-dim);">→</span></div>
+                        <div style="display:flex; gap:0.4em; align-items:center;"><span class="kv" style="font-family:var(--font-m); color:var(--accent2);">"carol"</span><span style="color:var(--text-dim);">→</span><span style="font-family:var(--font-m); color:var(--text-sub);">78</span><span style="color:var(--text-dim);">→ null</span></div>
+                    </div></div>
+                    <div class="hrow"><div class="hidx">3</div><div class="hbucket filled2"><span class="kv">"dave"</span><span class="arrow">→</span>91</div></div>
+                    <div class="hrow"><div class="hidx">4</div><div class="hbucket">—</div></div>
+                </div>
+                <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--text-dim); margin-top:var(--sgap);">Bucket 2 holds a linked list of 2 entries</p>
+            </div>
+        </div>
+    </div>
+    <span class="snum">10 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 11 — OPEN ADDRESSING -->
+<section class="slide" id="slide-11">
+    <div class="sec-num">Collision Handling</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Open Addressing</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout teal reveal d2" style="margin-bottom:var(--gap);">
+                    <p>All entries stored <strong>directly in the array</strong>. On collision, <em>probe</em> for the next empty slot using a probing sequence.</p>
+                </div>
+                <ul class="pts teal">
+                    <li class="reveal d3">No extra memory for pointers — cache-friendly</li>
+                    <li class="reveal d4">Table can fill up — capacity must be &gt; n</li>
+                    <li class="reveal d5">Deletion is tricky — requires <strong>tombstone</strong> markers</li>
+                    <li class="reveal d6">Three probing strategies: Linear, Quadratic, Double Hashing</li>
+                    <li class="reveal d7">Used by <strong>Python dict (3.6+), C++ unordered_map, Robin Hood hashing</strong></li>
+                </ul>
+            </div>
+            <div class="reveal-scale d3">
+                <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--text-dim); margin-bottom:var(--sgap); text-transform:uppercase; letter-spacing:0.1em;">Open addressing — probe sequence</p>
+                <div class="htable">
+                    <div class="hrow"><div class="hidx">0</div><div class="hbucket">—</div></div>
+                    <div class="hrow"><div class="hidx">1</div><div class="hbucket filled"><span class="kv">"alice"</span><span class="arrow">→</span>95<span style="margin-left:auto; color:var(--text-dim); font-size:0.8em;">h=1</span></div></div>
+                    <div class="hrow"><div class="hidx">2</div><div class="hbucket filled"><span class="kv">"bob"</span><span class="arrow">→</span>87<span style="margin-left:auto; color:var(--accent3); font-size:0.8em;">h=1, probe+1</span></div></div>
+                    <div class="hrow"><div class="hidx">3</div><div class="hbucket filled2"><span class="kv">"carol"</span><span class="arrow">→</span>78<span style="margin-left:auto; color:var(--text-dim); font-size:0.8em;">h=3</span></div></div>
+                    <div class="hrow"><div class="hidx">4</div><div class="hbucket">—</div></div>
+                </div>
+                <p style="font-family:var(--font-m); font-size:var(--small-size); color:var(--accent3); margin-top:var(--sgap);">"bob" collided at 1, placed at 2</p>
+            </div>
+        </div>
+    </div>
+    <span class="snum">11 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 12 — LINEAR PROBING -->
+<section class="slide" id="slide-12">
+    <div class="sec-num">Collision Handling</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Linear, Quadratic &amp; Double Hashing</h2>
+        <div class="three-col">
+            <div>
+                <div class="acard reveal d2" style="margin-bottom:var(--sgap); width:100%;">
+                    <p style="font-family:var(--font-m); font-size:var(--small-size); font-weight:700; margin-bottom:0.3em;">Linear Probing</p>
+                    <p style="font-size:var(--small-size);">idx = (h + i) % m</p>
+                </div>
+                <ul class="pts reveal d3" style="margin-bottom:var(--sgap);">
+                    <li>Simple, cache-friendly</li>
+                    <li>Suffers from <strong>primary clustering</strong> — long runs of filled slots slow probing</li>
+                </ul>
+                <div class="cb reveal d4" style="font-size:var(--small-size);">
+<span class="cm"># probe sequence</span><br>
+i = <span class="nm">0</span><br>
+<span class="kw">while</span> filled:<br>
+&nbsp;&nbsp;idx=(h+i)%m<br>
+&nbsp;&nbsp;i += <span class="nm">1</span>
+                </div>
+            </div>
+            <div>
+                <div class="acard teal reveal d2" style="margin-bottom:var(--sgap); width:100%;">
+                    <p style="font-family:var(--font-m); font-size:var(--small-size); font-weight:700; margin-bottom:0.3em; color:#111;">Quadratic Probing</p>
+                    <p style="font-size:var(--small-size); color:#111;">idx = (h + i²) % m</p>
+                </div>
+                <ul class="pts teal reveal d3" style="margin-bottom:var(--sgap);">
+                    <li>Reduces primary clustering</li>
+                    <li>Suffers from <strong>secondary clustering</strong> — same initial hash → same probe path</li>
+                </ul>
+                <div class="cb teal reveal d4" style="font-size:var(--small-size);">
+<span class="cm"># probe sequence</span><br>
+i = <span class="nm">0</span><br>
+<span class="kw">while</span> filled:<br>
+&nbsp;&nbsp;idx=(h+i*i)%m<br>
+&nbsp;&nbsp;i += <span class="nm">1</span>
+                </div>
+            </div>
+            <div>
+                <div class="acard yellow reveal d2" style="margin-bottom:var(--sgap); width:100%;">
+                    <p style="font-family:var(--font-m); font-size:var(--small-size); font-weight:700; margin-bottom:0.3em; color:#111;">Double Hashing</p>
+                    <p style="font-size:var(--small-size); color:#111;">idx = (h1 + i·h2) % m</p>
+                </div>
+                <ul class="pts yell reveal d3" style="margin-bottom:var(--sgap);">
+                    <li>Eliminates both clustering types</li>
+                    <li>Best distribution — requires two hash functions</li>
+                </ul>
+                <div class="cb yell reveal d4" style="font-size:var(--small-size);">
+<span class="cm"># probe sequence</span><br>
+h2 = <span class="nm">7</span>-(key%<span class="nm">7</span>)<br>
+<span class="kw">while</span> filled:<br>
+&nbsp;&nbsp;idx=(h1+i*h2)%m<br>
+&nbsp;&nbsp;i += <span class="nm">1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">12 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 13 — LOAD FACTOR & REHASHING -->
+<section class="slide" id="slide-13">
+    <div class="sec-num">Load Factor</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Load Factor &amp; Rehashing</h2>
+        <div class="two-col">
+            <div>
+                <div class="acard reveal d2" style="margin-bottom:var(--gap);">
+                    <p style="font-family:var(--font-m); font-size:var(--h3-size); font-weight:700; color:#111;">α = n / m</p>
+                    <p style="font-size:var(--small-size); margin-top:0.3em; color:rgba(0,0,0,0.6);">n = entries stored · m = total buckets</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d3"><strong>α &lt; 0.5:</strong> Many empty slots — fast but wasteful</li>
+                    <li class="reveal d4"><strong>α ≈ 0.7:</strong> Sweet spot for most implementations</li>
+                    <li class="reveal d5"><strong>α &gt; 0.9:</strong> Severe degradation — many collisions</li>
+                    <li class="reveal d6">When α exceeds threshold → <strong>rehash</strong>: allocate 2× table, re-insert all keys</li>
+                    <li class="reveal d7">Rehashing is O(n) but amortised O(1) per insert over many operations</li>
+                </ul>
+            </div>
+            <div>
+                <div class="cb reveal d3" style="margin-bottom:var(--gap);">
+<span class="kw">def</span> <span class="fn">_rehash</span>(self):<br>
+&nbsp;&nbsp;old = self.table<br>
+&nbsp;&nbsp;self.size *= <span class="nm">2</span>   <span class="cm"># double capacity</span><br>
+&nbsp;&nbsp;self.table = [[] <span class="kw">for</span> _ <span class="kw">in range</span>(self.size)]<br>
+&nbsp;&nbsp;self.count = <span class="nm">0</span><br>
+&nbsp;&nbsp;<span class="kw">for</span> bucket <span class="kw">in</span> old:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> key, val <span class="kw">in</span> bucket:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.<span class="fn">insert</span>(key, val)  <span class="cm"># re-insert</span>
+                </div>
+                <div class="callout teal reveal d4">
+                    <p>Java HashMap rehashes at α = 0.75. Python dict rehashes at α = 0.67.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">13 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 14 — OPERATIONS SECTION -->
+<section class="slide div-slide" id="slide-14">
+    <div class="slide-content">
+        <div class="acard purple reveal d1" style="margin-bottom:var(--gap); display:inline-block;"><p style="font-family:var(--font-m); font-size:var(--small-size); font-weight:700; letter-spacing:0.15em; text-transform:uppercase;">Section 03</p></div>
+        <h2 class="reveal d2">Hash Map Operations</h2>
+        <p class="reveal d3" style="font-size:var(--h3-size); margin-top:var(--sgap);">Insert · Search · Delete · Complexity</p>
+    </div>
+    <span class="snum">14 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 15 — INSERT & SEARCH -->
+<section class="slide" id="slide-15">
+    <div class="sec-num">Operations</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Insert &amp; Search</h2>
+        <div class="two-col">
+            <div>
+                <p class="reveal d2" style="margin-bottom:var(--sgap); color:var(--accent); font-weight:600; font-size:var(--h3-size);">INSERT(key, value)</p>
+                <ul class="pts reveal d3" style="margin-bottom:var(--gap);">
+                    <li>Compute index = hash(key) % m</li>
+                    <li>If bucket empty → place entry</li>
+                    <li>If key exists → update value</li>
+                    <li>If collision → resolve (chain or probe)</li>
+                    <li>If α &gt; threshold → rehash</li>
+                </ul>
+                <p class="reveal d4" style="margin-bottom:var(--sgap); color:var(--accent2); font-weight:600; font-size:var(--h3-size);">SEARCH(key)</p>
+                <ul class="pts teal reveal d5">
+                    <li>Compute index = hash(key) % m</li>
+                    <li>Scan bucket/probe sequence for key</li>
+                    <li>Return value if found, else None</li>
+                </ul>
+            </div>
+            <div class="cb reveal d2">
+<span class="cm"># Full HashMap (chaining)</span><br>
+<span class="kw">class</span> <span class="fn">HashMap</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self, m=<span class="nm">16</span>):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.size = m<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.count = <span class="nm">0</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.table = [[] <span class="kw">for</span> _ <span class="kw">in range</span>(m)]<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">_idx</span>(self, key):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="fn">hash</span>(key) % self.size<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">put</span>(self, key, val):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;i = self.<span class="fn">_idx</span>(key)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> pair <span class="kw">in</span> self.table[i]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> pair[<span class="nm">0</span>] == key:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pair[<span class="nm">1</span>] = val; <span class="kw">return</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.table[i].<span class="fn">append</span>([key,val])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.count += <span class="nm">1</span><br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">get</span>(self, key):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;i = self.<span class="fn">_idx</span>(key)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> k, v <span class="kw">in</span> self.table[i]:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> k == key: <span class="kw">return</span> v<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return None</span>
+            </div>
+        </div>
+    </div>
+    <span class="snum">15 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 16 — DELETE -->
+<section class="slide" id="slide-16">
+    <div class="sec-num">Operations</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Delete</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout yell reveal d2" style="margin-bottom:var(--gap);">
+                    <p>Deletion in open addressing is <strong>tricky</strong> — you cannot simply empty the slot or you break the probe chain for other keys.</p>
+                </div>
+                <ul class="pts yell">
+                    <li class="reveal d3"><strong>Chaining:</strong> Remove entry from the linked list — straightforward O(1) avg</li>
+                    <li class="reveal d4"><strong>Open Addressing:</strong> Mark deleted slot with a <strong>tombstone</strong> sentinel</li>
+                    <li class="reveal d5">Tombstone slots are skipped during probing but can be reused on insert</li>
+                    <li class="reveal d6">Too many tombstones → performance degrades → rehash clears them</li>
+                </ul>
+            </div>
+            <div>
+                <div class="cb reveal d3" style="margin-bottom:var(--gap);">
+<span class="cm"># Chaining delete</span><br>
+<span class="kw">def</span> <span class="fn">delete</span>(self, key):<br>
+&nbsp;&nbsp;i = self.<span class="fn">_idx</span>(key)<br>
+&nbsp;&nbsp;self.table[i] = [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;p <span class="kw">for</span> p <span class="kw">in</span> self.table[i]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> p[<span class="nm">0</span>] != key<br>
+&nbsp;&nbsp;]<br>
+<br>
+<span class="cm"># Open addressing (tombstone)</span><br>
+DELETED = <span class="st">"__DELETED__"</span><br>
+<span class="kw">def</span> <span class="fn">delete</span>(self, key):<br>
+&nbsp;&nbsp;i = self.<span class="fn">_idx</span>(key)<br>
+&nbsp;&nbsp;<span class="kw">while</span> self.table[i] <span class="kw">is not None</span>:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> self.table[i][<span class="nm">0</span>]==key:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.table[i] = DELETED<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;i = (i+<span class="nm">1</span>) % self.size
+                </div>
+                <div class="dcard reveal d4"><div class="lbl" style="color:var(--accent3);">Tombstone example</div><p>Bucket 2: <code style="font-family:var(--font-m);">"bob"→87</code> deleted → becomes <code style="font-family:var(--font-m);">DELETED</code>. Probing past it continues normally.</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">16 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 17 — COMPLEXITY SUMMARY -->
+<section class="slide" id="slide-17">
+    <div class="sec-num">Operations</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Time Complexity Summary</h2>
+        <div class="reveal d2" style="margin-bottom:var(--gap);">
+            <table class="tbl">
+                <thead><tr><th>Operation</th><th>Average Case</th><th>Worst Case</th><th>Condition for Worst</th></tr></thead>
+                <tbody>
+                    <tr><td>Insert</td><td class="good">O(1)</td><td class="bad">O(n)</td><td>All keys hash to same bucket</td></tr>
+                    <tr><td>Search / Lookup</td><td class="good">O(1)</td><td class="bad">O(n)</td><td>Long chain or probe sequence</td></tr>
+                    <tr><td>Delete</td><td class="good">O(1)</td><td class="bad">O(n)</td><td>All keys in one chain</td></tr>
+                    <tr><td>Rehash</td><td class="ok">O(n)</td><td class="bad">O(n)</td><td>Always linear — but amortised O(1)</td></tr>
+                    <tr><td>Space</td><td class="ok">O(n)</td><td class="ok">O(n)</td><td>—</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout teal reveal d3">
+            <p>Worst case O(n) requires a <strong>pathological hash function</strong> or a deliberate attack. With a good hash function, O(1) is reliable in practice.</p>
+        </div>
+        <div class="dcard reveal d4" style="margin-top:var(--gap);">
+            <div class="lbl" style="color:var(--accent3);">Hash DoS Attack</div>
+            <p>Attackers can craft inputs that all collide, degrading performance to O(n). Defence: use a <strong>randomised seed</strong> (Python's hash randomisation) or cryptographic hash like SipHash.</p>
+        </div>
+    </div>
+    <span class="snum">17 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 18 — HASH MAPS IN PYTHON -->
+<section class="slide" id="slide-18">
+    <div class="sec-num">Language Built-ins</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Hash Maps in Python</h2>
+        <div class="two-col">
+            <div class="cb reveal d2">
+<span class="cm"># Create</span><br>
+d = {}  <span class="cm"># or dict()</span><br>
+d = {<span class="st">"alice"</span>: <span class="nm">95</span>, <span class="st">"bob"</span>: <span class="nm">87</span>}<br>
+<br>
+<span class="cm"># Insert / Update</span><br>
+d[<span class="st">"carol"</span>] = <span class="nm">78</span><br>
+<br>
+<span class="cm"># Lookup (raises KeyError if missing)</span><br>
+score = d[<span class="st">"alice"</span>]  <span class="cm"># 95</span><br>
+<br>
+<span class="cm"># Safe lookup</span><br>
+score = d.<span class="fn">get</span>(<span class="st">"dave"</span>, <span class="nm">0</span>)  <span class="cm"># default 0</span><br>
+<br>
+<span class="cm"># Delete</span><br>
+<span class="kw">del</span> d[<span class="st">"bob"</span>]<br>
+d.<span class="fn">pop</span>(<span class="st">"carol"</span>, <span class="kw">None</span>)  <span class="cm"># safe pop</span><br>
+<br>
+<span class="cm"># Iterate</span><br>
+<span class="kw">for</span> key, val <span class="kw">in</span> d.<span class="fn">items</span>():<br>
+&nbsp;&nbsp;<span class="fn">print</span>(key, val)<br>
+<br>
+<span class="cm"># Existence check — O(1)</span><br>
+<span class="st">"alice"</span> <span class="kw">in</span> d  <span class="cm"># True</span>
+            </div>
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--accent);">defaultdict</div><p>Auto-initialises missing keys. <code style="font-family:var(--font-m);">from collections import defaultdict</code><br><code style="font-family:var(--font-m);">d = defaultdict(list)</code> — appending to missing key creates an empty list.</p></div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--accent2);">Counter</div><p><code style="font-family:var(--font-m);">Counter(["a","b","a"])</code> → <code style="font-family:var(--font-m);">{"a":2, "b":1}</code>. Counts hashable objects — built on dict.</p></div>
+                <div class="dcard reveal d4" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--accent3);">OrderedDict</div><p>Preserves insertion order (Python 3.7+ regular dicts also preserve order). Useful for LRU cache patterns.</p></div>
+                <div class="callout reveal d5"><p>Python dict is one of the most optimised data structures ever built — benchmarks often beat hand-rolled C++ maps.</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="snum">18 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 19 — HASH SETS -->
+<section class="slide" id="slide-19">
+    <div class="sec-num">Variants</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Hash Sets</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout teal reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A Hash Set is a Hash Map with <strong>only keys — no values</strong>. Used when you need fast membership testing and deduplication.</p>
+                </div>
+                <ul class="pts teal">
+                    <li class="reveal d3">O(1) average for add, remove, and <code style="font-family:var(--font-m);">in</code> operator</li>
+                    <li class="reveal d4">Supports set operations: union, intersection, difference</li>
+                    <li class="reveal d5">Python: <code style="font-family:var(--font-m);">set()</code> — Java: <code style="font-family:var(--font-m);">HashSet&lt;T&gt;</code></li>
+                    <li class="reveal d6">Unordered — use <code style="font-family:var(--font-m);">TreeSet</code> or sorted set if ordering needed</li>
+                </ul>
+            </div>
+            <div class="cb teal reveal d3">
+<span class="cm"># Python set operations</span><br>
+A = {<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>, <span class="nm">4</span>}<br>
+B = {<span class="nm">3</span>, <span class="nm">4</span>, <span class="nm">5</span>, <span class="nm">6</span>}<br>
+<br>
+<span class="cm"># Union → {1,2,3,4,5,6}</span><br>
+A | B<br>
+<br>
+<span class="cm"># Intersection → {3, 4}</span><br>
+A &amp; B<br>
+<br>
+<span class="cm"># Difference → {1, 2}</span><br>
+A - B<br>
+<br>
+<span class="cm"># Membership test — O(1)</span><br>
+<span class="nm">3</span> <span class="kw">in</span> A  <span class="cm"># True</span><br>
+<br>
+<span class="cm"># Deduplication — O(n)</span><br>
+unique = <span class="fn">list</span>(<span class="fn">set</span>([<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">2</span>,<span class="nm">3</span>]))
+            </div>
+        </div>
+    </div>
+    <span class="snum">19 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 20 — COMMON PATTERNS -->
+<section class="slide" id="slide-20">
+    <div class="sec-num">Patterns</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Common Hash Map Patterns</h2>
+        <div class="two-col">
+            <div>
+                <div class="dcard reveal d2" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--accent);">Frequency Counting</div><p>Count occurrences of elements. Used for: anagram detection, top-k elements, majority voting.</p></div>
+                <div class="dcard reveal d3" style="margin-bottom:var(--sgap);"><div class="lbl" style="color:var(--accent2);">Two-Sum Pattern</div><p>Store seen values in a map. Check if <code style="font-family:var(--font-m);">target - current</code> exists. Reduces O(n²) brute force to O(n).</p></div>
+                <div class="dcard reveal d4"><div class="lbl" style="color:var(--accent3);">Grouping / Bucketing</div><p>Group items by a computed key. e.g., group anagrams: sort each word → use sorted form as key.</p></div>
+            </div>
+            <div class="cb reveal d3">
+<span class="cm"># Two Sum — O(n)</span><br>
+<span class="kw">def</span> <span class="fn">two_sum</span>(nums, target):<br>
+&nbsp;&nbsp;seen = {}<br>
+&nbsp;&nbsp;<span class="kw">for</span> i, n <span class="kw">in</span> <span class="fn">enumerate</span>(nums):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;diff = target - n<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> diff <span class="kw">in</span> seen:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> [seen[diff], i]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;seen[n] = i<br>
+<br>
+<span class="cm"># Group anagrams — O(n·k log k)</span><br>
+<span class="kw">from</span> collections <span class="kw">import</span> defaultdict<br>
+<span class="kw">def</span> <span class="fn">group_anagrams</span>(words):<br>
+&nbsp;&nbsp;groups = <span class="fn">defaultdict</span>(list)<br>
+&nbsp;&nbsp;<span class="kw">for</span> w <span class="kw">in</span> words:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;key = <span class="st">""</span>.<span class="fn">join</span>(<span class="fn">sorted</span>(w))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;groups[key].<span class="fn">append</span>(w)<br>
+&nbsp;&nbsp;<span class="kw">return</span> <span class="fn">list</span>(groups.<span class="fn">values</span>())
+            </div>
+        </div>
+    </div>
+    <span class="snum">20 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 21 — LRU CACHE -->
+<section class="slide" id="slide-21">
+    <div class="sec-num">Patterns</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">LRU Cache — Hash Map + Doubly Linked List</h2>
+        <div class="two-col">
+            <div>
+                <div class="callout reveal d2" style="margin-bottom:var(--gap);">
+                    <p>An LRU (Least Recently Used) Cache evicts the least recently accessed item when capacity is full — achievable in O(1) using a HashMap + Doubly Linked List.</p>
+                </div>
+                <ul class="pts">
+                    <li class="reveal d3">HashMap: key → node pointer for O(1) lookup</li>
+                    <li class="reveal d4">Doubly Linked List: maintains access order</li>
+                    <li class="reveal d5">Move accessed node to head → O(1)</li>
+                    <li class="reveal d6">Evict tail node when full → O(1)</li>
+                    <li class="reveal d7">Python: <code style="font-family:var(--font-m);">functools.lru_cache</code> or <code style="font-family:var(--font-m);">OrderedDict</code></li>
+                </ul>
+            </div>
+            <div class="cb reveal d3">
+<span class="kw">from</span> collections <span class="kw">import</span> OrderedDict<br>
+<br>
+<span class="kw">class</span> <span class="fn">LRUCache</span>:<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">__init__</span>(self, cap):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.cap = cap<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.cache = <span class="fn">OrderedDict</span>()<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">get</span>(self, key):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> key <span class="kw">not in</span> self.cache:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> -<span class="nm">1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.cache.<span class="fn">move_to_end</span>(key)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> self.cache[key]<br>
+<br>
+&nbsp;&nbsp;<span class="kw">def</span> <span class="fn">put</span>(self, key, val):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.cache[key] = val<br>
+&nbsp;&nbsp;&nbsp;&nbsp;self.cache.<span class="fn">move_to_end</span>(key)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> <span class="fn">len</span>(self.cache) &gt; self.cap:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;self.cache.<span class="fn">popitem</span>(last=<span class="kw">False</span>)
+            </div>
+        </div>
+    </div>
+    <span class="snum">21 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 22 — CONSISTENT HASHING -->
+<section class="slide" id="slide-22">
+    <div class="sec-num">Advanced Topics</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Consistent Hashing</h2>
+        <div class="two-col-w">
+            <div>
+                <div class="callout teal reveal d2" style="margin-bottom:var(--gap);">
+                    <p>A technique used in distributed systems so that adding or removing a server only remaps <strong>k/n</strong> keys on average — not all of them.</p>
+                </div>
+                <ul class="pts teal">
+                    <li class="reveal d3">Map both servers and keys onto a <strong>virtual ring</strong> (hash ring)</li>
+                    <li class="reveal d4">Each key is assigned to the nearest server clockwise on the ring</li>
+                    <li class="reveal d5">Adding a server only takes keys from its immediate neighbour</li>
+                    <li class="reveal d6">Virtual nodes per server → even load distribution</li>
+                    <li class="reveal d7">Used in: <strong>Amazon Dynamo, Cassandra, CDN routing, Memcached</strong></li>
+                </ul>
+            </div>
+            <div class="reveal-scale d3">
+                <svg viewBox="0 0 220 220" style="width:100%; max-height:min(38vh,220px);" xmlns="http://www.w3.org/2000/svg">
+                    <!-- ring -->
+                    <circle cx="110" cy="110" r="80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+                    <!-- servers -->
+                    <circle cx="110" cy="30" r="16" fill="#FF6B35"/>
+                    <text x="110" y="34" text-anchor="middle" fill="white" font-family="Space Grotesk" font-weight="700" font-size="10">S1</text>
+                    <circle cx="185" cy="150" r="16" fill="#00C9A7"/>
+                    <text x="185" y="154" text-anchor="middle" fill="white" font-family="Space Grotesk" font-weight="700" font-size="10">S2</text>
+                    <circle cx="45" cy="160" r="16" fill="#6C63FF"/>
+                    <text x="45" y="164" text-anchor="middle" fill="white" font-family="Space Grotesk" font-weight="700" font-size="10">S3</text>
+                    <!-- keys -->
+                    <circle cx="155" cy="45" r="10" fill="none" stroke="#FFD166" stroke-width="2"/>
+                    <text x="155" y="49" text-anchor="middle" fill="#FFD166" font-family="JetBrains Mono" font-size="9">k1</text>
+                    <circle cx="190" cy="95" r="10" fill="none" stroke="#FFD166" stroke-width="2"/>
+                    <text x="190" y="99" text-anchor="middle" fill="#FFD166" font-family="JetBrains Mono" font-size="9">k2</text>
+                    <circle cx="75" cy="195" r="10" fill="none" stroke="#FFD166" stroke-width="2"/>
+                    <text x="75" y="199" text-anchor="middle" fill="#FFD166" font-family="JetBrains Mono" font-size="9">k3</text>
+                    <text x="110" y="215" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-family="Space Grotesk" font-size="9">Hash Ring (mod 2³²)</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <span class="snum">22 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 23 — APPLICATIONS -->
+<section class="slide" id="slide-23">
+    <div class="sec-num">Applications</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Real-World Applications</h2>
+        <div class="four-col">
+            <div class="dcard reveal d2"><div class="lbl" style="color:var(--accent);">Databases</div><p>Index lookups, query caches, join operations — hash joins are O(n+m)</p></div>
+            <div class="dcard reveal d3"><div class="lbl" style="color:var(--accent2);">Compilers</div><p>Symbol tables: variable names → memory addresses. O(1) identifier lookup</p></div>
+            <div class="dcard reveal d4"><div class="lbl" style="color:var(--accent3);">Caching</div><p>Memcached, Redis: key-value stores at scale. Browser cache: URL → response</p></div>
+            <div class="dcard reveal d5"><div class="lbl" style="color:var(--accent4);">Networking</div><p>Routing tables, ARP cache, IP → MAC address resolution</p></div>
+            <div class="dcard reveal d6"><div class="lbl" style="color:var(--accent);">Security</div><p>Password storage (salted hashes), integrity checking, digital signatures, Bloom filters</p></div>
+            <div class="dcard reveal d7"><div class="lbl" style="color:var(--accent2);">Language Runtimes</div><p>Python objects, JavaScript objects, Ruby hashes — all implemented as hash maps</p></div>
+            <div class="dcard reveal d2" style="transition-delay:0.65s;"><div class="lbl" style="color:var(--accent3);">Deduplication</div><p>Finding duplicates in large datasets, web crawlers, streaming distinct counts</p></div>
+            <div class="dcard reveal d3" style="transition-delay:0.73s;"><div class="lbl" style="color:var(--accent4);">Distributed Systems</div><p>Consistent hashing in DynamoDB, Cassandra, CDNs for load balancing</p></div>
+        </div>
+    </div>
+    <span class="snum">23 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 24 — CHAINING vs OPEN ADDRESSING -->
+<section class="slide" id="slide-24">
+    <div class="sec-num">Comparison</div>
+    <div class="slide-content">
+        <h2 class="reveal d1" style="margin-bottom:var(--gap);">Chaining vs. Open Addressing</h2>
+        <div class="reveal d2" style="margin-bottom:var(--gap);">
+            <table class="tbl">
+                <thead><tr><th>Property</th><th>Separate Chaining</th><th>Open Addressing</th></tr></thead>
+                <tbody>
+                    <tr><td>Memory layout</td><td>Scattered (linked list nodes)</td><td class="good">Contiguous (cache-friendly)</td></tr>
+                    <tr><td>Load factor limit</td><td class="good">Can exceed 1.0</td><td class="ok">Must stay &lt; 1.0</td></tr>
+                    <tr><td>Deletion</td><td class="good">Simple list removal</td><td class="ok">Needs tombstone markers</td></tr>
+                    <tr><td>Memory overhead</td><td class="bad">Pointer per entry</td><td class="good">None (array only)</td></tr>
+                    <tr><td>Worst case cluster</td><td>Long chain in one bucket</td><td>Long probe sequence</td></tr>
+                    <tr><td>Best load factor</td><td class="ok">α ≤ 1.0</td><td class="good">α ≤ 0.7</td></tr>
+                    <tr><td>Used by</td><td>Java HashMap, C++ std::unordered_map</td><td>Python dict, Robin Hood Hash</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="callout reveal d3">
+            <p>Open addressing dominates modern implementations because <strong>cache locality</strong> outweighs theoretical advantages of chaining on real hardware.</p>
+        </div>
+    </div>
+    <span class="snum">24 / 25</span>
+</section>
+
+<!-- ================================================ SLIDE 25 — KEY TAKEAWAYS -->
+<section class="slide" id="slide-25">
+    <div class="slide-content">
+        <div class="acard reveal d1" style="margin-bottom:var(--gap); display:inline-block;"><p style="font-family:var(--font-d); font-size:var(--h3-size); color:#111;">Key Takeaways</p></div>
+        <div class="two-col">
+            <ul class="pts">
+                <li class="reveal d1">A Hash Map maps <strong>keys → values</strong> using a hash function for O(1) average operations</li>
+                <li class="reveal d2">Hash function must be <strong>deterministic, fast, and uniformly distributed</strong></li>
+                <li class="reveal d3"><strong>Collisions are inevitable</strong> — handle with Chaining or Open Addressing</li>
+                <li class="reveal d4">Chaining: linked list per bucket — simple, handles high load factors</li>
+                <li class="reveal d5">Open Addressing: all entries in array — cache-friendly, requires load factor &lt; 1</li>
+            </ul>
+            <ul class="pts teal">
+                <li class="reveal d1"><strong>Load factor α</strong> = n/m controls performance — rehash when α exceeds threshold</li>
+                <li class="reveal d2">Double Hashing gives the best distribution for open addressing</li>
+                <li class="reveal d3">Python <code style="font-family:var(--font-m);">dict</code> and <code style="font-family:var(--font-m);">set</code> are hash map and hash set implementations</li>
+                <li class="reveal d4"><strong>LRU Cache</strong> = HashMap + Doubly Linked List → O(1) all operations</li>
+                <li class="reveal d5">Consistent Hashing solves distributed key assignment — used in Dynamo, Cassandra</li>
+            </ul>
+        </div>
+    </div>
+    <span class="snum">25 / 25</span>
+</section>
+
+<script>
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.total = this.slides.length;
+        this.current = 0;
+        this.progressBar = document.getElementById('progress-bar');
+        this.navDotsEl  = document.getElementById('nav-dots');
+        this.setupObserver(); this.buildDots();
+        this.setupKeyboard(); this.setupTouch(); this.setupWheel();
+        this.updateProgress(0);
+    }
+    setupObserver() {
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('visible');
+                    const i = [...this.slides].indexOf(e.target);
+                    this.current = i; this.updateProgress(i); this.updateDots(i);
+                }
+            });
+        }, { threshold: 0.5 });
+        this.slides.forEach(s => obs.observe(s));
+    }
+    buildDots() {
+        this.slides.forEach((_, i) => {
+            const b = document.createElement('button');
+            b.className = 'nav-dot' + (i===0?' active':'');
+            b.setAttribute('aria-label','Slide '+(i+1));
+            b.addEventListener('click', () => this.goTo(i));
+            this.navDotsEl.appendChild(b);
+        });
+    }
+    updateDots(i) { document.querySelectorAll('.nav-dot').forEach((d,j)=>d.classList.toggle('active',i===j)); }
+    updateProgress(i) { this.progressBar.style.width=(this.total>1?(i/(this.total-1))*100:100)+'%'; }
+    goTo(i) { this.slides[i].scrollIntoView({behavior:'smooth'}); }
+    setupKeyboard() {
+        document.addEventListener('keydown', e => {
+            if (this.editor && this.editor.isActive) return;
+            const map={'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1};
+            if (map[e.key]!==undefined) { e.preventDefault(); this.goTo(Math.max(0,Math.min(this.total-1,this.current+map[e.key]))); }
+        });
+    }
+    setupTouch() {
+        let sy=0;
+        document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});
+        document.addEventListener('touchend',e=>{
+            const dy=sy-e.changedTouches[0].clientY;
+            if(Math.abs(dy)>50) this.goTo(Math.max(0,Math.min(this.total-1,this.current+(dy>0?1:-1))));
+        },{passive:true});
+    }
+    setupWheel() {
+        let last=0;
+        document.addEventListener('wheel',e=>{
+            const now=Date.now(); if(now-last<700)return; last=now;
+            this.goTo(Math.max(0,Math.min(this.total-1,this.current+(e.deltaY>0?1:-1))));
+        },{passive:true});
+    }
+}
+
+class InlineEditor {
+    constructor() {
+        this.isActive=false;
+        this.toggle=document.getElementById('editToggle');
+        this.hotzone=document.getElementById('editHotzone');
+        this.hideTimeout=null;
+        this.setupHover(); this.setupKeys(); this.loadSaved();
+    }
+    setupHover() {
+        const show=()=>{clearTimeout(this.hideTimeout);this.toggle.classList.add('show');};
+        const hide=()=>{this.hideTimeout=setTimeout(()=>{if(!this.isActive)this.toggle.classList.remove('show');},400);};
+        this.hotzone.addEventListener('mouseenter',show); this.hotzone.addEventListener('mouseleave',hide);
+        this.toggle.addEventListener('mouseenter',show);  this.toggle.addEventListener('mouseleave',hide);
+        this.hotzone.addEventListener('click',()=>this.toggleEdit());
+        this.toggle.addEventListener('click',()=>this.toggleEdit());
+    }
+    setupKeys() {
+        document.addEventListener('keydown',e=>{
+            if((e.key==='e'||e.key==='E')&&!e.target.getAttribute('contenteditable')) this.toggleEdit();
+            if((e.ctrlKey||e.metaKey)&&e.key==='s'&&this.isActive){e.preventDefault();this.save();}
+        });
+    }
+    toggleEdit() {
+        this.isActive=!this.isActive;
+        this.toggle.textContent=this.isActive?'💾 Save (Ctrl+S)':'✏ Edit';
+        this.toggle.classList.toggle('active',this.isActive);
+        this.toggle.classList.add('show');
+        const targets=document.querySelectorAll('h1,h2,h3,p,li,.cb');
+        if(this.isActive){targets.forEach(el=>{el.setAttribute('contenteditable','true');el.setAttribute('spellcheck','false');});}
+        else{targets.forEach(el=>el.removeAttribute('contenteditable'));this.save();}
+    }
+    save() {
+        const data={};
+        document.querySelectorAll('.slide').forEach((s,i)=>{data['s'+i]=s.innerHTML;});
+        localStorage.setItem('hashmap_slides_v1',JSON.stringify(data));
+        if(this.isActive){this.toggle.textContent='✓ Saved!';setTimeout(()=>{this.toggle.textContent='💾 Save (Ctrl+S)';},1400);}
+    }
+    loadSaved() {
+        try {
+            const raw=localStorage.getItem('hashmap_slides_v1');
+            if(!raw)return;
+            const data=JSON.parse(raw);
+            document.querySelectorAll('.slide').forEach((s,i)=>{if(data['s'+i])s.innerHTML=data['s'+i];});
+        } catch(e){}
+    }
+}
+
+const presentation = new SlidePresentation();
+const editor = new InlineEditor();
+presentation.editor = editor;
+</script>
+</body>
+</html>

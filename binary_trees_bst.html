@@ -1349,5 +1349,269 @@ const presentation = new SlidePresentation();
 const editor = new InlineEditor();
 presentation.editor = editor;
 </script>
+
+<!-- ═══════════════════════════════════════════
+     CHAPTER PAGINATION
+     Injected automatically — do not edit manually
+═══════════════════════════════════════════ -->
+<style>
+#chapter-pagination {
+    position:fixed;
+    bottom:0; left:0; right:0;
+    background:rgba(10,10,10,0.97);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border-top:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:clamp(0.5rem,2vw,1.5rem);
+    padding:clamp(0.6rem,1.5vh,1rem) clamp(1rem,3vw,2.5rem);
+    z-index:99999;
+    transform:translateY(100%);
+    transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);
+    font-family:'JetBrains Mono','Space Mono',monospace;
+}
+#chapter-pagination.pg-visible {
+    transform:translateY(0);
+}
+#chapter-pagination.pg-peek {
+    transform:translateY(calc(100% - 4px));
+}
+.pg-btn {
+    display:flex;
+    align-items:center;
+    gap:clamp(0.5rem,1.2vw,1rem);
+    text-decoration:none;
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:3px;
+    padding:clamp(0.45rem,1vh,0.7rem) clamp(0.7rem,1.5vw,1.2rem);
+    background:rgba(255,255,255,0.04);
+    cursor:pointer;
+    transition:all 0.25s ease;
+    min-width:clamp(150px,22vw,260px);
+    flex-shrink:0;
+}
+.pg-btn:hover {
+    background:rgba(255,255,255,0.1);
+    border-color:rgba(255,255,255,0.25);
+    transform:translateY(-1px);
+}
+.pg-btn.pg-disabled {
+    opacity:0.3;
+    cursor:default;
+    pointer-events:none;
+}
+.pg-prev { flex-direction:row; }
+.pg-next { flex-direction:row; justify-content:flex-end; }
+.pg-arrow {
+    font-size:clamp(0.9rem,1.5vw,1.2rem);
+    color:rgba(255,255,255,0.5);
+    flex-shrink:0;
+    transition:transform 0.2s;
+}
+.pg-btn:hover .pg-arrow { color:#fff; }
+.pg-prev:hover .pg-arrow { transform:translateX(-2px); }
+.pg-next:hover .pg-arrow { transform:translateX(2px); }
+.pg-info { display:flex; flex-direction:column; gap:1px; }
+.pg-info-right { text-align:right; }
+.pg-label {
+    font-size:clamp(0.52rem,0.8vw,0.65rem);
+    text-transform:uppercase;
+    letter-spacing:0.15em;
+    color:rgba(255,255,255,0.35);
+}
+.pg-title {
+    font-size:clamp(0.62rem,1vw,0.82rem);
+    color:#fff;
+    font-weight:700;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:clamp(120px,18vw,220px);
+}
+.pg-meta {
+    font-size:clamp(0.52rem,0.75vw,0.62rem);
+    color:rgba(255,255,255,0.3);
+}
+/* Centre dots */
+.pg-center {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.5rem;
+    flex:1;
+}
+.pg-course-label {
+    font-size:clamp(0.5rem,0.75vw,0.6rem);
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+    color:rgba(255,255,255,0.2);
+}
+.pg-dots {
+    display:flex;
+    align-items:center;
+    gap:clamp(3px,0.5vw,6px);
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.pg-dot {
+    width:clamp(5px,0.7vw,8px);
+    height:clamp(5px,0.7vw,8px);
+    border-radius:50%;
+    background:rgba(255,255,255,0.18);
+    text-decoration:none;
+    flex-shrink:0;
+    transition:all 0.25s;
+    border:none;
+    cursor:pointer;
+}
+.pg-dot:hover {
+    background:rgba(255,255,255,0.5);
+    transform:scale(1.3);
+}
+.pg-dot-active {
+    background:#fff;
+    transform:scale(1.2);
+    width:clamp(14px,2vw,22px);
+    border-radius:3px;
+}
+/* Home button */
+.pg-home {
+    display:inline-flex;
+    align-items:center;
+    gap:0.4em;
+    font-size:clamp(0.52rem,0.8vw,0.65rem);
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:rgba(255,255,255,0.3);
+    text-decoration:none;
+    border:1px solid rgba(255,255,255,0.08);
+    padding:0.25em 0.6em;
+    border-radius:2px;
+    margin-top:0.3rem;
+    transition:all 0.2s;
+    white-space:nowrap;
+}
+.pg-home:hover { color:#fff; border-color:rgba(255,255,255,0.3); }
+/* Trigger tab — shows when pagination is hidden */
+#pg-trigger {
+    position:fixed;
+    bottom:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:clamp(50px,8vw,80px);
+    height:4px;
+    background:rgba(255,255,255,0.15);
+    border-radius:3px 3px 0 0;
+    z-index:99998;
+    cursor:pointer;
+    transition:all 0.3s;
+}
+#pg-trigger:hover { background:rgba(255,255,255,0.4); height:6px; }
+@media(max-width:640px) {
+    .pg-meta { display:none; }
+    .pg-btn { min-width:auto; }
+    .pg-title { max-width:clamp(80px,25vw,150px); font-size:0.65rem; }
+    .pg-course-label { display:none; }
+}
+</style>
+
+<div id="pg-trigger" title="Show chapter navigation"></div>
+
+<nav id="chapter-pagination" role="navigation" aria-label="Chapter navigation">
+    
+        <a class="pg-btn pg-prev" href="hash_maps.html">
+            <div class="pg-arrow">←</div>
+            <div class="pg-info">
+                <div class="pg-label">Previous</div>
+                <div class="pg-title">Hash Maps</div>
+                <div class="pg-meta">Week 7 · 25 slides</div>
+            </div>
+        </a>
+
+    <div class="pg-center">
+        <div class="pg-course-label">SD279 — DSA</div>
+        <div class="pg-dots">
+        <a href="intro_dsa_arrays.html" class="pg-dot" title="Intro to DSA & Arrays"></a>
+        <a href="complexity_analysis.html" class="pg-dot" title="Complexity Analysis"></a>
+        <a href="stacks_queues.html" class="pg-dot" title="Stacks & Queues"></a>
+        <a href="linked_lists.html" class="pg-dot" title="Linked Lists"></a>
+        <a href="hash_maps.html" class="pg-dot" title="Hash Maps"></a>
+        <a href="binary_trees_bst.html" class="pg-dot pg-dot-active" title="Binary Trees & BSTs"></a>
+        <a href="graphs.html" class="pg-dot" title="Graphs"></a>
+        <a href="algorithms.html" class="pg-dot" title="Sorting & Searching"></a>
+        </div>
+        <a href="index.html" class="pg-home">⌂ Course Home</a>
+    </div>
+
+    
+        <a class="pg-btn pg-next" href="graphs.html">
+            <div class="pg-info pg-info-right">
+                <div class="pg-label">Next Chapter</div>
+                <div class="pg-title">Graphs</div>
+                <div class="pg-meta">Week 10 · 25 slides</div>
+            </div>
+            <div class="pg-arrow">→</div>
+        </a>
+</nav>
+
+<script>
+(function() {
+    var bar = document.getElementById('chapter-pagination');
+    var trigger = document.getElementById('pg-trigger');
+    var visible = false;
+    var lastSlideIdx = -1;
+    var totalSlides = document.querySelectorAll('.slide').length;
+
+    function showBar() {
+        visible = true;
+        bar.classList.add('pg-visible');
+        bar.classList.remove('pg-peek');
+        trigger.style.display = 'none';
+    }
+    function hideBar() {
+        visible = false;
+        bar.classList.remove('pg-visible');
+        bar.classList.remove('pg-peek');
+        trigger.style.display = '';
+    }
+
+    // Show on last slide
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            if (e.isIntersecting) {
+                var slides = document.querySelectorAll('.slide');
+                var idx = Array.from(slides).indexOf(e.target);
+                lastSlideIdx = idx;
+                if (idx === slides.length - 1) {
+                    setTimeout(showBar, 600);
+                } else {
+                    if (visible) hideBar();
+                }
+            }
+        });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.slide').forEach(function(s) { obs.observe(s); });
+
+    // Trigger tab click
+    trigger.addEventListener('click', showBar);
+
+    // Keyboard shortcut: Tab key toggles
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            visible ? hideBar() : showBar();
+        }
+    });
+
+    // Click outside closes
+    bar.addEventListener('click', function(e) {
+        if (e.target === bar) hideBar();
+    });
+})();
+</script>
+
 </body>
 </html>

@@ -85,14 +85,10 @@ ul.pt.n li::before{color:var(--neon);}ul.pt.b li::before{color:var(--blue3);}ul.
 .eh{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
 .et{position:fixed;top:14px;left:14px;background:var(--neon);color:var(--dark);border:none;border-radius:2px;padding:6px 14px;font-family:var(--font-m);font-size:0.72rem;cursor:pointer;z-index:10001;opacity:0;pointer-events:none;transition:opacity 0.3s;font-weight:700;}
 .et.show,.et.active{opacity:1;pointer-events:auto;}
-[contenteditable]:focus{outline:1px dashed var(--neon);outline-offset:2px;}
 </style>
 </head>
 <body>
 <div id="pb"></div><nav id="nd"></nav>
-<div class="eh" id="eh"></div>
-<button class="et" id="et">✏ Edit</button>
-
 <!-- S1 TITLE -->
 <section class="slide sp" id="s1">
 <div class="vb"></div>
@@ -478,17 +474,12 @@ dots(){this.sl.forEach((_,i)=>{const b=document.createElement('button');b.classN
 upD(i){document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('active',i===j));}
 upP(i){this.pb.style.width=(this.tot>1?(i/(this.tot-1))*100:100)+'%';}
 go(i){this.sl[i].scrollIntoView({behavior:'smooth'});}
-kb(){document.addEventListener('keydown',e=>{if(this.ed&&this.ed.on)return;const m={'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1};if(m[e.key]!==undefined){e.preventDefault();this.go(Math.max(0,Math.min(this.tot-1,this.cur+m[e.key])));}});}
+kb(){document.addEventListener('keydown',e=>{const m={'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1};if(m[e.key]!==undefined){e.preventDefault();this.go(Math.max(0,Math.min(this.tot-1,this.cur+m[e.key])));}});}
 touch(){let sy=0;document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});document.addEventListener('touchend',e=>{const dy=sy-e.changedTouches[0].clientY;if(Math.abs(dy)>50)this.go(Math.max(0,Math.min(this.tot-1,this.cur+(dy>0?1:-1))));},{passive:true});}
 wheel(){let l=0;document.addEventListener('wheel',e=>{const n=Date.now();if(n-l<700)return;l=n;this.go(Math.max(0,Math.min(this.tot-1,this.cur+(e.deltaY>0?1:-1))));},{passive:true});}}
-class E{constructor(){this.on=false;this.tg=document.getElementById('et');this.hz=document.getElementById('eh');this.ht=null;this.h();this.k();this.load();}
-h(){const s=()=>{clearTimeout(this.ht);this.tg.classList.add('show');};const h=()=>{this.ht=setTimeout(()=>{if(!this.on)this.tg.classList.remove('show');},400);};this.hz.addEventListener('mouseenter',s);this.hz.addEventListener('mouseleave',h);this.tg.addEventListener('mouseenter',s);this.tg.addEventListener('mouseleave',h);this.hz.addEventListener('click',()=>this.tog());this.tg.addEventListener('click',()=>this.tog());}
-k(){document.addEventListener('keydown',e=>{if((e.key==='e'||e.key==='E')&&!e.target.getAttribute('contenteditable'))this.tog();if((e.ctrlKey||e.metaKey)&&e.key==='s'&&this.on){e.preventDefault();this.save();}});}
-tog(){this.on=!this.on;this.tg.textContent=this.on?'💾 Save (Ctrl+S)':'✏ Edit';this.tg.classList.toggle('active',this.on);this.tg.classList.add('show');const t=document.querySelectorAll('h1,h2,h3,p,li,.cb');if(this.on){t.forEach(el=>{el.setAttribute('contenteditable','true');el.setAttribute('spellcheck','false');});}else{t.forEach(el=>el.removeAttribute('contenteditable'));this.save();}}
 save(){const d={};document.querySelectorAll('.slide').forEach((s,i)=>{d['s'+i]=s.innerHTML;});localStorage.setItem('ll_v2',JSON.stringify(d));if(this.on){this.tg.textContent='✓ Saved!';setTimeout(()=>{this.tg.textContent='💾 Save (Ctrl+S)';},1400);}}
 load(){try{const r=localStorage.getItem('ll_v2');if(!r)return;const d=JSON.parse(r);document.querySelectorAll('.slide').forEach((s,i)=>{if(d['s'+i])s.innerHTML=d['s'+i];});}catch(e){}}}
-const p=new P();const e=new E();p.ed=e;
-</script>
+const p=new P();</script>
 
 <!-- ═══════════════════════════════════════════
      CHAPTER PAGINATION

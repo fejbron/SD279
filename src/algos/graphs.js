@@ -16,7 +16,7 @@ for (const v of Object.keys(adj)) adj[v].sort((p, q) => p[0].localeCompare(q[0])
 const eid = (a, b) => (a < b ? `${a}${b}` : `${b}${a}`);
 
 function drawGraph({ hi = {}, edgeHi = {}, tags = {}, weights = false, extra = [], texts = [] } = {}) {
-  const nodes = Object.entries(V).map(([k, [x, z]]) => ({ id: k, label: k, shape: 'puck', w: 1.25, d: 1.25, h: 0.55, x, z, state: hi[k] || 'default', tag: tags[k] }));
+  const nodes = Object.entries(V).map(([k, [x, z]]) => ({ id: k, label: tags[k] != null ? `${k}\n${tags[k]}` : k, shape: 'puck', w: 1.45, d: 1.45, h: 0.55, x, z, state: hi[k] || 'default' }));
   const edges = E.map(([a, b, w]) => ({ id: eid(a, b), from: a, to: b, state: edgeHi[eid(a, b)] || 'default', label: weights ? w : undefined }));
   return { nodes: nodes.concat(extra), edges, texts };
 }
@@ -33,7 +33,7 @@ const ROW_Z = 6.4;
 // a row of small blocks representing a queue / priority queue beside the graph
 const rowBlocks = (items, prefix, label, state = 'key') =>
   items.map((it, k) => ({ id: `${prefix}${it.id}`, from: it.id, label: it.label, w: 1.05, d: 0.9, h: 0.4, x: -7 + k * 1.25, z: ROW_Z, state }));
-const rowText = (id, text) => ({ id, text, x: -8.7, y: 0.2, z: ROW_Z, cls: 'chip' });
+const rowText = (id, text) => ({ id, text, x: -9.6, y: 0.2, z: ROW_Z, cls: 'chip' });
 
 export const bfs = {
   id: 'bfs', title: 'Breadth-First Search', cat: 'Graphs', week: '10', slides: 'graphs.html',
@@ -165,7 +165,8 @@ export const dijkstra = {
       Object.assign(edgeHi, extraEdge);
       const sorted = pq.slice().sort((a, b) => a.d - b.d || a.k - b.k);
       const row = sorted.map((e, k) => ({ id: `pq${e.k}`, from: e.v, label: `${e.v}:${e.d}`, w: 1.15, d: 0.9, h: 0.4, x: -7 + k * 1.35, z: ROW_Z, state: k === 0 ? 'compare' : 'key' }));
-      R.snap({ ...drawGraph({ hi, edgeHi, tags: tags(), weights: true, extra: row, texts: [rowText('pqt', 'min-PQ →')] }), pins: u ? [{ id: 'u', label: 'u', target: u }] : [] }, meta);
+      // no pin here: it would sit on the edge-weight labels; u is the indigo vertex instead
+      R.snap({ ...drawGraph({ hi, edgeHi, tags: tags(), weights: true, extra: row, texts: [rowText('pqt', 'min-PQ →')] }) }, meta);
     };
     snap(null, {}, {}, { line: 0, phase: 'Start', vars: { [`dist[${s}]`]: 0 }, msg: `All distances start at ∞ except dist[${s}] = 0. Edge weights are shown on each road.` });
     while (pq.length) {
@@ -201,6 +202,10 @@ export const complexity = {
   id: 'big-o', title: 'Big-O Growth Race', cat: 'Complexity', week: '3', slides: 'complexity_analysis.html',
   blurb: 'Five complexity classes race as n grows. Each column is the number of basic operations — watch n² tower over everything else.',
   time: {}, space: '',
+  legend: [
+    { state: 'visited', text: 'O(1)' }, { state: 'new', text: 'O(log n)' }, { state: 'done', text: 'O(n)' },
+    { state: 'compare', text: 'O(n log n)' }, { state: 'swap', text: 'O(n²)' },
+  ],
   code: [
     'O(1)        constant      — array index',
     'O(log n)    logarithmic   — binary search',
@@ -224,16 +229,16 @@ export const complexity = {
       ['O(n log n)', (n) => n * Math.max(1, Math.log2(n)), 'compare'], ['O(n²)', (n) => n * n, 'swap'],
     ];
     const maxOps = N * N;
+    const ROWZ = 2.6;
     const draw = (upto) => {
       const nodes = [], texts = [];
       classes.forEach(([name, f, st], c) => {
-        texts.push({ id: `cl${c}`, text: name, x: centered(0, N, 1.05) - 1.9, y: 0.2, z: c * 1.5, cls: 'chip' });
         for (let n = 1; n <= upto; n++) {
           const ops = f(n);
-          nodes.push({ id: `${c}-${n}`, label: n === upto ? Math.round(ops) : '', w: 0.85, d: 1.1, h: 0.12 + (ops / maxOps) * 5, x: centered(n - 1, N, 1.05), z: c * 1.5, state: st });
+          nodes.push({ id: `${c}-${n}`, label: n === upto ? Math.round(ops) : '', w: 0.85, d: 1.1, h: 0.12 + (ops / maxOps) * 5, x: centered(n - 1, N, 1.05), z: c * ROWZ, state: st });
         }
       });
-      for (let n = 1; n <= upto; n++) texts.push({ id: `n${n}`, text: `${n}`, x: centered(n - 1, N, 1.05), y: 0, z: classes.length * 1.5 - 0.3, cls: 'axis' });
+      for (let n = 1; n <= upto; n++) texts.push({ id: `n${n}`, text: `${n}`, x: centered(n - 1, N, 1.05), y: 0, z: classes.length * ROWZ - 0.9, cls: 'axis' });
       return { nodes, texts };
     };
     for (let n = 1; n <= N; n++) {

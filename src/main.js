@@ -70,7 +70,8 @@ function initHero() {
   const wide = () => innerWidth > 860;
   const stage = new Stage(el, {
     interactive: false,
-    insets: (w) => (wide() ? { l: Math.min(w * 0.4, 560), r: 70, t: 170, b: 170 } : { l: 0, r: 0, t: 10, b: 10 }),
+    // keep the scene clear of the headline column and the floating cards
+    insets: (w) => (wide() ? { l: Math.min(document.querySelector('.hero-copy').getBoundingClientRect().right + 24, w * 0.55), r: 60, t: 190, b: 175 } : { l: 0, r: 0, t: 10, b: 10 }),
   });
   stage.camDir.set(1, 1.05, 1.25).normalize();
   const sims = HERO_SIMS.map((s, k) => {

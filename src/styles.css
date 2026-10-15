@@ -117,6 +117,11 @@ input, select { font: inherit; color: inherit; }
 .lbl-text.null { font: 600 11px/1 var(--mono); color: var(--faint); letter-spacing: 0.06em; }
 .lbl-text.axis { font: 500 10px/1 var(--mono); color: var(--faint); }
 .lbl-text b { color: var(--ink); font-weight: 650; }
+@media (max-width: 860px) {
+  .lbl-pin { font-size: 10px; padding: 3px 7px; }
+  .lbl-edge { font-size: 9.5px; padding: 2px 4px; }
+  .lbl-text.chip { font-size: 11px; padding: 4px 8px; }
+}
 
 /* ═════════════════════════════ INDEX ═════════════════════════════ */
 .nav {
@@ -332,7 +337,7 @@ body.lab { height: 100svh; overflow: hidden; background: radial-gradient(120% 10
 .stats-dock .stat .v { font-size: 1.45rem; }
 
 .cam-dock { position: absolute; z-index: 10; display: flex; flex-direction: column; gap: 6px; padding: 6px; border-radius: 16px; }
-.legend { position: absolute; z-index: 10; display: flex; gap: 12px; flex-wrap: wrap; padding: 8px 14px; border-radius: 999px; font-size: 0.74rem; color: var(--ink2); }
+.legend { display: flex; gap: 6px 14px; flex-wrap: wrap; font-size: 0.78rem; color: var(--ink2); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 10px; height: 10px; border-radius: 3px; }
 
@@ -429,7 +434,7 @@ body.lab { height: 100svh; overflow: hidden; background: radial-gradient(120% 10
   .topbar .brand small, .topbar .brand span.name, .live-chip .lbl, .picker-btn kbd, .picker-btn .c { display: none; }
   .live-chip { height: 42px; padding: 0 12px; }
   .picker-btn { height: 42px; }
-  .stats-dock, .legend { display: none; }
+  .stats-dock { display: none; }
   .cam-dock { top: auto !important; bottom: 10px; right: 10px !important; left: auto !important; flex-direction: row; }
   .dock { position: relative; inset: auto; display: flex; flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 0; }
   .explain { width: auto; }

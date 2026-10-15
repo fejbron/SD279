@@ -44,14 +44,23 @@ function labelTexture(text, dark, aspect) {
   const g = c.getContext('2d');
   g.fillStyle = dark ? '#1b1f33' : '#ffffff';
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  let size = Math.min(H * 0.62, 230);
-  const s = String(text);
+  const [s, s2] = String(text).split('\n');
+  const two = s2 != null;
+  let size = Math.min(H * (two ? 0.4 : 0.62), 230);
   do {
     g.font = `700 ${size}px Geist, Inter, system-ui, sans-serif`;
     if (g.measureText(s).width < W * 0.84) break;
     size -= 6;
   } while (size > 20);
-  g.fillText(s, W / 2, H / 2 + size * 0.04);
+  g.fillText(s, W / 2, H / 2 + size * 0.04 - (two ? H * 0.17 : 0));
+  if (two) {
+    let s2size = size * 0.78;
+    g.font = `600 ${s2size}px 'Geist Mono', ui-monospace, monospace`;
+    while (g.measureText(s2).width > W * 0.8 && s2size > 16) { s2size -= 4; g.font = `600 ${s2size}px 'Geist Mono', ui-monospace, monospace`; }
+    g.globalAlpha = 0.8;
+    g.fillText(s2, W / 2, H / 2 + H * 0.2);
+    g.globalAlpha = 1;
+  }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
@@ -479,7 +488,7 @@ export class Stage {
         else want = 0;
       } else if (p.at) pos = new THREE.Vector3(...p.at);
       if (pos) {
-        pos.y += 0.62 + p._level * 1.05 + Math.sin(now * 2.4 + p._level) * 0.06;
+        pos.y += 0.85 + p._level * 1.1 + Math.sin(now * 2.4 + p._level) * 0.06;
         if (!r.cur) r.cur = pos.clone();
         r.cur.lerp(pos, k);
         r.obj.position.copy(r.cur);

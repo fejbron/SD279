@@ -20,7 +20,7 @@ const stage = new Stage($('stage'), {
   insets: () => {
     if (mobile()) return { l: 10, r: 10, t: 64, b: 64 };
     const dock = document.querySelector('.dock');
-    return { l: 76, r: 400, t: 140, b: (dock?.offsetHeight || 180) + 28 };
+    return { l: 76, r: 400, t: 170, b: (dock?.offsetHeight || 180) + 28 };
   },
 });
 
@@ -78,8 +78,10 @@ function renderPanel() {
 function renderLegend() {
   const used = new Set();
   for (const s of steps) for (const n of s.nodes) if (n.state && LEGEND[n.state]) used.add(n.state);
-  $('legend').innerHTML = [...used].map((st) => `<span><i style="background:${PALETTE[st]}${st === 'default' ? ';box-shadow:inset 0 0 0 1px #ccd' : ''}"></i>${LEGEND[st]}</span>`).join('');
-  $('legend').style.display = used.size ? '' : 'none';
+  // an algorithm can supply its own key (e.g. Big-O colours each complexity class)
+  const items = algo.legend || [...used].map((st) => ({ state: st, text: LEGEND[st] }));
+  $('legend').innerHTML = items.map(({ state, text }) => `<span><i style="background:${PALETTE[state]}"></i>${esc(text)}</span>`).join('');
+  $('legend').style.display = $('legendHead').style.display = items.length ? '' : 'none';
 }
 
 // ── stepping ─────────────────────────────────────────────────────

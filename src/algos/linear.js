@@ -30,7 +30,7 @@ export const linearSearch = {
     const n = A.length;
     R.stats = { comparisons: 0 };
     const draw = (hi = {}) => A.map((v, i) => cell(`c${i}`, v, i, n, hi[i] || 'default'));
-    const tgt = { id: 't', text: `target = <b>${target}</b>`, x: centered(0, n, GAP) - 1.6, y: 0.4, z: -1.6, cls: 'chip' };
+    const tgt = { id: 't', text: `target = <b>${target}</b>`, x: centered(0, n, GAP) - 2.9, y: 0.3, z: 0, cls: 'chip' };
     R.snap({ nodes: draw(), texts: [tgt] }, { phase: 'Start', vars: { target }, msg: `Look for <b>${target}</b> by checking each slot in order.` });
     for (let i = 0; i < n; i++) {
       R.count('comparisons');
@@ -86,7 +86,7 @@ export const binarySearch = {
       lo <= hi && { id: 'hi', label: 'hi', target: `c${hi}`, color: 'violet' },
       mid != null && { id: 'mid', label: 'mid', target: `c${mid}`, color: 'amber' },
     ].filter(Boolean);
-    const tgt = [{ id: 't', text: `target = <b>${target}</b>`, x: centered(0, n, GAP) - 1.6, y: 0.4, z: -1.6, cls: 'chip' }];
+    const tgt = [{ id: 't', text: `target = <b>${target}</b>`, x: centered(0, n, GAP) - 2.9, y: 0.3, z: 0, cls: 'chip' }];
     R.snap({ nodes: draw(), pins: ps(), texts: tgt }, { line: 0, phase: 'Start', vars: { lo, hi, target }, msg: `The array is sorted, so we can search a shrinking window [lo..hi]. At most ⌈log₂(${n + 1})⌉ = ${Math.ceil(Math.log2(n + 1))} probes.` });
     let round = 0;
     while (lo <= hi) {
@@ -145,7 +145,7 @@ export const arrayOps = {
       ...slots(),
       ...A.map((e, i) => ({ id: e.id, label: e.v, w: 1.0, d: 1.0, h: 0.6, x: centered(i, CAP, GAP), y: 0.1, z: 0, state: hi[e.id] || 'default', ...(extra[e.id] || {}) })),
     ];
-    const info = () => [{ id: 'n', text: `n = <b>${A.length}</b> · capacity = ${CAP}`, x: centered(0, CAP, GAP) - 0.6, y: 0, z: -1.7, cls: 'chip' }];
+    const info = () => [{ id: 'n', text: `n = <b>${A.length}</b> · capacity = ${CAP}`, x: centered(0, CAP, GAP), y: 0, z: 2.1, cls: 'chip' }];
     R.snap({ nodes: draw(), texts: info() }, { phase: 'Start', vars: { n: A.length }, msg: 'An array is one block of memory. Each slot sits at <i>base + i × 4 bytes</i> — the addresses under each slot.' });
     for (const [op, a, b] of ops) {
       const i = Number(a), x = Number(b);
@@ -285,7 +285,7 @@ export const queue = {
       { id: 'front', label: 'front', target: `slot${front}`, color: 'green' },
       { id: 'rear', label: 'rear', target: `slot${rear}`, color: 'violet' },
     ];
-    const txt = () => [{ id: 'c', text: `size <b>${size}</b> / ${CAP}`, x: 0, y: 0.1, z: 0, cls: 'chip' }];
+    const txt = () => [{ id: 'c', text: `size <b>${size}</b> / ${CAP}`, x: 0, y: 0.1, z: RAD + 2.3, cls: 'chip' }];
     R.snap({ nodes: draw(), pins: ps(), texts: txt() }, { phase: 'Empty', vars: { front, rear, size }, msg: 'A circular queue of capacity 8. front = rear = 0 and size = 0. When a pointer passes slot 7 it wraps back to 0.' });
     for (const [op, a] of ops) {
       if (op === 'enq') {

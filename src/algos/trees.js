@@ -226,7 +226,7 @@ export const traversal = {
 
 // ───────────────────────────────────────────────────────────── Min-heap
 export const heap = {
-  id: 'heap', title: 'Min-Heap / Priority Queue', cat: 'Trees', week: '9', slides: null,
+  id: 'heap', title: 'Min-Heap / Priority Queue', cat: 'Trees', week: '9', slides: 'heaps_priority_queues.html',
   blurb: 'A complete binary tree stored in a plain array: children of i live at 2i+1 and 2i+2. Watch the tree and its array (front row) move together as values sift up and down.',
   time: { insert: 'O(log n)', extractMin: 'O(log n)', peek: 'O(1)' }, space: 'O(n)',
   code: [

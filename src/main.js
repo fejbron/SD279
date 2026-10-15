@@ -9,7 +9,7 @@ const CAT_COLOR = {
 
 // ── course data (carried over from the original portal) ──────────
 const WEEKS = [
-  { n: 1, t: 'Python OOP Concepts', s: null, v: [] },
+  { n: 1, t: 'Python OOP Concepts', s: 'python_oop.html', v: [] },
   { n: 2, t: 'Introduction to Data Structures', s: 'intro_dsa_arrays.html', v: ['array'] },
   { n: 3, t: 'Complexity (Asymptotic) Analysis', s: 'complexity_analysis.html', v: ['big-o'] },
   { n: 4, t: 'Arrays and Lists', s: 'intro_dsa_arrays.html', v: ['array'] },
@@ -17,19 +17,21 @@ const WEEKS = [
   { n: 6, t: 'Linked Lists', s: 'linked_lists.html', v: ['linked-list', 'reverse-list'] },
   { n: 7, t: 'Hash Maps', s: 'hash_maps.html', v: ['hash-map'] },
   { n: 8, t: 'Trees — Binary Search Trees', s: 'binary_trees_bst.html', v: ['bst', 'tree-traversal'] },
-  { n: 9, t: 'Heaps and Priority Queues', s: null, v: ['heap'] },
+  { n: 9, t: 'Heaps and Priority Queues', s: 'heaps_priority_queues.html', v: ['heap'] },
   { n: 10, t: 'Graphs', s: 'graphs.html', v: ['bfs', 'dfs', 'dijkstra'] },
   { n: 11, t: 'Searching and Sorting Algorithms', s: 'algorithms.html', v: ['linear-search', 'binary-search', 'bubble-sort', 'selection-sort'] },
   { n: 12, t: 'Searching and Sorting Algorithms (cont.)', s: 'algorithms.html', v: ['insertion-sort', 'merge-sort', 'quick-sort'] },
   { n: 13, t: 'Project Presentations', s: null, v: [], note: 'in class' },
 ];
 const DECKS = [
+  ['Week 1', 'Python OOP for Data Structures', 'Classes and objects, self and __init__, encapsulation with @property, dunder methods, iterators, inheritance, abstract base classes as ADTs, references and aliasing, and comparing objects.', 28, 'python_oop.html'],
   ['Week 2 & 4', 'Intro to DSA & Arrays', 'What are data structures and algorithms? Abstract Data Types, complexity recap, categories of DS, and a deep dive into the Array ADT — memory layout, operations, patterns.', 25, 'intro_dsa_arrays.html'],
   ['Week 3', 'Asymptotic & Complexity Analysis', 'Big-O, Big-Ω, Big-Θ, little-o and little-ω. Formal proofs, loop analysis rules, nested loops, recurrence relations, Master Theorem, and amortised analysis.', 40, 'complexity_analysis.html'],
   ['Week 5', 'Stacks & Queues', 'LIFO and FIFO principles, push/pop/enqueue/dequeue operations, array and linked list implementations, balanced brackets, BFS, deque, priority queue, and classic interview problems.', 25, 'stacks_queues.html'],
   ['Week 6', 'Linked Lists', "Singly, doubly and circular linked lists. Traversal, insert, delete operations with visual traces. Floyd's cycle detection, reversal, find middle, merge sorted lists.", 25, 'linked_lists.html'],
   ['Week 7', 'Hash Maps', 'Hash functions, collision handling (chaining vs open addressing), load factor, rehashing, LRU cache, hash sets, consistent hashing, and common patterns like two-sum and anagram grouping.', 25, 'hash_maps.html'],
   ['Week 8', 'Binary Trees & BSTs', 'Tree terminology, binary tree types, node structure, DFS traversals (inorder, preorder, postorder), BFS level-order, BST property, search/insert/delete, balancing and complexity.', 18, 'binary_trees_bst.html'],
+  ['Week 9', 'Heaps & Priority Queues', 'The priority queue ADT, binary heaps stored in arrays, sift-up and sift-down with step-by-step traces, O(n) heapify, heap sort, Python heapq, top-k and running median.', 29, 'heaps_priority_queues.html'],
   ['Week 10', 'Graphs', "Graph theory, directed vs undirected, weighted graphs, adjacency matrix and list representations, DFS, BFS, cycle detection, topological sort, Dijkstra's, Kruskal's MST.", 25, 'graphs.html'],
   ['Week 11–12', 'Sorting & Searching Algorithms', 'Bubble, Selection, Insertion, Merge, Quick, Heap sort. Counting and Radix sort. Linear search, Binary search and its variants. Full complexity table and real-world implementations.', 28, 'algorithms.html'],
 ];
@@ -111,8 +113,8 @@ function initHero() {
 
 // course path tracker in the hero
 function initTrack() {
-  const pts = [2, 3, 5, 6, 7, 8, 10, 12, 13];
-  const labels = { 2: 'Intro', 3: 'Big-O', 5: 'Stacks', 6: 'Lists', 7: 'Hash', 8: 'Trees', 10: 'Graphs', 12: 'Sorting', 13: 'Project' };
+  const pts = [1, 2, 3, 5, 6, 7, 8, 9, 10, 12, 13];
+  const labels = { 1: 'OOP', 2: 'Intro', 3: 'Big-O', 5: 'Stacks', 6: 'Lists', 7: 'Hash', 8: 'Trees', 9: 'Heaps', 10: 'Graphs', 12: 'Sorting', 13: 'Project' };
   $('track').innerHTML = pts.map((w) => `<a class="t past" href="#schedule"><span class="n">${w}</span><em>${labels[w]}</em></a>`).join('');
 }
 

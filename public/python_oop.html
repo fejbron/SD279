@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python OOP for Data Structures</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#2b5b84;--blue2:#2b5b84;--blue3:#4b8bbe;--dark:#0e0e14;--dark2:#161620;--dark3:#20202e;--neon:#ffd43b;--white:#f0f4ff;--muted:#8890b0;--dim:#3a3d55;--rose:#ff6b8a;--teal:#00d4aa;--font-d:'Syne',sans-serif;--font-b:'Space Mono',monospace;--font-m:'JetBrains Mono',monospace;--ts:clamp(1.9rem,5.5vw,5rem);--h2:clamp(1.2rem,2.8vw,2.4rem);--h3:clamp(0.92rem,1.8vw,1.35rem);--bs:clamp(0.7rem,1.25vw,0.92rem);--ss:clamp(0.58rem,0.88vw,0.74rem);--ms:clamp(0.62rem,1vw,0.82rem);--pad:clamp(1.6rem,4.5vw,4.5rem);--gap:clamp(0.6rem,1.5vw,1.5rem);--sg:clamp(0.28rem,0.7vw,0.65rem);--ease:cubic-bezier(0.16,1,0.3,1);}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow-x:hidden;}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth;}
+.slide{width:100vw;height:100vh;height:100dvh;overflow:hidden;scroll-snap-align:start;display:flex;flex-direction:column;position:relative;background:var(--dark);font-family:var(--font-b);}
+.sc{flex:1;display:flex;flex-direction:column;justify-content:center;max-height:100%;overflow:hidden;padding:var(--pad);position:relative;z-index:2;}
+.sp::before{content:'';position:absolute;left:0;top:0;bottom:0;width:clamp(180px,32vw,360px);background:var(--blue2);z-index:0;}
+.sp::after{content:'';position:absolute;left:0;top:0;bottom:0;width:clamp(180px,32vw,360px);z-index:1;background-image:linear-gradient(rgba(0,0,0,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.1) 1px,transparent 1px);background-size:28px 28px;}
+.vb{position:absolute;left:clamp(180px,32vw,360px);top:0;bottom:0;width:3px;background:var(--neon);z-index:3;}
+#pb{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--blue2),var(--neon));width:0%;z-index:9999;transition:width 0.3s;}
+#nd{position:fixed;right:clamp(0.6rem,1.2vw,1rem);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:9998;}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--dim);border:none;cursor:pointer;transition:all 0.3s;}
+.dot.active{background:var(--neon);height:14px;border-radius:2px;}
+.sn{position:absolute;bottom:clamp(0.8rem,2vh,1.5rem);right:clamp(1.6rem,4vw,4rem);font-family:var(--font-m);font-size:var(--ss);color:var(--dim);z-index:10;}
+.sec{position:absolute;top:clamp(0.8rem,2vh,1.5rem);left:var(--pad);font-family:var(--font-m);font-size:var(--ss);color:var(--dim);letter-spacing:0.18em;text-transform:uppercase;z-index:10;}
+h1{font-family:var(--font-d);font-weight:800;font-size:var(--ts);line-height:0.95;letter-spacing:-0.02em;color:var(--white);}
+h2{font-family:var(--font-d);font-weight:700;font-size:var(--h2);line-height:1.05;color:var(--white);}
+h3{font-family:var(--font-d);font-weight:700;font-size:var(--h3);color:var(--white);}
+p{font-family:var(--font-b);font-size:var(--bs);color:var(--muted);line-height:1.6;}
+li{font-family:var(--font-b);font-size:var(--bs);color:var(--muted);line-height:1.55;}
+em{color:var(--neon);font-style:normal;}strong{color:var(--white);font-weight:700;}
+.rl{width:clamp(32px,5vw,56px);height:2px;background:var(--neon);margin-bottom:var(--sg);}
+.rl.r{background:var(--rose);}.rl.t{background:var(--teal);}
+.bdg{display:inline-block;font-family:var(--font-m);font-size:var(--ss);padding:0.18em 0.65em;border-radius:2px;border:1px solid;font-weight:700;}
+.bdg.n{color:var(--neon);border-color:var(--neon);background:rgba(255,212,59,0.08);}
+.dc{background:var(--dark3);border:1px solid var(--dim);padding:clamp(0.5rem,1.2vw,1rem);border-radius:3px;}
+.dc .lb{font-family:var(--font-m);font-size:var(--ss);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.35em;font-weight:700;color:var(--neon);}
+.dc.b .lb{color:var(--blue3);}.dc.r .lb{color:var(--rose);}.dc.t .lb{color:var(--teal);}
+.dc p{font-size:var(--bs);}
+.cl{border-left:3px solid var(--neon);padding:clamp(0.45rem,1.1vw,0.9rem) clamp(0.7rem,1.8vw,1.4rem);background:rgba(255,212,59,0.05);border-radius:0 3px 3px 0;}
+.cl.b{border-color:var(--blue3);background:rgba(0,127,255,0.07);}
+.cl.r{border-color:var(--rose);background:rgba(255,107,138,0.07);}
+.cl.t{border-color:var(--teal);background:rgba(0,212,170,0.07);}
+.cl p{font-family:var(--font-d);font-weight:700;font-size:var(--h3);color:var(--white);line-height:1.35;}
+.cb{background:#060609;border-left:3px solid var(--neon);border-radius:0 3px 3px 0;padding:clamp(0.55rem,1.3vw,1rem) clamp(0.7rem,1.7vw,1.3rem);font-family:var(--font-m);font-size:var(--ms);line-height:1.8;color:#b8c0d8;overflow:hidden;}
+.cb.b{border-color:var(--blue3);}.cb.r{border-color:var(--rose);}.cb.t{border-color:var(--teal);}
+.kw{color:#ffd43b;font-weight:700;}.fn{color:#00d4aa;}.cm{color:#6c7290;font-style:italic;}.nm{color:#ff8c42;}.st{color:#88c8a8;}
+.tb{width:100%;border-collapse:collapse;font-size:var(--bs);}
+.tb th{font-family:var(--font-d);font-weight:700;text-align:left;padding:0.45em 0.7em;border-bottom:2px solid var(--neon);color:var(--neon);}
+.tb td{padding:0.38em 0.7em;border-bottom:1px solid var(--dim);color:var(--muted);}
+.tb tr:last-child td{border-bottom:none;}
+.go{color:var(--teal)!important;font-weight:700;font-family:var(--font-m);}.ok{color:var(--neon)!important;font-weight:700;font-family:var(--font-m);}.ba{color:var(--rose)!important;font-weight:700;font-family:var(--font-m);}
+ul.pt{list-style:none;display:flex;flex-direction:column;gap:var(--sg);}
+ul.pt li{display:flex;align-items:flex-start;gap:0.65em;}
+ul.pt li::before{content:'//';font-family:var(--font-m);font-size:0.8em;flex-shrink:0;margin-top:0.1em;font-weight:700;}
+ul.pt.n li::before{color:var(--neon);}ul.pt.b li::before{color:var(--blue3);}ul.pt.r li::before{color:var(--rose);}ul.pt.t li::before{color:var(--teal);}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:clamp(0.8rem,2.2vw,2.2rem);align-items:start;}
+.tcw{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(0.8rem,2.2vw,2.2rem);align-items:start;}
+.thc{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(0.5rem,1.2vw,1.2rem);}
+.lr{display:flex;align-items:center;gap:0;flex-wrap:wrap;}
+.lnd{display:flex;align-items:stretch;flex-shrink:0;}
+.nd{padding:clamp(6px,1.2vh,11px) clamp(8px,1.5vw,14px);background:var(--dark3);border:2px solid var(--neon);font-family:var(--font-m);font-weight:700;font-size:var(--ms);color:var(--white);min-width:clamp(30px,4.5vw,48px);text-align:center;border-right:1px solid var(--dim);}
+.nx{padding:clamp(6px,1.2vh,11px) clamp(5px,1vw,9px);background:var(--dark3);border:2px solid var(--neon);border-left:none;font-family:var(--font-m);font-size:var(--ss);color:var(--muted);min-width:clamp(24px,3.2vw,36px);text-align:center;}
+.na{display:flex;align-items:center;padding:0 clamp(3px,0.5vw,5px);color:var(--neon);font-size:clamp(0.9rem,1.4vw,1.2rem);font-weight:700;}
+.nl{padding:clamp(5px,1vh,10px) clamp(6px,1.2vw,12px);font-family:var(--font-m);font-size:var(--ss);color:var(--dim);border:1px dashed var(--dim);border-radius:2px;display:flex;align-items:center;}
+.nd.hi{border-color:var(--rose);background:rgba(255,107,138,0.15);color:var(--rose);}
+.nx.hi{border-color:var(--rose);border-left:none;}
+.nd.nw{border-color:var(--teal);background:rgba(0,212,170,0.15);color:var(--teal);}
+.nx.nw{border-color:var(--teal);border-left:none;}
+.nd.mk{border-color:var(--neon);background:rgba(255,212,59,0.12);color:var(--neon);}
+.nx.mk{border-color:var(--neon);border-left:none;}
+.nl2{font-family:var(--font-m);font-size:var(--ss);text-align:center;margin-top:2px;color:var(--dim);}
+.nl2.n{color:var(--neon);}.nl2.t{color:var(--teal);}.nl2.r{color:var(--rose);}
+.ds{background:var(--dark2);}
+.ds .sc{justify-content:center;}
+.rv{opacity:0;transform:translateY(18px);transition:opacity 0.46s var(--ease),transform 0.46s var(--ease);}
+.rvl{opacity:0;transform:translateX(-26px);transition:opacity 0.46s var(--ease),transform 0.46s var(--ease);}
+.rvs{opacity:0;transform:scale(0.94);transition:opacity 0.46s var(--ease),transform 0.46s var(--ease);}
+.slide.visible .rv,.slide.visible .rvl,.slide.visible .rvs{opacity:1;transform:none;}
+.d1{transition-delay:.04s}.d2{transition-delay:.12s}.d3{transition-delay:.2s}
+.d4{transition-delay:.28s}.d5{transition-delay:.36s}.d6{transition-delay:.44s}
+.d7{transition-delay:.52s}.d8{transition-delay:.6s}
+@media(max-height:700px){:root{--pad:clamp(0.8rem,3vw,2.2rem);--h2:clamp(1.05rem,2.5vw,1.9rem);}}
+@media(max-height:600px){:root{--pad:clamp(0.5rem,2.5vw,1.4rem);--bs:clamp(0.65rem,1vw,0.84rem);}#nd{display:none;}.sp::before,.sp::after,.vb{display:none;}}
+@media(max-width:640px){.tc,.tcw,.thc{grid-template-columns:1fr;}.sp::before,.sp::after,.vb{display:none;}.lr{flex-wrap:wrap;gap:4px;}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;transition-duration:0.2s!important;}html{scroll-behavior:auto;}}
+.eh{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.et{position:fixed;top:14px;left:14px;background:var(--neon);color:var(--dark);border:none;border-radius:2px;padding:6px 14px;font-family:var(--font-m);font-size:0.72rem;cursor:pointer;z-index:10001;opacity:0;pointer-events:none;transition:opacity 0.3s;font-weight:700;}
+.et.show,.et.active{opacity:1;pointer-events:auto;}
+
+.cb{white-space:pre;line-height:1.55;overflow:hidden;tab-size:4;}
+.cb.sm{font-size:clamp(0.56rem,0.86vw,0.74rem);}
+.dg{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.dg svg{width:100%;height:auto;max-height:34vh;}
+.dg .cap{font-family:var(--font-m);font-size:var(--ss);color:var(--muted);text-align:center;}
+.trace{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(0.3rem,0.8vh,0.8rem) clamp(1rem,3vw,3rem);}
+.trace .dg svg{max-height:24vh;}
+/* new decks: a narrow decorative band so text never sits on top of it */
+:root{--band:clamp(48px,7vw,104px);}
+.sp::before,.sp::after{width:var(--band);}
+.vb{left:var(--band);}
+.sp .sc{padding-left:calc(var(--band) + var(--pad));}
+.sp .sec{left:calc(var(--band) + var(--pad));}
+.k{font-family:var(--font-m);color:var(--neon);}
+code{font-family:var(--font-m);font-size:0.95em;color:var(--white);}
+.ans{font-family:var(--font-m);font-size:var(--ss);margin-top:4px;}
+a.lab{display:inline-flex;align-items:center;gap:.5em;font-family:var(--font-m);font-size:var(--bs);font-weight:700;color:var(--dark);background:var(--neon);padding:.55em 1em;border-radius:3px;text-decoration:none;}
+/* grid columns must be allowed to shrink below their widest line, or code pushes them off-screen */
+.tc>*,.tcw>*,.thc>*,.trace>*{min-width:0;}
+code{overflow-wrap:anywhere;}
+.tbw{overflow-x:auto;}
+.cb{overflow-x:auto;}
+.dg.pair svg{max-height:27vh;}
+/* phones: code scrolls sideways (wrapping would break Python indentation) */
+@media(max-width:640px){.sp .sc{padding-left:var(--pad);}.sp .sec{left:var(--pad);}.trace{grid-template-columns:1fr 1fr;}.cb{font-size:0.6rem;overflow-x:auto;-webkit-overflow-scrolling:touch;}.dg svg{max-height:26vh;}.thc .dg svg{max-height:15vh;}}
+</style>
+</head>
+<body>
+<div id="pb"></div><nav id="nd"></nav>
+<section class="slide sp" id="s1">
+<div class="vb"></div>
+<div class="sc" style="justify-content:flex-end;padding-bottom:clamp(2.5rem,7vh,6rem);">
+<div class="rv d1" style="margin-bottom:var(--sg);"><span class="bdg n" style="letter-spacing:.15em;text-transform:uppercase;">SD279 — Data Structures & Algorithms</span></div>
+<h1 class="rv d2">Python<br><em>OOP</em></h1>
+<p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">Classes · objects · encapsulation · inheritance · dunder methods</p>
+<div class="rv d4" style="margin-top:clamp(1rem,2.5vh,2rem);border-top:1px solid var(--dim);padding-top:clamp(0.6rem,1.5vh,1.2rem);display:flex;flex-direction:column;gap:.25em;">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);">Faculty of Computing and Mathematical Sciences</p>
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);">Cyber Security and Information Systems Department</p>
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--muted);margin-top:.3em;">Presented by: Frederick Edem Broni</p>
+</div></div><span class="sn">01 / 28</span></section>
+
+<section class="slide" id="s2"><div class="sec">Overview</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Agenda</h2>
+<div class="tc"><ul class="pt n"><li class="rv d1"><span>Why OOP matters for data structures</span></li><li class="rv d2"><span>Classes, objects, <code>__init__</code> and <code>self</code></span></li><li class="rv d3"><span>Instance vs class attributes</span></li><li class="rv d4"><span>Instance, class and static methods</span></li><li class="rv d5"><span>Encapsulation and <code>@property</code></span></li><li class="rv d6"><span>Dunder (magic) methods</span></li></ul><ul class="pt b"><li class="rv d1"><span>Iterators and generators</span></li><li class="rv d2"><span>Inheritance and <code>super()</code></span></li><li class="rv d3"><span>Polymorphism and duck typing</span></li><li class="rv d4"><span>Abstract base classes = ADTs</span></li><li class="rv d5"><span>References, aliasing and copying</span></li><li class="rv d6"><span>Comparing objects, dataclasses, exceptions</span></li></ul></div>
+</div><span class="sn">02 / 28</span></section>
+
+<section class="slide sp" id="s3"><div class="vb"></div><div class="sec">Introduction</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Why OOP in a Data Structures Course?</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cl  rv d2"><p>An <em>Abstract Data Type</em> says <strong>what</strong> a structure does. A <em>class</em> is how we build it in code.</p></div><ul class="pt n"><li class="rv d3"><span>Every structure this semester — stack, queue, linked list, hash map, tree, heap, graph — will be written as a <strong>class</strong></span></li><li class="rv d4"><span>Its <strong>methods</strong> are the ADT operations: <code>push</code>, <code>pop</code>, <code>insert</code>, <code>search</code>…</span></li><li class="rv d5"><span>Its <strong>attributes</strong> hold the hidden representation: a list, a head pointer, a root node</span></li><li class="rv d6"><span>Users depend on the interface, so we can swap the implementation later</span></li></ul></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="tbw rv d4"><table class="tb"><thead><tr><th>ADT idea</th><th>Python OOP tool</th></tr></thead><tbody><tr><td>Interface (operations)</td><td>Public methods</td></tr><tr><td>Hidden representation</td><td>Attributes (by convention <code>_name</code>)</td></tr><tr><td>Several implementations</td><td>Subclasses of an abstract base class</td></tr><tr><td>Linked structures</td><td>Objects holding references to other objects</td></tr><tr><td>"Empty" errors</td><td>Raising exceptions</td></tr></tbody></table></div></div></div>
+</div><span class="sn">03 / 28</span></section>
+
+<section class="slide" id="s4"><div class="sec">Classes & Objects</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Classes and Objects</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb  rv d3"><span class="kw">class</span> <span class="fn">Student</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name, index_no):
+        self.name = name              <span class="cm"># attributes</span>
+        self.index_no = index_no
+
+    <span class="kw">def</span> <span class="fn">greet</span>(self):                  <span class="cm"># method</span>
+        <span class="kw">return</span> <span class="st">f"Hi, I am {self.name}"</span>
+
+a = <span class="fn">Student</span>(<span class="st">"Ama"</span>, <span class="st">"CE/22/001"</span>)
+b = <span class="fn">Student</span>(<span class="st">"Kofi"</span>, <span class="st">"CE/22/002"</span>)
+<span class="fn">print</span>(a.<span class="fn">greet</span>())        <span class="cm"># Hi, I am Ama</span>
+<span class="fn">print</span>(b.name)           <span class="cm"># Kofi</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>A <strong>class</strong> is a blueprint; an <strong>object</strong> (instance) is one thing built from it</span></li><li class="rv d2"><span>Calling <code>Student(...)</code> creates a new object and runs <code>__init__</code> on it</span></li><li class="rv d3"><span>Each object keeps its <em>own</em> attribute values — <code>a.name</code> and <code>b.name</code> differ</span></li><li class="rv d4"><span>Methods are functions defined inside the class that act on one object</span></li></ul><div class="dc t rv d6"><div class="lb">Naming</div><p>Classes use <code>CapWords</code> (<code>LinkedList</code>); methods and attributes use <code>snake_case</code> (<code>push_front</code>).</p></div></div></div>
+</div><span class="sn">04 / 28</span></section>
+
+<section class="slide sp" id="s5"><div class="vb"></div><div class="sec">Classes & Objects</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);"><code>self</code> and <code>__init__</code></h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cl  rv d2"><p><code>self</code> is the object the method was called on. Python passes it in for you.</p></div><div class="cb  rv d3">a.<span class="fn">greet</span>()
+<span class="cm"># is exactly the same as</span>
+Student.<span class="fn">greet</span>(a)</div><ul class="pt n"><li class="rv d4"><span><code>__init__</code> is the <strong>initialiser</strong>: it sets up attributes on a brand-new object</span></li><li class="rv d5"><span>Always the first parameter of an instance method: <code>def push(self, x)</code></span></li><li class="rv d6"><span>Forgetting <code>self.</code> creates a local variable that vanishes when the method returns</span></li></ul></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dc r rv d3"><div class="lb">Common bug</div><p><code>def __init__(self, data): data = data</code> — this assigns to a local variable. It must be <code>self.data = data</code>.</p></div><div class="dc b rv d4"><div class="lb">Who calls __init__?</div><p><code>Node(5)</code> → Python creates an empty object, then calls <code>Node.__init__(obj, 5)</code>, then returns <code>obj</code>.</p></div><div class="dc t rv d5"><div class="lb">Return value</div><p><code>__init__</code> must return <code>None</code>. It initialises; it does not create.</p></div></div></div>
+</div><span class="sn">05 / 28</span></section>
+
+<section class="slide" id="s6"><div class="sec">Classes & Objects</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Instance vs Class Attributes</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb  rv d3"><span class="kw">class</span> <span class="fn">Bag</span>:
+    items = []              <span class="cm"># CLASS attribute: one list shared by every Bag</span>
+
+    <span class="kw">def</span> <span class="fn">add</span>(self, x):
+        self.items.<span class="fn">append</span>(x)
+
+b1, b2 = <span class="fn">Bag</span>(), <span class="fn">Bag</span>()
+b1.<span class="fn">add</span>(<span class="nm">1</span>)
+<span class="fn">print</span>(b2.items)             <span class="cm"># [1]   &lt;- b2 sees b1's item!</span>
+
+<span class="kw">class</span> <span class="fn">SafeBag</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.items = []     <span class="cm"># INSTANCE attribute: one list per bag</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cl r rv d2"><p>Mutable data (lists, dicts) belongs in <code>__init__</code>, never at class level.</p></div><ul class="pt r"><li class="rv d3"><span><strong>Instance attributes</strong> live on each object: <code>self.items = []</code></span></li><li class="rv d4"><span><strong>Class attributes</strong> live on the class and are shared — fine for constants like <code>DEFAULT_CAPACITY = 16</code></span></li><li class="rv d5"><span>Same trap with default arguments: <code>def __init__(self, items=[])</code> shares one list across calls — use <code>items=None</code></span></li></ul></div></div>
+</div><span class="sn">06 / 28</span></section>
+
+<section class="slide sp" id="s7"><div class="vb"></div><div class="sec">Methods</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Three Kinds of Methods</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">class</span> <span class="fn">Point</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, x, y):
+        self.x, self.y = x, y
+
+    <span class="kw">def</span> <span class="fn">dist_to</span>(self, other):           <span class="cm"># instance method</span>
+        <span class="kw">return</span> ((self.x - other.x) ** <span class="nm">2</span> + (self.y - other.y) ** <span class="nm">2</span>) ** <span class="nm">0.5</span>
+
+    <span class="fn">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">origin</span>(cls):                    <span class="cm"># alternative constructor</span>
+        <span class="kw">return</span> <span class="fn">cls</span>(<span class="nm">0</span>, <span class="nm">0</span>)
+
+    <span class="fn">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">is_number</span>(v):                   <span class="cm"># plain helper: no self or cls</span>
+        <span class="kw">return</span> <span class="fn">isinstance</span>(v, (int, float))
+
+<span class="fn">print</span>(<span class="fn">Point</span>(<span class="nm">3</span>, <span class="nm">4</span>).<span class="fn">dist_to</span>(Point.<span class="fn">origin</span>()))   <span class="cm"># 5.0</span>
+<span class="fn">print</span>(Point.<span class="fn">is_number</span>(<span class="st">"7"</span>))                   <span class="cm"># False</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="tbw rv d4"><table class="tb"><thead><tr><th>Kind</th><th>First arg</th><th>Use it for</th></tr></thead><tbody><tr><td>Instance</td><td><code>self</code></td><td>Reading / changing one object</td></tr><tr><td class="ok">@classmethod</td><td><code>cls</code></td><td>Alternative constructors, e.g. <code>Heap.from_list(xs)</code></td></tr><tr><td class="go">@staticmethod</td><td>—</td><td>Helpers that belong with the class but need no object</td></tr></tbody></table></div></div></div>
+</div><span class="sn">07 / 28</span></section>
+
+<section class="slide" id="s8"><div class="sec">Encapsulation</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Encapsulation and <code>@property</code></h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">class</span> <span class="fn">BankAccount</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, owner, balance=<span class="nm">0</span>):
+        self.owner = owner
+        self._balance = balance      <span class="cm"># "internal" by convention</span>
+
+    <span class="fn">@property</span>
+    <span class="kw">def</span> <span class="fn">balance</span>(self):               <span class="cm"># read it like an attribute</span>
+        <span class="kw">return</span> self._balance
+
+    <span class="kw">def</span> <span class="fn">deposit</span>(self, amount):
+        <span class="kw">if</span> amount &lt;= <span class="nm">0</span>:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="st">"deposit must be positive"</span>)
+        self._balance += amount
+
+acct = <span class="fn">BankAccount</span>(<span class="st">"Ama"</span>)
+acct.<span class="fn">deposit</span>(<span class="nm">50</span>)
+<span class="fn">print</span>(acct.balance)                  <span class="cm"># 50</span>
+<span class="cm"># acct.balance = 999  -&gt; AttributeError (no setter)</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>Hide the representation; expose only safe operations</span></li><li class="rv d2"><span><code>_name</code> — "internal, please don't touch" (a convention)</span></li><li class="rv d3"><span><code>__name</code> — name-mangled to <code>_Class__name</code> to avoid clashes in subclasses</span></li><li class="rv d4"><span><code>@property</code> gives read access without allowing writes, and lets you add validation later without changing callers</span></li></ul><div class="cl b rv d6"><p>A stack that exposes its list lets users insert in the middle and break LIFO. Encapsulation protects the <em>invariant</em>.</p></div></div></div>
+</div><span class="sn">08 / 28</span></section>
+
+<section class="slide ds" id="s9"><div class="sc" style="justify-content:center;"><div class="rl rv d1"></div><h2 class="rv d2" style="font-size:var(--ts);">Dunder<br><em>Methods</em></h2><p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">Making your classes behave like built-in types</p></div><span class="sn">09 / 28</span></section>
+
+<section class="slide" id="s10"><div class="sec">Dunder Methods</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Python Syntax → Dunder Method</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="tbw rv d2"><table class="tb"><thead><tr><th>You write</th><th>Python calls</th><th>Typical use</th></tr></thead><tbody><tr><td><code>len(s)</code></td><td><code>__len__</code></td><td>Size of a stack / list</td></tr><tr><td><code>print(s)</code>, <code>repr(s)</code></td><td><code>__str__</code>, <code>__repr__</code></td><td>Readable output when debugging</td></tr><tr><td><code>a == b</code></td><td><code>__eq__</code></td><td>Compare two nodes / fractions</td></tr><tr><td><code>a &lt; b</code></td><td><code>__lt__</code></td><td>Sorting, <code>min()</code>, heaps</td></tr><tr><td><code>for x in s</code></td><td><code>__iter__</code></td><td>Walk a linked list or tree</td></tr><tr><td><code>x in s</code></td><td><code>__contains__</code></td><td>Membership test</td></tr><tr><td><code>s[i]</code></td><td><code>__getitem__</code></td><td>Index into an array-backed list</td></tr><tr><td><code>a + b</code></td><td><code>__add__</code></td><td>Vector / fraction arithmetic</td></tr></tbody></table></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cl  rv d2"><p>Dunder = "double underscore". You rarely call them directly — Python calls them when you use normal syntax.</p></div><div class="dc t rv d4"><div class="lb">Tip</div><p>Always write <code>__repr__</code> first. It makes every <code>print</code> while debugging a data structure readable.</p></div></div></div>
+</div><span class="sn">10 / 28</span></section>
+
+<section class="slide sp" id="s11"><div class="vb"></div><div class="sec">Dunder Methods</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Example: a Stack That Feels Built-in</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">class</span> <span class="fn">Stack</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self._items = []
+
+    <span class="kw">def</span> <span class="fn">push</span>(self, x):
+        self._items.<span class="fn">append</span>(x)
+
+    <span class="kw">def</span> <span class="fn">pop</span>(self):
+        <span class="kw">if</span> <span class="kw">not</span> self._items:
+            <span class="kw">raise</span> <span class="fn">IndexError</span>(<span class="st">"pop from empty stack"</span>)
+        <span class="kw">return</span> self._items.<span class="fn">pop</span>()
+
+    <span class="kw">def</span> <span class="fn">peek</span>(self):
+        <span class="kw">if</span> <span class="kw">not</span> self._items:
+            <span class="kw">raise</span> <span class="fn">IndexError</span>(<span class="st">"peek at empty stack"</span>)
+        <span class="kw">return</span> self._items[-<span class="nm">1</span>]
+
+    <span class="kw">def</span> <span class="fn">__len__</span>(self):
+        <span class="kw">return</span> <span class="fn">len</span>(self._items)
+
+    <span class="kw">def</span> <span class="fn">__repr__</span>(self):
+        <span class="kw">return</span> <span class="st">f"Stack({self._items})"</span>
+
+s = <span class="fn">Stack</span>()
+s.<span class="fn">push</span>(<span class="nm">1</span>)
+s.<span class="fn">push</span>(<span class="nm">2</span>)
+<span class="fn">print</span>(<span class="fn">len</span>(s), s.<span class="fn">peek</span>(), s)    <span class="cm"># 2 2 Stack([1, 2])</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>The list is hidden behind <code>_items</code> — only push / pop / peek touch it</span></li><li class="rv d2"><span><code>len(s)</code> works because of <code>__len__</code>; <code>if s:</code> also works (empty → falsy)</span></li><li class="rv d3"><span>Errors are explicit: an empty pop raises <code>IndexError</code> with a clear message</span></li></ul><div class="dc b rv d6"><div class="lb">Coming up</div><p>Week 5 builds this Stack properly and analyses why <code>append</code>/<code>pop</code> at the end are O(1).</p></div></div></div>
+</div><span class="sn">11 / 28</span></section>
+
+<section class="slide" id="s12"><div class="sec">Dunder Methods</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Iteration with <code>__iter__</code> and <code>yield</code></h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">class</span> <span class="fn">Node</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, data, next=<span class="kw">None</span>):
+        self.data = data
+        self.next = next
+
+<span class="kw">class</span> <span class="fn">LinkedList</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.head = <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">push_front</span>(self, x):
+        self.head = <span class="fn">Node</span>(x, self.head)
+
+    <span class="kw">def</span> <span class="fn">__iter__</span>(self):             <span class="cm"># makes "for x in ll" work</span>
+        cur = self.head
+        <span class="kw">while</span> cur:
+            <span class="kw">yield</span> cur.data
+            cur = cur.next
+
+    <span class="kw">def</span> <span class="fn">__contains__</span>(self, x):      <span class="cm"># makes "x in ll" work</span>
+        <span class="kw">return</span> <span class="fn">any</span>(v == x <span class="kw">for</span> v <span class="kw">in</span> self)
+
+ll = <span class="fn">LinkedList</span>()
+<span class="kw">for</span> v <span class="kw">in</span> (<span class="nm">3</span>, <span class="nm">2</span>, <span class="nm">1</span>):
+    ll.<span class="fn">push_front</span>(v)
+<span class="fn">print</span>(<span class="fn">list</span>(ll), <span class="nm">2</span> <span class="kw">in</span> ll)           <span class="cm"># [1, 2, 3] True</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>A function containing <code>yield</code> is a <strong>generator</strong>: it pauses at each <code>yield</code> and resumes on the next request</span></li><li class="rv d2"><span><code>__iter__</code> returning a generator is the simplest way to make any structure iterable</span></li><li class="rv d3"><span>Once iterable, <code>list()</code>, <code>sum()</code>, <code>any()</code> and <code>for</code> all work for free</span></li></ul><div class="cl t rv d6"><p>You will use exactly this pattern for linked lists (week 6) and tree traversals (week 8).</p></div></div></div>
+</div><span class="sn">12 / 28</span></section>
+
+<section class="slide ds" id="s13"><div class="sc" style="justify-content:center;"><div class="rl rv d1"></div><h2 class="rv d2" style="font-size:var(--ts);">Inheritance &amp;<br><em>Polymorphism</em></h2><p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">Reusing behaviour and swapping implementations</p></div><span class="sn">13 / 28</span></section>
+
+<section class="slide sp" id="s14"><div class="vb"></div><div class="sec">Inheritance</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Inheritance and <code>super()</code></h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">class</span> <span class="fn">Animal</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name):
+        self.name = name
+
+    <span class="kw">def</span> <span class="fn">speak</span>(self):
+        <span class="kw">return</span> <span class="st">"..."</span>
+
+    <span class="kw">def</span> <span class="fn">intro</span>(self):
+        <span class="kw">return</span> <span class="st">f"{self.name} says {self.speak()}"</span>
+
+<span class="kw">class</span> <span class="fn">Dog</span>(Animal):
+    <span class="kw">def</span> <span class="fn">speak</span>(self):                 <span class="cm"># override</span>
+        <span class="kw">return</span> <span class="st">"Woof"</span>
+
+<span class="kw">class</span> <span class="fn">Puppy</span>(Dog):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, name, age):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(name)       <span class="cm"># reuse the parent's setup</span>
+        self.age = age
+
+p = <span class="fn">Puppy</span>(<span class="st">"Bingo"</span>, <span class="nm">1</span>)
+<span class="fn">print</span>(p.<span class="fn">intro</span>())                     <span class="cm"># Bingo says Woof</span>
+<span class="fn">print</span>(<span class="fn">isinstance</span>(p, Animal))         <span class="cm"># True</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>A subclass <strong>inherits</strong> every attribute and method of its parent</span></li><li class="rv d2"><span>It can <strong>override</strong> a method by defining one with the same name</span></li><li class="rv d3"><span><code>super().__init__(...)</code> runs the parent's initialiser — forget it and <code>self.name</code> never exists</span></li><li class="rv d4"><span>Lookup order (MRO): <code>Puppy → Dog → Animal → object</code></span></li></ul><div class="cl b rv d6"><p><code>intro()</code> lives in <code>Animal</code> but calls <code>self.speak()</code> — the subclass version runs. That is polymorphism.</p></div></div></div>
+</div><span class="sn">14 / 28</span></section>
+
+<section class="slide" id="s15"><div class="sec">Polymorphism</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Polymorphism and Duck Typing</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">class</span> <span class="fn">Queue</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self._items = []
+    <span class="kw">def</span> <span class="fn">add</span>(self, x):
+        self._items.<span class="fn">append</span>(x)
+    <span class="kw">def</span> <span class="fn">remove</span>(self):
+        <span class="kw">return</span> self._items.<span class="fn">pop</span>(<span class="nm">0</span>)
+
+<span class="kw">class</span> <span class="fn">Stack</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self._items = []
+    <span class="kw">def</span> <span class="fn">add</span>(self, x):
+        self._items.<span class="fn">append</span>(x)
+    <span class="kw">def</span> <span class="fn">remove</span>(self):
+        <span class="kw">return</span> self._items.<span class="fn">pop</span>()
+
+<span class="kw">def</span> <span class="fn">drain</span>(container, values):
+    <span class="kw">for</span> v <span class="kw">in</span> values:
+        container.<span class="fn">add</span>(v)
+    <span class="kw">return</span> [container.<span class="fn">remove</span>() <span class="kw">for</span> _ <span class="kw">in</span> values]
+
+<span class="fn">print</span>(<span class="fn">drain</span>(<span class="fn">Queue</span>(), [<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>]))   <span class="cm"># [1, 2, 3]  (FIFO)</span>
+<span class="fn">print</span>(<span class="fn">drain</span>(<span class="fn">Stack</span>(), [<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>]))   <span class="cm"># [3, 2, 1]  (LIFO)</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cl  rv d2"><p>"If it walks like a duck and quacks like a duck…" — <code>drain</code> only needs <code>add</code> and <code>remove</code>; it never checks the type.</p></div><ul class="pt n"><li class="rv d3"><span>Same call, different behaviour depending on the object</span></li><li class="rv d4"><span>This is how one BFS function can work with any queue implementation</span></li><li class="rv d5"><span>Note: <code>list.pop(0)</code> is O(n) — week 5 replaces it with <code>collections.deque</code></span></li></ul></div></div>
+</div><span class="sn">15 / 28</span></section>
+
+<section class="slide sp" id="s16"><div class="vb"></div><div class="sec">Abstraction</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Abstract Base Classes = ADTs in Code</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+
+<span class="kw">class</span> <span class="fn">Container</span>(ABC):
+    <span class="fn">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">add</span>(self, x): ...
+
+    <span class="fn">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">remove</span>(self): ...
+
+    <span class="kw">def</span> <span class="fn">is_empty</span>(self):              <span class="cm"># shared, concrete method</span>
+        <span class="kw">return</span> <span class="fn">len</span>(self) == <span class="nm">0</span>
+
+<span class="kw">class</span> <span class="fn">ListStack</span>(Container):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self._items = []
+    <span class="kw">def</span> <span class="fn">add</span>(self, x):
+        self._items.<span class="fn">append</span>(x)
+    <span class="kw">def</span> <span class="fn">remove</span>(self):
+        <span class="kw">return</span> self._items.<span class="fn">pop</span>()
+    <span class="kw">def</span> <span class="fn">__len__</span>(self):
+        <span class="kw">return</span> <span class="fn">len</span>(self._items)
+
+<span class="fn">print</span>(<span class="fn">ListStack</span>().<span class="fn">is_empty</span>())        <span class="cm"># True</span>
+<span class="cm"># Container()  -&gt; TypeError: can't instantiate abstract class</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>An <strong>abstract base class</strong> declares the operations every implementation must provide</span></li><li class="rv d2"><span>A subclass that forgets one cannot even be created — the mistake is caught early</span></li><li class="rv d3"><span>Concrete helpers (<code>is_empty</code>) are written once and shared</span></li></ul><div class="dc t rv d6"><div class="lb">This is the ADT idea</div><p>Interface = the abstract class. Implementation = each subclass (array-based, linked-list-based…).</p></div></div></div>
+</div><span class="sn">16 / 28</span></section>
+
+<section class="slide" id="s17"><div class="sec">Design</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Composition vs Inheritance</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">class</span> <span class="fn">BadStack</span>(list):        <span class="cm"># "a stack IS a list"?</span>
+    <span class="kw">def</span> <span class="fn">push</span>(self, x):
+        self.<span class="fn">append</span>(x)
+
+s = <span class="fn">BadStack</span>()
+s.<span class="fn">push</span>(<span class="nm">1</span>)
+s.<span class="fn">push</span>(<span class="nm">2</span>)
+s.<span class="fn">insert</span>(<span class="nm">0</span>, <span class="nm">99</span>)              <span class="cm"># every list method came along...</span>
+<span class="fn">print</span>(s)                     <span class="cm"># [99, 1, 2]  &lt;- LIFO is broken</span>
+
+<span class="kw">class</span> <span class="fn">GoodStack</span>:             <span class="cm"># "a stack HAS a list"</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self._items = []
+    <span class="kw">def</span> <span class="fn">push</span>(self, x):
+        self._items.<span class="fn">append</span>(x)
+    <span class="kw">def</span> <span class="fn">pop</span>(self):
+        <span class="kw">return</span> self._items.<span class="fn">pop</span>()</div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="tbw rv d2"><table class="tb"><thead><tr><th></th><th>Inheritance</th><th>Composition</th></tr></thead><tbody><tr><td>Relationship</td><td>"is-a"</td><td>"has-a"</td></tr><tr><td>Exposes</td><td>All parent methods</td><td>Only what you choose</td></tr><tr><td>Data structures</td><td class="ba">Rarely right</td><td class="go">Usually right</td></tr></tbody></table></div><div class="cl  rv d4"><p>A linked list <em>has</em> nodes. A stack <em>has</em> a list. Prefer composition unless the "is-a" relationship is genuinely true.</p></div></div></div>
+</div><span class="sn">17 / 28</span></section>
+
+<section class="slide ds" id="s18"><div class="sc" style="justify-content:center;"><div class="rl rv d1"></div><h2 class="rv d2" style="font-size:var(--ts);">References &amp;<br><em>Objects</em></h2><p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">The idea every linked structure is built on</p></div><span class="sn">18 / 28</span></section>
+
+<section class="slide sp" id="s19"><div class="vb"></div><div class="sec">References</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Variables Are References</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3">a = [<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>]
+b = a                  <span class="cm"># b is another NAME for the same list</span>
+b.<span class="fn">append</span>(<span class="nm">4</span>)
+<span class="fn">print</span>(a)               <span class="cm"># [1, 2, 3, 4]</span>
+<span class="fn">print</span>(a <span class="kw">is</span> b)          <span class="cm"># True  (same object)</span>
+
+c = <span class="fn">list</span>(a)            <span class="cm"># a new list with the same items</span>
+<span class="fn">print</span>(c == a, c <span class="kw">is</span> a)  <span class="cm"># True False</span>
+
+<span class="kw">import</span> copy
+grid = [[<span class="nm">0</span>, <span class="nm">0</span>], [<span class="nm">0</span>, <span class="nm">0</span>]]
+shallow = copy.<span class="fn">copy</span>(grid)
+deep = copy.<span class="fn">deepcopy</span>(grid)
+grid[<span class="nm">0</span>][<span class="nm">0</span>] = <span class="nm">9</span>
+<span class="fn">print</span>(shallow[<span class="nm">0</span>][<span class="nm">0</span>], deep[<span class="nm">0</span>][<span class="nm">0</span>])   <span class="cm"># 9 0</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>A variable stores a <strong>reference</strong> (arrow) to an object, not the object itself</span></li><li class="rv d2"><span><code>==</code> compares values; <code>is</code> checks it is the very same object</span></li><li class="rv d3"><span>Assignment never copies. A <strong>shallow</strong> copy copies the outer container only; <code>deepcopy</code> copies everything inside too</span></li></ul><div class="cl r rv d6"><p>Use <code>is None</code> (not <code>== None</code>) when checking for the end of a linked list.</p></div></div></div>
+</div><span class="sn">19 / 28</span></section>
+
+<section class="slide" id="s20"><div class="sec">References</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Objects Pointing to Objects</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb  rv d3"><span class="kw">class</span> <span class="fn">TreeNode</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, key):
+        self.key = key
+        self.left = <span class="kw">None</span>     <span class="cm"># another TreeNode, or None</span>
+        self.right = <span class="kw">None</span>
+
+root = <span class="fn">TreeNode</span>(<span class="nm">8</span>)
+root.left = <span class="fn">TreeNode</span>(<span class="nm">3</span>)
+root.right = <span class="fn">TreeNode</span>(<span class="nm">10</span>)
+root.left.right = <span class="fn">TreeNode</span>(<span class="nm">6</span>)
+
+<span class="fn">print</span>(root.left.right.key)   <span class="cm"># 6</span></div><div class="cl t rv d4"><p>Linked lists, trees and graphs are all just objects whose attributes refer to other objects.</p></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="rvs d3" style="display:flex;flex-direction:column;gap:var(--gap);">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);text-transform:uppercase;letter-spacing:.1em;">Linked list of Node objects</p>
+<div class="lr"><div class="lnd"><div class="nd mk">8</div><div class="nx mk">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">3</div><div class="nx">→</div></div><div class="na">›</div><div class="lnd"><div class="nd">10</div><div class="nx">→</div></div><div class="na">›</div><div class="nl">None</div></div>
+<div class="dc b rv d4"><div class="lb">Node</div><p>One object = data + reference(s). <code>next</code> for lists; <code>left</code>/<code>right</code> for binary trees; a list of neighbours for graphs.</p></div>
+<div class="dc  rv d5"><div class="lb">Memory</div><p>Objects can live anywhere in memory. The references are what hold the structure together.</p></div>
+</div></div></div>
+</div><span class="sn">20 / 28</span></section>
+
+<section class="slide sp" id="s21"><div class="vb"></div><div class="sec">Comparison</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Comparing Objects: <code>__eq__</code> and <code>__lt__</code></h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">from</span> functools <span class="kw">import</span> total_ordering
+
+<span class="fn">@total_ordering</span>
+<span class="kw">class</span> <span class="fn">Task</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, priority, name):
+        self.priority = priority
+        self.name = name
+
+    <span class="kw">def</span> <span class="fn">__eq__</span>(self, other):
+        <span class="kw">return</span> self.priority == other.priority
+
+    <span class="kw">def</span> <span class="fn">__lt__</span>(self, other):
+        <span class="kw">return</span> self.priority &lt; other.priority
+
+    <span class="kw">def</span> <span class="fn">__repr__</span>(self):
+        <span class="kw">return</span> <span class="st">f"Task({self.priority}, {self.name!r})"</span>
+
+tasks = [<span class="fn">Task</span>(<span class="nm">3</span>, <span class="st">"email"</span>), <span class="fn">Task</span>(<span class="nm">1</span>, <span class="st">"exam"</span>), <span class="fn">Task</span>(<span class="nm">2</span>, <span class="st">"lab"</span>)]
+<span class="fn">print</span>(<span class="fn">sorted</span>(tasks))
+<span class="cm"># [Task(1, 'exam'), Task(2, 'lab'), Task(3, 'email')]</span>
+<span class="fn">print</span>(<span class="fn">min</span>(tasks).name)       <span class="cm"># exam</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span><code>sorted</code>, <code>min</code>, <code>max</code> and heaps all need <code>&lt;</code> to be defined</span></li><li class="rv d2"><span><code>@total_ordering</code> fills in <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code> from <code>__eq__</code> and <code>__lt__</code></span></li><li class="rv d3"><span>Without <code>__lt__</code>: <code>TypeError: '&lt;' not supported</code></span></li></ul><div class="dc t rv d6"><div class="lb">Week 9</div><p>Priority queues compare items by priority — exactly this <code>__lt__</code>.</p></div></div></div>
+</div><span class="sn">21 / 28</span></section>
+
+<section class="slide" id="s22"><div class="sec">Comparison</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Less Boilerplate with <code>@dataclass</code></h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb  rv d3"><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+
+<span class="fn">@dataclass</span>(order=<span class="kw">True</span>)
+<span class="kw">class</span> <span class="fn">Job</span>:
+    priority: int
+    name: str = <span class="fn">field</span>(compare=<span class="kw">False</span>)
+
+jobs = [<span class="fn">Job</span>(<span class="nm">2</span>, <span class="st">"print"</span>), <span class="fn">Job</span>(<span class="nm">1</span>, <span class="st">"backup"</span>)]
+<span class="fn">print</span>(<span class="fn">sorted</span>(jobs)[<span class="nm">0</span>])             <span class="cm"># Job(priority=1, name='backup')</span>
+<span class="fn">print</span>(<span class="fn">Job</span>(<span class="nm">1</span>, <span class="st">"a"</span>) == <span class="fn">Job</span>(<span class="nm">1</span>, <span class="st">"b"</span>))  <span class="cm"># True  (name is not compared)</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span><code>@dataclass</code> writes <code>__init__</code>, <code>__repr__</code> and <code>__eq__</code> for you</span></li><li class="rv d2"><span><code>order=True</code> adds <code>&lt;</code>, <code>&gt;</code>… comparing fields in order</span></li><li class="rv d3"><span><code>field(compare=False)</code> leaves a field out of comparisons</span></li></ul><div class="cl b rv d6"><p>Great for records stored inside a structure (jobs, edges, entries). Write the structure itself as a normal class.</p></div></div></div>
+</div><span class="sn">22 / 28</span></section>
+
+<section class="slide sp" id="s23"><div class="vb"></div><div class="sec">Robustness</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Exceptions in Data Structures</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">class</span> <span class="fn">EmptyQueueError</span>(Exception):
+    <span class="st">""</span><span class="st">"Raised when removing from an empty queue."</span><span class="st">""</span>
+
+<span class="kw">class</span> <span class="fn">Queue</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self._items = []
+
+    <span class="kw">def</span> <span class="fn">enqueue</span>(self, x):
+        self._items.<span class="fn">append</span>(x)
+
+    <span class="kw">def</span> <span class="fn">dequeue</span>(self):
+        <span class="kw">if</span> <span class="kw">not</span> self._items:
+            <span class="kw">raise</span> <span class="fn">EmptyQueueError</span>(<span class="st">"dequeue from empty queue"</span>)
+        <span class="kw">return</span> self._items.<span class="fn">pop</span>(<span class="nm">0</span>)
+
+q = <span class="fn">Queue</span>()
+<span class="kw">try</span>:
+    q.<span class="fn">dequeue</span>()
+<span class="kw">except</span> EmptyQueueError <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="st">"Handled:"</span>, e)    <span class="cm"># Handled: dequeue from empty queue</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>Fail loudly with a clear message instead of returning a confusing <code>None</code></span></li><li class="rv d2"><span>Use built-ins when they fit: <code>IndexError</code> (position), <code>KeyError</code> (missing key), <code>ValueError</code> (bad argument)</span></li><li class="rv d3"><span>A custom exception class makes the error easy to catch specifically</span></li></ul><div class="dc r rv d6"><div class="lb">Precondition</div><p>Document what must be true before a call: "<code>dequeue</code> requires a non-empty queue".</p></div></div></div>
+</div><span class="sn">23 / 28</span></section>
+
+<section class="slide" id="s24"><div class="sec">Readability</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Type Hints and Generic Containers</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb  rv d3"><span class="kw">from</span> typing <span class="kw">import</span> Generic, Optional, TypeVar
+
+T = <span class="fn">TypeVar</span>(<span class="st">"T"</span>)
+
+<span class="kw">class</span> <span class="fn">Box</span>(Generic[T]):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, item: T) -&gt; <span class="kw">None</span>:
+        self.item = item
+
+    <span class="kw">def</span> <span class="fn">get</span>(self) -&gt; T:
+        <span class="kw">return</span> self.item
+
+<span class="kw">def</span> <span class="fn">find</span>(xs: list[int], target: int) -&gt; Optional[int]:
+    <span class="kw">for</span> i, x <span class="kw">in</span> <span class="fn">enumerate</span>(xs):
+        <span class="kw">if</span> x == target:
+            <span class="kw">return</span> i
+    <span class="kw">return</span> <span class="kw">None</span>
+
+<span class="fn">print</span>(<span class="fn">Box</span>(<span class="nm">42</span>).<span class="fn">get</span>(), <span class="fn">find</span>([<span class="nm">4</span>, <span class="nm">8</span>, <span class="nm">15</span>], <span class="nm">8</span>))   <span class="cm"># 42 1</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>Hints document intent: <code>-&gt; Optional[int]</code> says "an index, or <code>None</code>"</span></li><li class="rv d2"><span>Python does <strong>not</strong> enforce them at runtime; tools like <code>mypy</code> and your editor do</span></li><li class="rv d3"><span><code>Generic[T]</code> lets one <code>Stack[T]</code> class describe a stack of ints, of strings, of nodes…</span></li></ul><div class="dc t rv d6"><div class="lb">Course rule</div><p>Type hints are optional in assignments but recommended in project work.</p></div></div></div>
+</div><span class="sn">24 / 28</span></section>
+
+<section class="slide sp" id="s25"><div class="vb"></div><div class="sec">Summary</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">The Four Pillars, Mapped to DSA</h2>
+<div class="tbw rv d2"><table class="tb"><thead><tr><th>Pillar</th><th>Meaning</th><th>Python tool</th><th>DSA example</th></tr></thead><tbody><tr><td class="ok">Encapsulation</td><td>Bundle data with the methods that guard it</td><td><code>_attr</code>, <code>@property</code></td><td>Stack hides its list; only push/pop</td></tr><tr><td class="ok">Abstraction</td><td>Expose <em>what</em>, hide <em>how</em></td><td><code>ABC</code>, <code>@abstractmethod</code></td><td>Queue ADT vs array or linked implementation</td></tr><tr><td class="ok">Inheritance</td><td>Reuse and specialise behaviour</td><td><code>class B(A)</code>, <code>super()</code></td><td>MinHeap and MaxHeap share a base Heap</td></tr><tr><td class="ok">Polymorphism</td><td>One interface, many behaviours</td><td>Overriding, duck typing</td><td>BFS works with any queue object</td></tr></tbody></table></div><div class="cl b rv d4"><p>Most of this course uses encapsulation and abstraction every week. Reach for inheritance only when "is-a" is genuinely true.</p></div>
+</div><span class="sn">25 / 28</span></section>
+
+<section class="slide" id="s26"><div class="sec">Pitfalls</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Common Mistakes</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dc r rv d2"><div class="lb">Missing self</div><p><code>def push(x)</code> → <code>TypeError: takes 1 positional argument but 2 were given</code>. Instance methods need <code>self</code> first.</p></div><div class="dc r rv d3"><div class="lb">Shared mutable state</div><p>A list as a class attribute or default argument is shared by every object. Create it in <code>__init__</code>.</p></div><div class="dc r rv d4"><div class="lb">is vs ==</div><p><code>is</code> checks identity. Use <code>==</code> for values and <code>is None</code> for "no node".</p></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dc r rv d2"><div class="lb">Forgetting super().__init__</div><p>The parent's attributes are never created → <code>AttributeError</code> later, far from the real bug.</p></div><div class="dc r rv d3"><div class="lb">Leaking the representation</div><p>Returning <code>self._items</code> lets callers modify your internals. Return a copy, or only single items.</p></div><div class="dc r rv d4"><div class="lb">Changing a list while looping over it</div><p>Removing items inside <code>for x in items</code> skips elements. Loop over a copy or build a new list.</p></div></div></div>
+</div><span class="sn">26 / 28</span></section>
+
+<section class="slide sp" id="s27"><div class="vb"></div><div class="sec">Practice</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Practice Exercises</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span><strong>Fraction</strong> — store numerator/denominator in lowest terms (use <code>math.gcd</code>); add <code>__add__</code>, <code>__eq__</code>, <code>__lt__</code>, <code>__repr__</code></span></li><li class="rv d2"><span><strong>LinkedList</strong> — add <code>__len__</code>, <code>__iter__</code>, <code>__contains__</code> and <code>__repr__</code> printing <code>1 → 2 → 3 → None</code></span></li><li class="rv d3"><span><strong>Queue from two stacks</strong> — implement <code>enqueue</code>/<code>dequeue</code> using two <code>Stack</code> objects only</span></li></ul></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt b"><li class="rv d1"><span><strong>ABC</strong> — write an abstract <code>PriorityQueue</code> with <code>insert</code>, <code>peek</code>, <code>extract_min</code>, <code>__len__</code>. You will implement it in week 9</span></li><li class="rv d2"><span><strong>Predict the output</strong> — explain the "Variables Are References" example line by line</span></li><li class="rv d3"><span><strong>Refactor</strong> — turn <code>BadStack(list)</code> into a composed class and add an <code>EmptyStackError</code></span></li></ul><div class="dc t rv d6"><div class="lb">Submission reminder</div><p>Zip named with your ID. Include README, source code, test files and a short explanation.</p></div></div></div>
+</div><span class="sn">27 / 28</span></section>
+
+<section class="slide ds" id="s28">
+<div style="position:absolute;left:0;top:0;bottom:0;width:var(--band);background:var(--blue2);opacity:0.35;"></div>
+<div style="position:absolute;left:var(--band);top:0;bottom:0;width:3px;background:var(--neon);opacity:0.6;"></div>
+<div class="sc" style="position:relative;z-index:2;padding-left:calc(var(--band) + var(--pad));">
+<div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Key Takeaways</h2>
+<div class="tc"><ul class="pt n"><li class="rv d1"><span>A <strong>class</strong> is a blueprint; <strong>objects</strong> are its instances, each with its own attributes</span></li><li class="rv d2"><span><code>self</code> is the object a method acts on; <code>__init__</code> sets up its attributes</span></li><li class="rv d3"><span>Put mutable data in <code>__init__</code> — class attributes are shared</span></li><li class="rv d4"><span>Encapsulate the representation; expose only the ADT operations</span></li><li class="rv d5"><span>Dunder methods (<code>__len__</code>, <code>__iter__</code>, <code>__lt__</code>…) make structures feel built-in</span></li></ul><ul class="pt b"><li class="rv d1"><span>Inheritance = "is-a"; composition = "has-a". Data structures usually want composition</span></li><li class="rv d2"><span>Abstract base classes express an ADT interface in code</span></li><li class="rv d3"><span>Variables hold <strong>references</strong>; assignment never copies</span></li><li class="rv d4"><span>Linked structures are objects whose attributes point to other objects</span></li><li class="rv d5"><span>Raise clear exceptions for invalid operations like popping an empty stack</span></li></ul></div></div><span class="sn">28 / 28</span></section>
+
+<script>
+class P{constructor(){this.sl=document.querySelectorAll('.slide');this.tot=this.sl.length;this.cur=0;this.pb=document.getElementById('pb');this.nd=document.getElementById('nd');this.obs();this.dots();this.kb();this.touch();this.wheel();this.upP(0);}
+obs(){const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('visible');const i=[...this.sl].indexOf(x.target);this.cur=i;this.upP(i);this.upD(i);}});},{threshold:0.5});this.sl.forEach(s=>o.observe(s));}
+dots(){this.sl.forEach((_,i)=>{const b=document.createElement('button');b.className='dot'+(i===0?' active':'');b.setAttribute('aria-label','Go to slide '+(i+1));b.addEventListener('click',()=>this.go(i));this.nd.appendChild(b);});}
+upD(i){document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('active',i===j));}
+upP(i){this.pb.style.width=(this.tot>1?(i/(this.tot-1))*100:100)+'%';}
+go(i){this.sl[i].scrollIntoView({behavior:'smooth'});}
+kb(){document.addEventListener('keydown',e=>{const m={'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1};if(m[e.key]!==undefined){e.preventDefault();this.go(Math.max(0,Math.min(this.tot-1,this.cur+m[e.key])));}});}
+touch(){let sy=0;document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});document.addEventListener('touchend',e=>{const dy=sy-e.changedTouches[0].clientY;if(Math.abs(dy)>50)this.go(Math.max(0,Math.min(this.tot-1,this.cur+(dy>0?1:-1))));},{passive:true});}
+wheel(){let l=0;document.addEventListener('wheel',e=>{const n=Date.now();if(n-l<700)return;l=n;this.go(Math.max(0,Math.min(this.tot-1,this.cur+(e.deltaY>0?1:-1))));},{passive:true});}}
+const p=new P();</script>
+
+<!-- ═══════════════════════════════════════════
+     CHAPTER PAGINATION
+     Injected automatically — do not edit manually
+═══════════════════════════════════════════ -->
+<style>
+#chapter-pagination {
+    position:fixed;
+    bottom:0; left:0; right:0;
+    background:rgba(10,10,10,0.97);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border-top:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:clamp(0.5rem,2vw,1.5rem);
+    padding:clamp(0.6rem,1.5vh,1rem) clamp(1rem,3vw,2.5rem);
+    z-index:99999;
+    transform:translateY(100%);
+    transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);
+    font-family:'JetBrains Mono','Space Mono',monospace;
+}
+#chapter-pagination.pg-visible {
+    transform:translateY(0);
+}
+#chapter-pagination.pg-peek {
+    transform:translateY(calc(100% - 4px));
+}
+.pg-btn {
+    display:flex;
+    align-items:center;
+    gap:clamp(0.5rem,1.2vw,1rem);
+    text-decoration:none;
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:3px;
+    padding:clamp(0.45rem,1vh,0.7rem) clamp(0.7rem,1.5vw,1.2rem);
+    background:rgba(255,255,255,0.04);
+    cursor:pointer;
+    transition:all 0.25s ease;
+    min-width:clamp(150px,22vw,260px);
+    flex-shrink:0;
+}
+.pg-btn:hover {
+    background:rgba(255,255,255,0.1);
+    border-color:rgba(255,255,255,0.25);
+    transform:translateY(-1px);
+}
+.pg-btn.pg-disabled {
+    opacity:0.3;
+    cursor:default;
+    pointer-events:none;
+}
+.pg-prev { flex-direction:row; }
+.pg-next { flex-direction:row; justify-content:flex-end; }
+.pg-arrow {
+    font-size:clamp(0.9rem,1.5vw,1.2rem);
+    color:rgba(255,255,255,0.5);
+    flex-shrink:0;
+    transition:transform 0.2s;
+}
+.pg-btn:hover .pg-arrow { color:#fff; }
+.pg-prev:hover .pg-arrow { transform:translateX(-2px); }
+.pg-next:hover .pg-arrow { transform:translateX(2px); }
+.pg-info { display:flex; flex-direction:column; gap:1px; }
+.pg-info-right { text-align:right; }
+.pg-label {
+    font-size:clamp(0.52rem,0.8vw,0.65rem);
+    text-transform:uppercase;
+    letter-spacing:0.15em;
+    color:rgba(255,255,255,0.35);
+}
+.pg-title {
+    font-size:clamp(0.62rem,1vw,0.82rem);
+    color:#fff;
+    font-weight:700;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:clamp(120px,18vw,220px);
+}
+.pg-meta {
+    font-size:clamp(0.52rem,0.75vw,0.62rem);
+    color:rgba(255,255,255,0.3);
+}
+/* Centre dots */
+.pg-center {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.5rem;
+    flex:1;
+}
+.pg-course-label {
+    font-size:clamp(0.5rem,0.75vw,0.6rem);
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+    color:rgba(255,255,255,0.2);
+}
+.pg-dots {
+    display:flex;
+    align-items:center;
+    gap:clamp(3px,0.5vw,6px);
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.pg-dot {
+    width:clamp(5px,0.7vw,8px);
+    height:clamp(5px,0.7vw,8px);
+    border-radius:50%;
+    background:rgba(255,255,255,0.18);
+    text-decoration:none;
+    flex-shrink:0;
+    transition:all 0.25s;
+    border:none;
+    cursor:pointer;
+}
+.pg-dot:hover {
+    background:rgba(255,255,255,0.5);
+    transform:scale(1.3);
+}
+.pg-dot-active {
+    background:#fff;
+    transform:scale(1.2);
+    width:clamp(14px,2vw,22px);
+    border-radius:3px;
+}
+/* Home button */
+.pg-home {
+    display:inline-flex;
+    align-items:center;
+    gap:0.4em;
+    font-size:clamp(0.52rem,0.8vw,0.65rem);
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:rgba(255,255,255,0.3);
+    text-decoration:none;
+    border:1px solid rgba(255,255,255,0.08);
+    padding:0.25em 0.6em;
+    border-radius:2px;
+    margin-top:0.3rem;
+    transition:all 0.2s;
+    white-space:nowrap;
+}
+.pg-home:hover { color:#fff; border-color:rgba(255,255,255,0.3); }
+/* Trigger tab — shows when pagination is hidden */
+#pg-trigger {
+    position:fixed;
+    bottom:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:clamp(50px,8vw,80px);
+    height:4px;
+    background:rgba(255,255,255,0.15);
+    border-radius:3px 3px 0 0;
+    z-index:99998;
+    cursor:pointer;
+    transition:all 0.3s;
+}
+#pg-trigger:hover { background:rgba(255,255,255,0.4); height:6px; }
+@media(max-width:640px) {
+    .pg-meta { display:none; }
+    .pg-btn { min-width:auto; }
+    .pg-title { max-width:clamp(80px,25vw,150px); font-size:0.65rem; }
+    .pg-course-label { display:none; }
+}
+</style>
+
+<div id="pg-trigger" title="Show chapter navigation"></div>
+
+<nav id="chapter-pagination" role="navigation" aria-label="Chapter navigation">
+    <div class="pg-btn pg-prev pg-disabled">
+            <div class="pg-arrow">←</div>
+            <div class="pg-info">
+                <div class="pg-label">Previous</div>
+                <div class="pg-title">Start of course</div>
+            </div>
+        </div>
+
+    <div class="pg-center">
+        <div class="pg-course-label">SD279 — DSA</div>
+        <div class="pg-dots">
+        <a href="python_oop.html" class="pg-dot pg-dot-active" title="Python OOP"></a>
+        <a href="intro_dsa_arrays.html" class="pg-dot" title="Intro to DSA & Arrays"></a>
+        <a href="complexity_analysis.html" class="pg-dot" title="Complexity Analysis"></a>
+        <a href="stacks_queues.html" class="pg-dot" title="Stacks & Queues"></a>
+        <a href="linked_lists.html" class="pg-dot" title="Linked Lists"></a>
+        <a href="hash_maps.html" class="pg-dot" title="Hash Maps"></a>
+        <a href="binary_trees_bst.html" class="pg-dot" title="Binary Trees & BSTs"></a>
+        <a href="heaps_priority_queues.html" class="pg-dot" title="Heaps & Priority Queues"></a>
+        <a href="graphs.html" class="pg-dot" title="Graphs"></a>
+        <a href="algorithms.html" class="pg-dot" title="Sorting & Searching"></a>
+        </div>
+        <a href="index.html" class="pg-home">⌂ Course Home</a>
+    </div>
+
+    
+        <a class="pg-btn pg-next" href="intro_dsa_arrays.html">
+            <div class="pg-info pg-info-right">
+                <div class="pg-label">Next Chapter</div>
+                <div class="pg-title">Intro to DSA & Arrays</div>
+                <div class="pg-meta">Week 2 & 4 · 25 slides</div>
+            </div>
+            <div class="pg-arrow">→</div>
+        </a>
+</nav>
+
+<script>
+(function() {
+    var bar = document.getElementById('chapter-pagination');
+    var trigger = document.getElementById('pg-trigger');
+    var visible = false;
+    var lastSlideIdx = -1;
+    var totalSlides = document.querySelectorAll('.slide').length;
+
+    function showBar() {
+        visible = true;
+        bar.classList.add('pg-visible');
+        bar.classList.remove('pg-peek');
+        trigger.style.display = 'none';
+    }
+    function hideBar() {
+        visible = false;
+        bar.classList.remove('pg-visible');
+        bar.classList.remove('pg-peek');
+        trigger.style.display = '';
+    }
+
+    // Show on last slide
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            if (e.isIntersecting) {
+                var slides = document.querySelectorAll('.slide');
+                var idx = Array.from(slides).indexOf(e.target);
+                lastSlideIdx = idx;
+                if (idx === slides.length - 1) {
+                    setTimeout(showBar, 600);
+                } else {
+                    if (visible) hideBar();
+                }
+            }
+        });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.slide').forEach(function(s) { obs.observe(s); });
+
+    // Trigger tab click
+    trigger.addEventListener('click', showBar);
+
+    // Keyboard shortcut: Tab key toggles
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            visible ? hideBar() : showBar();
+        }
+    });
+
+    // Click outside closes
+    bar.addEventListener('click', function(e) {
+        if (e.target === bar) hideBar();
+    });
+})();
+</script>
+
+</body>
+</html>

@@ -306,14 +306,16 @@ body.lab { height: 100svh; overflow: hidden; background: radial-gradient(120% 10
 .lab-root { position: fixed; inset: 0; }
 #stage { position: absolute; inset: 0; }
 .topbar { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; align-items: center; gap: 10px; z-index: 20; }
-.topbar .brand { padding: 6px 12px 6px 6px; border-radius: 999px; }
-.picker-btn { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px 0 8px; border-radius: 999px; min-width: 0; }
+.topbar .brand { padding: 6px 12px 6px 6px; border-radius: 999px; flex-shrink: 0; }
+.picker-btn { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px 0 8px; border-radius: 999px; min-width: 0; flex: 0 1 auto; }
+/* let the title shrink with an ellipsis instead of spilling under the step chip */
+.picker-btn > span:nth-child(2) { min-width: 0; overflow: hidden; }
 .picker-btn .ic { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex-shrink: 0; }
-.picker-btn .t { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.picker-btn .c { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+.picker-btn .t { display: block; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.picker-btn .c { display: block; font-size: 0.78rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .picker-btn kbd { font: 500 0.7rem var(--mono); padding: 2px 6px; border-radius: 6px; background: rgba(22, 30, 60, 0.06); color: var(--muted); }
 .topbar .spacer { flex: 1; }
-.live-chip { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 16px; border-radius: 999px; font-size: 0.85rem; font-weight: 500; white-space: nowrap; }
+.live-chip { flex-shrink: 0; display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 16px; border-radius: 999px; font-size: 0.85rem; font-weight: 500; white-space: nowrap; }
 .live-chip b { font-family: var(--mono); font-weight: 600; }
 
 .picker {
@@ -435,7 +437,10 @@ body.lab { height: 100svh; overflow: hidden; background: radial-gradient(120% 10
   .live-chip { height: 42px; padding: 0 12px; }
   .picker-btn { height: 42px; }
   .stats-dock { display: none; }
-  .cam-dock { top: auto !important; bottom: 10px; right: 10px !important; left: auto !important; flex-direction: row; }
+  /* pin the camera buttons to the bottom of the 3D view (#stage is max(58svh, 340px) tall), not the page */
+  .cam-dock { top: calc(max(58svh, 340px) - 60px) !important; bottom: auto; right: 10px !important; left: auto !important; flex-direction: row; }
+  /* the hero scene is too small on phones for pin text; keep the coloured pins, drop their chips */
+  .hero .lbl-pin { display: none; }
   .dock { position: relative; inset: auto; display: flex; flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: 0; }
   .explain { width: auto; }
   .explain, .player, .side { position: relative; inset: auto; left: auto; right: auto; top: auto; bottom: auto; width: auto; min-width: 0; margin: 10px 10px 0; }

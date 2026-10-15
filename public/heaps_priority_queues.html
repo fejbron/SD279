@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heaps & Priority Queues</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#5b3fd6;--blue2:#5b3fd6;--blue3:#9b8cff;--dark:#0e0e14;--dark2:#161620;--dark3:#20202e;--neon:#ffb020;--white:#f0f4ff;--muted:#8890b0;--dim:#3a3d55;--rose:#ff6b8a;--teal:#00d4aa;--font-d:'Syne',sans-serif;--font-b:'Space Mono',monospace;--font-m:'JetBrains Mono',monospace;--ts:clamp(1.9rem,5.5vw,5rem);--h2:clamp(1.2rem,2.8vw,2.4rem);--h3:clamp(0.92rem,1.8vw,1.35rem);--bs:clamp(0.7rem,1.25vw,0.92rem);--ss:clamp(0.58rem,0.88vw,0.74rem);--ms:clamp(0.62rem,1vw,0.82rem);--pad:clamp(1.6rem,4.5vw,4.5rem);--gap:clamp(0.6rem,1.5vw,1.5rem);--sg:clamp(0.28rem,0.7vw,0.65rem);--ease:cubic-bezier(0.16,1,0.3,1);}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow-x:hidden;}
+html{scroll-snap-type:y mandatory;scroll-behavior:smooth;}
+.slide{width:100vw;height:100vh;height:100dvh;overflow:hidden;scroll-snap-align:start;display:flex;flex-direction:column;position:relative;background:var(--dark);font-family:var(--font-b);}
+.sc{flex:1;display:flex;flex-direction:column;justify-content:center;max-height:100%;overflow:hidden;padding:var(--pad);position:relative;z-index:2;}
+.sp::before{content:'';position:absolute;left:0;top:0;bottom:0;width:clamp(180px,32vw,360px);background:var(--blue2);z-index:0;}
+.sp::after{content:'';position:absolute;left:0;top:0;bottom:0;width:clamp(180px,32vw,360px);z-index:1;background-image:linear-gradient(rgba(0,0,0,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.1) 1px,transparent 1px);background-size:28px 28px;}
+.vb{position:absolute;left:clamp(180px,32vw,360px);top:0;bottom:0;width:3px;background:var(--neon);z-index:3;}
+#pb{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--blue2),var(--neon));width:0%;z-index:9999;transition:width 0.3s;}
+#nd{position:fixed;right:clamp(0.6rem,1.2vw,1rem);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;z-index:9998;}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--dim);border:none;cursor:pointer;transition:all 0.3s;}
+.dot.active{background:var(--neon);height:14px;border-radius:2px;}
+.sn{position:absolute;bottom:clamp(0.8rem,2vh,1.5rem);right:clamp(1.6rem,4vw,4rem);font-family:var(--font-m);font-size:var(--ss);color:var(--dim);z-index:10;}
+.sec{position:absolute;top:clamp(0.8rem,2vh,1.5rem);left:var(--pad);font-family:var(--font-m);font-size:var(--ss);color:var(--dim);letter-spacing:0.18em;text-transform:uppercase;z-index:10;}
+h1{font-family:var(--font-d);font-weight:800;font-size:var(--ts);line-height:0.95;letter-spacing:-0.02em;color:var(--white);}
+h2{font-family:var(--font-d);font-weight:700;font-size:var(--h2);line-height:1.05;color:var(--white);}
+h3{font-family:var(--font-d);font-weight:700;font-size:var(--h3);color:var(--white);}
+p{font-family:var(--font-b);font-size:var(--bs);color:var(--muted);line-height:1.6;}
+li{font-family:var(--font-b);font-size:var(--bs);color:var(--muted);line-height:1.55;}
+em{color:var(--neon);font-style:normal;}strong{color:var(--white);font-weight:700;}
+.rl{width:clamp(32px,5vw,56px);height:2px;background:var(--neon);margin-bottom:var(--sg);}
+.rl.r{background:var(--rose);}.rl.t{background:var(--teal);}
+.bdg{display:inline-block;font-family:var(--font-m);font-size:var(--ss);padding:0.18em 0.65em;border-radius:2px;border:1px solid;font-weight:700;}
+.bdg.n{color:var(--neon);border-color:var(--neon);background:rgba(255,176,32,0.08);}
+.dc{background:var(--dark3);border:1px solid var(--dim);padding:clamp(0.5rem,1.2vw,1rem);border-radius:3px;}
+.dc .lb{font-family:var(--font-m);font-size:var(--ss);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.35em;font-weight:700;color:var(--neon);}
+.dc.b .lb{color:var(--blue3);}.dc.r .lb{color:var(--rose);}.dc.t .lb{color:var(--teal);}
+.dc p{font-size:var(--bs);}
+.cl{border-left:3px solid var(--neon);padding:clamp(0.45rem,1.1vw,0.9rem) clamp(0.7rem,1.8vw,1.4rem);background:rgba(255,176,32,0.05);border-radius:0 3px 3px 0;}
+.cl.b{border-color:var(--blue3);background:rgba(0,127,255,0.07);}
+.cl.r{border-color:var(--rose);background:rgba(255,107,138,0.07);}
+.cl.t{border-color:var(--teal);background:rgba(0,212,170,0.07);}
+.cl p{font-family:var(--font-d);font-weight:700;font-size:var(--h3);color:var(--white);line-height:1.35;}
+.cb{background:#060609;border-left:3px solid var(--neon);border-radius:0 3px 3px 0;padding:clamp(0.55rem,1.3vw,1rem) clamp(0.7rem,1.7vw,1.3rem);font-family:var(--font-m);font-size:var(--ms);line-height:1.8;color:#b8c0d8;overflow:hidden;}
+.cb.b{border-color:var(--blue3);}.cb.r{border-color:var(--rose);}.cb.t{border-color:var(--teal);}
+.kw{color:#ffb020;font-weight:700;}.fn{color:#00d4aa;}.cm{color:#6c7290;font-style:italic;}.nm{color:#ff8c42;}.st{color:#88c8a8;}
+.tb{width:100%;border-collapse:collapse;font-size:var(--bs);}
+.tb th{font-family:var(--font-d);font-weight:700;text-align:left;padding:0.45em 0.7em;border-bottom:2px solid var(--neon);color:var(--neon);}
+.tb td{padding:0.38em 0.7em;border-bottom:1px solid var(--dim);color:var(--muted);}
+.tb tr:last-child td{border-bottom:none;}
+.go{color:var(--teal)!important;font-weight:700;font-family:var(--font-m);}.ok{color:var(--neon)!important;font-weight:700;font-family:var(--font-m);}.ba{color:var(--rose)!important;font-weight:700;font-family:var(--font-m);}
+ul.pt{list-style:none;display:flex;flex-direction:column;gap:var(--sg);}
+ul.pt li{display:flex;align-items:flex-start;gap:0.65em;}
+ul.pt li::before{content:'//';font-family:var(--font-m);font-size:0.8em;flex-shrink:0;margin-top:0.1em;font-weight:700;}
+ul.pt.n li::before{color:var(--neon);}ul.pt.b li::before{color:var(--blue3);}ul.pt.r li::before{color:var(--rose);}ul.pt.t li::before{color:var(--teal);}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:clamp(0.8rem,2.2vw,2.2rem);align-items:start;}
+.tcw{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(0.8rem,2.2vw,2.2rem);align-items:start;}
+.thc{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(0.5rem,1.2vw,1.2rem);}
+.lr{display:flex;align-items:center;gap:0;flex-wrap:wrap;}
+.lnd{display:flex;align-items:stretch;flex-shrink:0;}
+.nd{padding:clamp(6px,1.2vh,11px) clamp(8px,1.5vw,14px);background:var(--dark3);border:2px solid var(--neon);font-family:var(--font-m);font-weight:700;font-size:var(--ms);color:var(--white);min-width:clamp(30px,4.5vw,48px);text-align:center;border-right:1px solid var(--dim);}
+.nx{padding:clamp(6px,1.2vh,11px) clamp(5px,1vw,9px);background:var(--dark3);border:2px solid var(--neon);border-left:none;font-family:var(--font-m);font-size:var(--ss);color:var(--muted);min-width:clamp(24px,3.2vw,36px);text-align:center;}
+.na{display:flex;align-items:center;padding:0 clamp(3px,0.5vw,5px);color:var(--neon);font-size:clamp(0.9rem,1.4vw,1.2rem);font-weight:700;}
+.nl{padding:clamp(5px,1vh,10px) clamp(6px,1.2vw,12px);font-family:var(--font-m);font-size:var(--ss);color:var(--dim);border:1px dashed var(--dim);border-radius:2px;display:flex;align-items:center;}
+.nd.hi{border-color:var(--rose);background:rgba(255,107,138,0.15);color:var(--rose);}
+.nx.hi{border-color:var(--rose);border-left:none;}
+.nd.nw{border-color:var(--teal);background:rgba(0,212,170,0.15);color:var(--teal);}
+.nx.nw{border-color:var(--teal);border-left:none;}
+.nd.mk{border-color:var(--neon);background:rgba(255,176,32,0.12);color:var(--neon);}
+.nx.mk{border-color:var(--neon);border-left:none;}
+.nl2{font-family:var(--font-m);font-size:var(--ss);text-align:center;margin-top:2px;color:var(--dim);}
+.nl2.n{color:var(--neon);}.nl2.t{color:var(--teal);}.nl2.r{color:var(--rose);}
+.ds{background:var(--dark2);}
+.ds .sc{justify-content:center;}
+.rv{opacity:0;transform:translateY(18px);transition:opacity 0.46s var(--ease),transform 0.46s var(--ease);}
+.rvl{opacity:0;transform:translateX(-26px);transition:opacity 0.46s var(--ease),transform 0.46s var(--ease);}
+.rvs{opacity:0;transform:scale(0.94);transition:opacity 0.46s var(--ease),transform 0.46s var(--ease);}
+.slide.visible .rv,.slide.visible .rvl,.slide.visible .rvs{opacity:1;transform:none;}
+.d1{transition-delay:.04s}.d2{transition-delay:.12s}.d3{transition-delay:.2s}
+.d4{transition-delay:.28s}.d5{transition-delay:.36s}.d6{transition-delay:.44s}
+.d7{transition-delay:.52s}.d8{transition-delay:.6s}
+@media(max-height:700px){:root{--pad:clamp(0.8rem,3vw,2.2rem);--h2:clamp(1.05rem,2.5vw,1.9rem);}}
+@media(max-height:600px){:root{--pad:clamp(0.5rem,2.5vw,1.4rem);--bs:clamp(0.65rem,1vw,0.84rem);}#nd{display:none;}.sp::before,.sp::after,.vb{display:none;}}
+@media(max-width:640px){.tc,.tcw,.thc{grid-template-columns:1fr;}.sp::before,.sp::after,.vb{display:none;}.lr{flex-wrap:wrap;gap:4px;}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;transition-duration:0.2s!important;}html{scroll-behavior:auto;}}
+.eh{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.et{position:fixed;top:14px;left:14px;background:var(--neon);color:var(--dark);border:none;border-radius:2px;padding:6px 14px;font-family:var(--font-m);font-size:0.72rem;cursor:pointer;z-index:10001;opacity:0;pointer-events:none;transition:opacity 0.3s;font-weight:700;}
+.et.show,.et.active{opacity:1;pointer-events:auto;}
+
+.cb{white-space:pre;line-height:1.55;overflow:hidden;tab-size:4;}
+.cb.sm{font-size:clamp(0.56rem,0.86vw,0.74rem);}
+.dg{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.dg svg{width:100%;height:auto;max-height:34vh;}
+.dg .cap{font-family:var(--font-m);font-size:var(--ss);color:var(--muted);text-align:center;}
+.trace{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(0.3rem,0.8vh,0.8rem) clamp(1rem,3vw,3rem);}
+.trace .dg svg{max-height:24vh;}
+/* new decks: a narrow decorative band so text never sits on top of it */
+:root{--band:clamp(48px,7vw,104px);}
+.sp::before,.sp::after{width:var(--band);}
+.vb{left:var(--band);}
+.sp .sc{padding-left:calc(var(--band) + var(--pad));}
+.sp .sec{left:calc(var(--band) + var(--pad));}
+.k{font-family:var(--font-m);color:var(--neon);}
+code{font-family:var(--font-m);font-size:0.95em;color:var(--white);}
+.ans{font-family:var(--font-m);font-size:var(--ss);margin-top:4px;}
+a.lab{display:inline-flex;align-items:center;gap:.5em;font-family:var(--font-m);font-size:var(--bs);font-weight:700;color:var(--dark);background:var(--neon);padding:.55em 1em;border-radius:3px;text-decoration:none;}
+/* grid columns must be allowed to shrink below their widest line, or code pushes them off-screen */
+.tc>*,.tcw>*,.thc>*,.trace>*{min-width:0;}
+code{overflow-wrap:anywhere;}
+.tbw{overflow-x:auto;}
+.cb{overflow-x:auto;}
+.dg.pair svg{max-height:27vh;}
+/* phones: code scrolls sideways (wrapping would break Python indentation) */
+@media(max-width:640px){.sp .sc{padding-left:var(--pad);}.sp .sec{left:var(--pad);}.trace{grid-template-columns:1fr 1fr;}.cb{font-size:0.6rem;overflow-x:auto;-webkit-overflow-scrolling:touch;}.dg svg{max-height:26vh;}.thc .dg svg{max-height:15vh;}}
+</style>
+</head>
+<body>
+<div id="pb"></div><nav id="nd"></nav>
+<section class="slide sp" id="s1">
+<div class="vb"></div>
+<div class="sc" style="justify-content:flex-end;padding-bottom:clamp(2.5rem,7vh,6rem);">
+<div class="rv d1" style="margin-bottom:var(--sg);"><span class="bdg n" style="letter-spacing:.15em;text-transform:uppercase;">SD279 — Data Structures & Algorithms</span></div>
+<h1 class="rv d2">Heaps &amp;<br><em>Priority Queues</em></h1>
+<p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">Complete trees · heap order · sift up / sift down · heapq</p>
+<div class="rv d4" style="margin-top:clamp(1rem,2.5vh,2rem);border-top:1px solid var(--dim);padding-top:clamp(0.6rem,1.5vh,1.2rem);display:flex;flex-direction:column;gap:.25em;">
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);">Faculty of Computing and Mathematical Sciences</p>
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--dim);">Cyber Security and Information Systems Department</p>
+<p style="font-family:var(--font-m);font-size:var(--ss);color:var(--muted);margin-top:.3em;">Presented by: Frederick Edem Broni</p>
+</div></div><span class="sn">01 / 29</span></section>
+
+<section class="slide" id="s2"><div class="sec">Overview</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Agenda</h2>
+<div class="tc"><ul class="pt n"><li class="rv d1"><span>The Priority Queue ADT</span></li><li class="rv d2"><span>Ways to implement it — and why heaps win</span></li><li class="rv d3"><span>Binary heap: shape + order properties</span></li><li class="rv d4"><span>Storing a tree in an array</span></li><li class="rv d5"><span>Insert with sift-up</span></li><li class="rv d6"><span>Extract-min with sift-down</span></li></ul><ul class="pt b"><li class="rv d1"><span>Building a heap in O(n)</span></li><li class="rv d2"><span>Heap sort</span></li><li class="rv d3"><span>Python's <code>heapq</code> module</span></li><li class="rv d4"><span>A priority queue class with tie-breaking</span></li><li class="rv d5"><span>Applications: top-k, running median, Dijkstra</span></li><li class="rv d6"><span>Complexity summary &amp; common mistakes</span></li></ul></div>
+</div><span class="sn">02 / 29</span></section>
+
+<section class="slide sp" id="s3"><div class="vb"></div><div class="sec">Priority Queue ADT</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">The Priority Queue ADT</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cl  rv d2"><p>A queue where the <em>most urgent</em> item leaves first — not the oldest.</p></div><div class="tbw rv d3"><table class="tb"><thead><tr><th>Operation</th><th>Meaning</th></tr></thead><tbody><tr><td><code>insert(x, p)</code></td><td>Add item <code>x</code> with priority <code>p</code></td></tr><tr><td><code>peek()</code></td><td>Look at the highest-priority item</td></tr><tr><td><code>extract_min()</code></td><td>Remove and return it</td></tr><tr><td><code>len(pq)</code>, <code>is_empty()</code></td><td>Size checks</td></tr></tbody></table></div><div class="dc t rv d4"><div class="lb">Min or max?</div><p>In a <strong>min</strong>-priority queue a smaller number means more urgent. A max-priority queue is the mirror image.</p></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt b"><li class="rv d2"><span><strong>Hospital triage</strong> — the most critical patient is seen first</span></li><li class="rv d3"><span><strong>CPU scheduling</strong> — the highest-priority process runs next</span></li><li class="rv d4"><span><strong>Dijkstra's algorithm</strong> — always expand the closest unvisited vertex (week 10)</span></li><li class="rv d5"><span><strong>Huffman coding</strong> — repeatedly merge the two least-frequent symbols</span></li><li class="rv d6"><span><strong>Event simulation</strong> — process the next event in time order</span></li><li class="rv d7"><span><strong>Network routers</strong> — send urgent packets first</span></li></ul></div></div>
+</div><span class="sn">03 / 29</span></section>
+
+<section class="slide" id="s4"><div class="sec">Priority Queue ADT</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">How Could We Implement It?</h2>
+<div class="tbw rv d2"><table class="tb"><thead><tr><th>Implementation</th><th>insert</th><th>peek</th><th>extract_min</th><th>Notes</th></tr></thead><tbody><tr><td>Unsorted list</td><td class="go">O(1)</td><td class="ba">O(n)</td><td class="ba">O(n)</td><td>Append is free; finding the min means scanning</td></tr><tr><td>Sorted list</td><td class="ba">O(n)</td><td class="go">O(1)</td><td class="go">O(1)</td><td>Min is at the end, but every insert shifts items</td></tr><tr><td>Balanced BST</td><td class="ok">O(log n)</td><td class="ok">O(log n)</td><td class="ok">O(log n)</td><td>Works, but pointers and rebalancing are heavy</td></tr><tr><td class="ok">Binary heap</td><td class="ok">O(log n)</td><td class="go">O(1)</td><td class="ok">O(log n)</td><td>Plain array, no pointers, build in O(n)</td></tr></tbody></table></div><div class="cl b rv d4"><p>A heap gives up full sorting — it only guarantees the <em>minimum</em> is at the top — and that is exactly what makes it cheap.</p></div>
+</div><span class="sn">04 / 29</span></section>
+
+<section class="slide ds" id="s5"><div class="sc" style="justify-content:center;"><div class="rl rv d1"></div><h2 class="rv d2" style="font-size:var(--ts);">Binary<br><em>Heaps</em></h2><p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">Two rules: a complete shape and heap order</p></div><span class="sn">05 / 29</span></section>
+
+<section class="slide sp" id="s6"><div class="vb"></div><div class="sec">Binary Heap</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">What Is a Binary Heap?</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dc b rv d2"><div class="lb">1 · Shape property</div><p>A <strong>complete</strong> binary tree: every level is full except possibly the last, which fills <em>left to right</em>.</p></div><div class="dc  rv d3"><div class="lb">2 · Order property (min-heap)</div><p>Every parent is <strong>≤</strong> its children. So the smallest value is always at the root.</p></div><ul class="pt n"><li class="rv d4"><span>Siblings are <strong>not</strong> ordered — 5 can sit left of 8 or right of it</span></li><li class="rv d5"><span>A heap is <strong>not</strong> sorted; only the root is guaranteed</span></li><li class="rv d6"><span>Max-heap: parent ≥ children, so the root holds the maximum</span></li></ul></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dg  rvs d3"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="224" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">3</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">9</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="224" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="224" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="249" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">a valid min-heap — small numbers are array indices</div></div></div></div>
+</div><span class="sn">06 / 29</span></section>
+
+<section class="slide" id="s7"><div class="sec">Binary Heap</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Min-Heap vs Max-Heap</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dg  rvs d2"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">1</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">4</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">2</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">7</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">3</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text></svg><div class="cap">min-heap: parent ≤ children · root = min</div></div><div class="cl t rv d4"><p>Use a min-heap for "smallest / earliest / cheapest first".</p></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dg  rvs d3"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">9</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">7</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">2</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text></svg><div class="cap">max-heap: parent ≥ children · root = max</div></div><div class="cl b rv d5"><p>Use a max-heap for "largest / highest score first", and for heap sort.</p></div></div></div>
+</div><span class="sn">07 / 29</span></section>
+
+<section class="slide sp" id="s8"><div class="vb"></div><div class="sec">Binary Heap</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Why "Complete" Matters</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dg pair rvs d2"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">1</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">2</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">3</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">4</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text></svg><div class="cap">complete ✓ — last level filled from the left</div></div><div class="dg pair rvs d3"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">1</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">2</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">3</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text></svg><div class="cap">not complete ✗ — gap before node 5</div></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>A complete tree with <em>n</em> nodes has height <strong>⌊log₂ n⌋</strong> — never lopsided</span></li><li class="rv d2"><span>So sift-up and sift-down walk at most ⌊log₂ n⌋ levels → <strong>O(log n)</strong></span></li><li class="rv d3"><span>No gaps means the tree packs perfectly into an array — no pointers needed</span></li><li class="rv d4"><span>A million items → only about 20 levels</span></li></ul><div class="dc r rv d6"><div class="lb">Contrast with a BST</div><p>A BST can degrade into a linked list (height n). A heap's shape rule makes that impossible.</p></div></div></div>
+</div><span class="sn">08 / 29</span></section>
+
+<section class="slide" id="s9"><div class="sec">Array Representation</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">A Tree Stored in an Array</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dg  rvs d2"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="224" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--rose);stroke:var(--rose);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">3</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">5</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--teal);stroke:var(--teal);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">9</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--teal);stroke:var(--teal);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">6</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="224" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="224" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="249" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">node at index 1 (value 5): parent 0, children 3 and 4</div></div><div class="dg  rvs d3"><svg viewBox="0 0 326 62" role="img" aria-label="array"><rect x="2" y="2" width="42" height="36" rx="3" style="fill:var(--rose);stroke:var(--rose);stroke-width:1.5"/><text x="23" y="26" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">3</text><text x="23" y="56" text-anchor="middle" style="font:500 11px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><rect x="48" y="2" width="42" height="36" rx="3" style="fill:var(--neon);stroke:var(--neon);stroke-width:1.5"/><text x="69" y="26" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">5</text><text x="69" y="56" text-anchor="middle" style="font:500 11px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><rect x="94" y="2" width="42" height="36" rx="3" style="fill:var(--dark3);stroke:var(--dim);stroke-width:1.5"/><text x="115" y="26" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="115" y="56" text-anchor="middle" style="font:500 11px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><rect x="140" y="2" width="42" height="36" rx="3" style="fill:var(--teal);stroke:var(--teal);stroke-width:1.5"/><text x="161" y="26" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">9</text><text x="161" y="56" text-anchor="middle" style="font:500 11px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><rect x="186" y="2" width="42" height="36" rx="3" style="fill:var(--teal);stroke:var(--teal);stroke-width:1.5"/><text x="207" y="26" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">6</text><text x="207" y="56" text-anchor="middle" style="font:500 11px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><rect x="232" y="2" width="42" height="36" rx="3" style="fill:var(--dark3);stroke:var(--dim);stroke-width:1.5"/><text x="253" y="26" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="253" y="56" text-anchor="middle" style="font:500 11px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><rect x="278" y="2" width="42" height="36" rx="3" style="fill:var(--dark3);stroke:var(--dim);stroke-width:1.5"/><text x="299" y="26" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="299" y="56" text-anchor="middle" style="font:500 11px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">the same heap as a Python list</div></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="tbw rv d3"><table class="tb"><thead><tr><th>Relationship</th><th>Index (0-based)</th></tr></thead><tbody><tr><td>Parent of i</td><td><code>(i - 1) // 2</code></td></tr><tr><td>Left child of i</td><td><code>2 * i + 1</code></td></tr><tr><td>Right child of i</td><td><code>2 * i + 2</code></td></tr><tr><td>Last internal node</td><td><code>n // 2 - 1</code></td></tr><tr><td>Is i a leaf?</td><td><code>2 * i + 1 &gt;= n</code></td></tr></tbody></table></div><div class="cl  rv d5"><p>Read the array level by level, left to right. That order <em>is</em> the tree.</p></div><div class="dc r rv d6"><div class="lb">1-based textbooks</div><p>Some books start at index 1: parent <code>i // 2</code>, children <code>2i</code> and <code>2i + 1</code>. Don't mix the two.</p></div></div></div>
+</div><span class="sn">09 / 29</span></section>
+
+<section class="slide sp" id="s10"><div class="vb"></div><div class="sec">Check Yourself</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Valid Heap or Not?</h2>
+<div class="thc"><div class="dg  rvs d2"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">2</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">4</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">9</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">7</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text></svg><div class="cap">A</div></div><div class="dg  rvs d3"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">2</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">4</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">3</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">7</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text></svg><div class="cap">B</div></div><div class="dg  rvs d4"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">2</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">4</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">7</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text></svg><div class="cap">C</div></div></div><div class="thc" style="margin-top:var(--sg);">
+<p class="ans rv d5"><span class="go">A — valid.</span> Complete, and every parent ≤ its children.</p>
+<p class="ans rv d6"><span class="ba">B — not a heap.</span> 3 is smaller than its parent 6: order broken.</p>
+<p class="ans rv d7"><span class="ba">C — not a heap.</span> Gap at index 3: shape broken.</p></div>
+</div><span class="sn">10 / 29</span></section>
+
+<section class="slide ds" id="s11"><div class="sc" style="justify-content:center;"><div class="rl rv d1"></div><h2 class="rv d2" style="font-size:var(--ts);">Insert &amp;<br><em>Extract</em></h2><p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">Fix the shape first, then repair the order</p></div><span class="sn">11 / 29</span></section>
+
+<section class="slide" id="s12"><div class="sec">Insert</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Insert: Append, Then Sift Up</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span><strong>Append</strong> the new value at the end of the array — the tree stays complete</span></li><li class="rv d2"><span><strong>Compare</strong> it with its parent at <code>(i - 1) // 2</code></span></li><li class="rv d3"><span>If it is smaller, <strong>swap</strong> and repeat from the parent's position</span></li><li class="rv d4"><span><strong>Stop</strong> when the parent is smaller or equal, or we reach the root</span></li></ul><div class="cl t rv d6"><p>At most one swap per level → <em>O(log n)</em>.</p></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">class</span> <span class="fn">MinHeap</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.a = []
+
+    <span class="kw">def</span> <span class="fn">push</span>(self, x):
+        self.a.<span class="fn">append</span>(x)                 <span class="cm"># 1. keep the tree complete</span>
+        self.<span class="fn">_sift_up</span>(<span class="fn">len</span>(self.a) - <span class="nm">1</span>)   <span class="cm"># 2. restore heap order</span>
+
+    <span class="kw">def</span> <span class="fn">_sift_up</span>(self, i):
+        <span class="kw">while</span> i &gt; <span class="nm">0</span>:
+            p = (i - <span class="nm">1</span>) // <span class="nm">2</span>
+            <span class="kw">if</span> self.a[p] &lt;= self.a[i]:
+                <span class="kw">break</span>                    <span class="cm"># parent is smaller: done</span>
+            self.a[p], self.a[i] = self.a[i], self.a[p]
+            i = p</div></div></div>
+</div><span class="sn">12 / 29</span></section>
+
+<section class="slide sp" id="s13"><div class="vb"></div><div class="sec">Insert</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Trace: Insert 2</h2>
+<div class="trace"><div class="dg  rvs d3"><svg viewBox="0 0 512 272" role="img" aria-label="tree"><line x1="256" y1="30" x2="128" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="256" y1="30" x2="384" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="94" x2="64" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="94" x2="192" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="384" y1="94" x2="320" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="384" y1="94" x2="448" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="158" x2="32" y2="222" style="stroke:var(--dim);stroke-width:2"/><circle cx="256" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="256" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">3</text><text x="281" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="128" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="153" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="384" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="384" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="409" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="64" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">9</text><text x="89" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="192" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="217" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="320" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="320" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="345" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="448" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="448" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="473" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text><circle cx="32" cy="222" r="20" style="fill:var(--blue3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="227" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:#fff">2</text><text x="57" y="208" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">7</text></svg><div class="cap">1. append 2 at index 7</div></div><div class="dg  rvs d4"><svg viewBox="0 0 512 272" role="img" aria-label="tree"><line x1="256" y1="30" x2="128" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="256" y1="30" x2="384" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="94" x2="64" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="94" x2="192" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="384" y1="94" x2="320" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="384" y1="94" x2="448" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="158" x2="32" y2="222" style="stroke:var(--dim);stroke-width:2"/><circle cx="256" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="256" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">3</text><text x="281" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="128" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="153" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="384" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="384" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="409" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="64" cy="158" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="64" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">2</text><text x="89" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="192" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="217" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="320" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="320" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="345" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="448" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="448" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="473" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text><circle cx="32" cy="222" r="20" style="fill:var(--rose);stroke:var(--rose);stroke-width:2"/><text x="32" y="227" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">9</text><text x="57" y="208" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">7</text></svg><div class="cap">2. 2 < 9 → swap up to 3</div></div><div class="dg  rvs d5"><svg viewBox="0 0 512 272" role="img" aria-label="tree"><line x1="256" y1="30" x2="128" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="256" y1="30" x2="384" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="94" x2="64" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="94" x2="192" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="384" y1="94" x2="320" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="384" y1="94" x2="448" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="158" x2="32" y2="222" style="stroke:var(--dim);stroke-width:2"/><circle cx="256" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="256" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">3</text><text x="281" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="128" cy="94" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="128" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">2</text><text x="153" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="384" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="384" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="409" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="64" cy="158" r="20" style="fill:var(--rose);stroke:var(--rose);stroke-width:2"/><text x="64" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">5</text><text x="89" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="192" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="217" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="320" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="320" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="345" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="448" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="448" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="473" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text><circle cx="32" cy="222" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="227" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">9</text><text x="57" y="208" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">7</text></svg><div class="cap">3. 2 < 5 → swap up to 1</div></div><div class="dg  rvs d6"><svg viewBox="0 0 512 272" role="img" aria-label="tree"><line x1="256" y1="30" x2="128" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="256" y1="30" x2="384" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="94" x2="64" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="94" x2="192" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="384" y1="94" x2="320" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="384" y1="94" x2="448" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="158" x2="32" y2="222" style="stroke:var(--dim);stroke-width:2"/><circle cx="256" cy="30" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="256" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">2</text><text x="281" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="128" cy="94" r="20" style="fill:var(--rose);stroke:var(--rose);stroke-width:2"/><text x="128" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">3</text><text x="153" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="384" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="384" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="409" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="64" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="89" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="192" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="217" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="320" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="320" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="345" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="448" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="448" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="473" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text><circle cx="32" cy="222" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="227" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">9</text><text x="57" y="208" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">7</text></svg><div class="cap">4. 2 < 3 → swap up to 0 (new root)</div></div></div><div class="cl b rv d7"><p>Result: <code>[2, 3, 8, 5, 6, 12, 10, 9]</code> — 3 swaps, one per level climbed.</p></div>
+</div><span class="sn">13 / 29</span></section>
+
+<section class="slide" id="s14"><div class="sec">Extract</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Extract-Min: Swap In the Last Leaf, Then Sift Down</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>The minimum is at index 0 — save it to return</span></li><li class="rv d2"><span><strong>Move the last element</strong> into the root and shrink the array (shape stays complete)</span></li><li class="rv d3"><span><strong>Compare</strong> it with its children and swap with the <em>smaller</em> child</span></li><li class="rv d4"><span>Repeat until both children are larger, or it reaches a leaf</span></li></ul><div class="cl r rv d6"><p>Always swap with the <em>smaller</em> child — swapping with the larger one would put it above a smaller sibling and break the order.</p></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3">    <span class="kw">def</span> <span class="fn">peek</span>(self):
+        <span class="kw">if</span> <span class="kw">not</span> self.a:
+            <span class="kw">raise</span> <span class="fn">IndexError</span>(<span class="st">"peek from empty heap"</span>)
+        <span class="kw">return</span> self.a[<span class="nm">0</span>]
+
+    <span class="kw">def</span> <span class="fn">pop</span>(self):
+        <span class="kw">if</span> <span class="kw">not</span> self.a:
+            <span class="kw">raise</span> <span class="fn">IndexError</span>(<span class="st">"pop from empty heap"</span>)
+        root = self.a[<span class="nm">0</span>]
+        last = self.a.<span class="fn">pop</span>()              <span class="cm"># remove the last leaf</span>
+        <span class="kw">if</span> self.a:
+            self.a[<span class="nm">0</span>] = last             <span class="cm"># move it to the root</span>
+            self.<span class="fn">_sift_down</span>(<span class="nm">0</span>)
+        <span class="kw">return</span> root
+
+    <span class="kw">def</span> <span class="fn">_sift_down</span>(self, i):
+        n = <span class="fn">len</span>(self.a)
+        <span class="kw">while</span> <span class="kw">True</span>:
+            smallest = i
+            l, r = <span class="nm">2</span> * i + <span class="nm">1</span>, <span class="nm">2</span> * i + <span class="nm">2</span>
+            <span class="kw">if</span> l &lt; n <span class="kw">and</span> self.a[l] &lt; self.a[smallest]:
+                smallest = l
+            <span class="kw">if</span> r &lt; n <span class="kw">and</span> self.a[r] &lt; self.a[smallest]:
+                smallest = r
+            <span class="kw">if</span> smallest == i:
+                <span class="kw">return</span>
+            self.a[i], self.a[smallest] = self.a[smallest], self.a[i]
+            i = smallest</div></div></div>
+</div><span class="sn">14 / 29</span></section>
+
+<section class="slide sp" id="s15"><div class="vb"></div><div class="sec">Extract</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Trace: Extract-Min</h2>
+<div class="trace"><div class="dg  rvs d3"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="224" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">9</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">3</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="224" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="224" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="249" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">1. remove 2; move last leaf 9 to root</div></div><div class="dg  rvs d4"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="224" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--rose);stroke:var(--rose);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">3</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">9</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="224" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="224" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="249" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">2. 9 > child 3 → swap down to 1</div></div><div class="dg  rvs d5"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="224" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">3</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--rose);stroke:var(--rose);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">5</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">9</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="224" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="224" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="249" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">3. 9 > child 5 → swap down to 3</div></div><div class="dg  rvs d6"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="224" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--teal);stroke:var(--teal);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">3</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">5</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">9</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">12</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="224" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="224" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">10</text><text x="249" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">4. heap again · new min 3</div></div></div><div class="cl b rv d7"><p>Result: <code>[3, 5, 8, 9, 6, 12, 10]</code>. Removing the root costs at most ⌊log₂ n⌋ swaps.</p></div>
+</div><span class="sn">15 / 29</span></section>
+
+<section class="slide" id="s16"><div class="sec">Build Heap</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Building a Heap: O(n log n) or O(n)?</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dc r rv d2"><div class="lb">Naive: n pushes</div><p>Push each item one by one: n × O(log n) = <strong>O(n log n)</strong>.</p></div><div class="dc t rv d3"><div class="lb">Floyd's bottom-up heapify</div><p>Leaves are already heaps. Call <code>sift_down</code> on every internal node from the last one back to the root: <strong>O(n)</strong>.</p></div><div class="cb sm rv d4"><span class="kw">def</span> <span class="fn">heapify</span>(a):
+    n = <span class="fn">len</span>(a)
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n // <span class="nm">2</span> - <span class="nm">1</span>, -<span class="nm">1</span>, -<span class="nm">1</span>):   <span class="cm"># last internal node -&gt; root</span>
+        <span class="fn">sift_down</span>(a, i, n)
+
+<span class="kw">def</span> <span class="fn">sift_down</span>(a, i, n):
+    <span class="kw">while</span> <span class="kw">True</span>:
+        smallest, l, r = i, <span class="nm">2</span> * i + <span class="nm">1</span>, <span class="nm">2</span> * i + <span class="nm">2</span>
+        <span class="kw">if</span> l &lt; n <span class="kw">and</span> a[l] &lt; a[smallest]:
+            smallest = l
+        <span class="kw">if</span> r &lt; n <span class="kw">and</span> a[r] &lt; a[smallest]:
+            smallest = r
+        <span class="kw">if</span> smallest == i:
+            <span class="kw">return</span>
+        a[i], a[smallest] = a[smallest], a[i]
+        i = smallest</div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="tbw rv d3"><table class="tb"><thead><tr><th>Level from bottom</th><th>Nodes</th><th>Max swaps each</th></tr></thead><tbody><tr><td>0 (leaves)</td><td>≈ n/2</td><td>0</td></tr><tr><td>1</td><td>≈ n/4</td><td>1</td></tr><tr><td>2</td><td>≈ n/8</td><td>2</td></tr><tr><td>h</td><td>≈ n/2<sup>h+1</sup></td><td>h</td></tr></tbody></table></div><div class="cl b rv d5"><p>Most nodes sit near the bottom and barely move. Σ h·n/2<sup>h+1</sup> ≤ n, so the total work is <em>O(n)</em>.</p></div></div></div>
+</div><span class="sn">16 / 29</span></section>
+
+<section class="slide sp" id="s17"><div class="vb"></div><div class="sec">Build Heap</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Trace: heapify([9, 4, 7, 1, 8, 2, 6])</h2>
+<div class="trace"><div class="dg  rvs d3"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="224" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">9</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">4</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">7</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">1</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">2</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="224" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="224" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="249" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">1. start: just an array</div></div><div class="dg  rvs d4"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="224" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">9</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">4</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">2</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">1</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">7</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="224" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="224" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="249" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">2. sift_down(2) · 1 swap</div></div><div class="dg  rvs d5"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="224" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">9</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">1</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">2</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">4</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">7</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="224" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="224" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="249" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">3. sift_down(1) · 1 swap</div></div><div class="dg  rvs d6"><svg viewBox="0 0 256 208" role="img" aria-label="tree"><line x1="128" y1="30" x2="64" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="128" y1="30" x2="192" y2="94" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="32" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="64" y1="94" x2="96" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="160" y2="158" style="stroke:var(--dim);stroke-width:2"/><line x1="192" y1="94" x2="224" y2="158" style="stroke:var(--dim);stroke-width:2"/><circle cx="128" cy="30" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="128" y="35" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">1</text><text x="153" y="16" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">0</text><circle cx="64" cy="94" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="64" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">4</text><text x="89" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">1</text><circle cx="192" cy="94" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="192" y="99" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">2</text><text x="217" y="80" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">2</text><circle cx="32" cy="158" r="20" style="fill:var(--neon);stroke:var(--neon);stroke-width:2"/><text x="32" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--dark)">9</text><text x="57" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">3</text><circle cx="96" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="96" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">8</text><text x="121" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">4</text><circle cx="160" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="160" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">7</text><text x="185" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">5</text><circle cx="224" cy="158" r="20" style="fill:var(--dark3);stroke:var(--blue3);stroke-width:2"/><text x="224" y="163" text-anchor="middle" style="font:700 15px 'JetBrains Mono',monospace;fill:var(--white)">6</text><text x="249" y="144" style="font:500 10px 'JetBrains Mono',monospace;fill:var(--muted)">6</text></svg><div class="cap">4. sift_down(0) · 2 swaps</div></div></div><div class="cl b rv d7"><p>Result: <code>[1, 4, 2, 9, 8, 7, 6]</code>. Only 3 sift_down calls for 7 items — the 4 leaves were skipped.</p></div>
+</div><span class="sn">17 / 29</span></section>
+
+<section class="slide ds" id="s18"><div class="sc" style="justify-content:center;"><div class="rl rv d1"></div><h2 class="rv d2" style="font-size:var(--ts);">Heap<br><em>Sort</em></h2><p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">A guaranteed O(n log n), in-place sort</p></div><span class="sn">18 / 29</span></section>
+
+<section class="slide" id="s19"><div class="sec">Heap Sort</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Heap Sort</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d2"><span class="kw">def</span> <span class="fn">heap_sort</span>(a):
+    n = <span class="fn">len</span>(a)
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n // <span class="nm">2</span> - <span class="nm">1</span>, -<span class="nm">1</span>, -<span class="nm">1</span>):  <span class="cm"># 1. build a MAX-heap</span>
+        <span class="fn">sift_down_max</span>(a, i, n)
+    <span class="kw">for</span> end <span class="kw">in</span> <span class="fn">range</span>(n - <span class="nm">1</span>, <span class="nm">0</span>, -<span class="nm">1</span>):
+        a[<span class="nm">0</span>], a[end] = a[end], a[<span class="nm">0</span>]      <span class="cm"># 2. max goes to its final spot</span>
+        <span class="fn">sift_down_max</span>(a, <span class="nm">0</span>, end)         <span class="cm"># 3. heap shrinks by one</span>
+    <span class="kw">return</span> a
+
+<span class="kw">def</span> <span class="fn">sift_down_max</span>(a, i, n):
+    <span class="kw">while</span> <span class="kw">True</span>:
+        largest, l, r = i, <span class="nm">2</span> * i + <span class="nm">1</span>, <span class="nm">2</span> * i + <span class="nm">2</span>
+        <span class="kw">if</span> l &lt; n <span class="kw">and</span> a[l] &gt; a[largest]:
+            largest = l
+        <span class="kw">if</span> r &lt; n <span class="kw">and</span> a[r] &gt; a[largest]:
+            largest = r
+        <span class="kw">if</span> largest == i:
+            <span class="kw">return</span>
+        a[i], a[largest] = a[largest], a[i]
+        i = largest
+
+<span class="fn">print</span>(<span class="fn">heap_sort</span>([<span class="nm">5</span>, <span class="nm">2</span>, <span class="nm">9</span>, <span class="nm">1</span>, <span class="nm">6</span>]))   <span class="cm"># [1, 2, 5, 6, 9]</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="tbw rv d3"><table class="tb"><thead><tr><th>Step</th><th>Array (heap <span class="k">| sorted</span>)</th><th>Note</th></tr></thead><tbody><tr><td>start</td><td>5, 2, 9, 1, 6</td><td>—</td></tr><tr><td>build max-heap</td><td>9, 6, 5, 1, 2</td><td>root = max</td></tr><tr><td>swap root ↔ [4], sift</td><td>6, 2, 5, 1 <span class="k">| 9</span></td><td>9 placed</td></tr><tr><td>swap root ↔ [3], sift</td><td>5, 2, 1 <span class="k">| 6, 9</span></td><td>6 placed</td></tr><tr><td>swap root ↔ [2], sift</td><td>2, 1 <span class="k">| 5, 6, 9</span></td><td>5 placed</td></tr><tr><td>swap root ↔ [1], sift</td><td>1 <span class="k">| 2, 5, 6, 9</span></td><td>2 placed</td></tr></tbody></table></div><div class="tbw rv d5"><table class="tb"><thead><tr><th>Time</th><th>Space</th><th>Stable?</th></tr></thead><tbody><tr><td class="go">O(n log n) always</td><td class="go">O(1)</td><td class="ba">No</td></tr></tbody></table></div></div></div>
+</div><span class="sn">19 / 29</span></section>
+
+<section class="slide ds" id="s20"><div class="sc" style="justify-content:center;"><div class="rl rv d1"></div><h2 class="rv d2" style="font-size:var(--ts);">Heaps in<br><em>Python</em></h2><p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">The heapq module</p></div><span class="sn">20 / 29</span></section>
+
+<section class="slide sp" id="s21"><div class="vb"></div><div class="sec">heapq</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Python's <code>heapq</code> Module</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">import</span> heapq
+
+pq = []
+heapq.<span class="fn">heappush</span>(pq, (<span class="nm">2</span>, <span class="st">"write report"</span>))
+heapq.<span class="fn">heappush</span>(pq, (<span class="nm">1</span>, <span class="st">"fix server"</span>))
+heapq.<span class="fn">heappush</span>(pq, (<span class="nm">3</span>, <span class="st">"lunch"</span>))
+<span class="fn">print</span>(heapq.<span class="fn">heappop</span>(pq))   <span class="cm"># (1, 'fix server')</span>
+<span class="fn">print</span>(pq[<span class="nm">0</span>])               <span class="cm"># (2, 'write report')  &lt;- peek</span>
+
+nums = [<span class="nm">9</span>, <span class="nm">4</span>, <span class="nm">7</span>, <span class="nm">1</span>]
+heapq.<span class="fn">heapify</span>(nums)        <span class="cm"># O(n), in place</span>
+<span class="fn">print</span>(nums[<span class="nm">0</span>])             <span class="cm"># 1</span>
+
+mx = []                    <span class="cm"># max-heap trick: store negatives</span>
+<span class="kw">for</span> x <span class="kw">in</span> [<span class="nm">5</span>, <span class="nm">1</span>, <span class="nm">8</span>]:
+    heapq.<span class="fn">heappush</span>(mx, -x)
+<span class="fn">print</span>(-heapq.<span class="fn">heappop</span>(mx))  <span class="cm"># 8</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="tbw rv d3"><table class="tb"><thead><tr><th>Function</th><th>Cost</th></tr></thead><tbody><tr><td><code>heappush(h, x)</code></td><td>O(log n)</td></tr><tr><td><code>heappop(h)</code></td><td>O(log n)</td></tr><tr><td><code>h[0]</code> (peek)</td><td>O(1)</td></tr><tr><td><code>heapify(list)</code></td><td>O(n)</td></tr><tr><td><code>heapreplace(h, x)</code></td><td>pop then push, O(log n)</td></tr><tr><td><code>nsmallest(k, xs)</code></td><td>O(n log k)</td></tr></tbody></table></div><div class="cl b rv d5"><p><code>heapq</code> works on a plain list and is a <em>min</em>-heap only. Tuples compare by their first item, then the next…</p></div></div></div>
+</div><span class="sn">21 / 29</span></section>
+
+<section class="slide" id="s22"><div class="sec">heapq</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">A Priority Queue Class with Tie-Breaking</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">import</span> heapq
+<span class="kw">from</span> itertools <span class="kw">import</span> count
+
+<span class="kw">class</span> <span class="fn">PriorityQueue</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self._heap = []
+        self._order = <span class="fn">count</span>()          <span class="cm"># tie-breaker: first come, first served</span>
+
+    <span class="kw">def</span> <span class="fn">push</span>(self, item, priority):
+        heapq.<span class="fn">heappush</span>(self._heap, (priority, <span class="fn">next</span>(self._order), item))
+
+    <span class="kw">def</span> <span class="fn">pop</span>(self):
+        priority, _, item = heapq.<span class="fn">heappop</span>(self._heap)
+        <span class="kw">return</span> item
+
+    <span class="kw">def</span> <span class="fn">__len__</span>(self):
+        <span class="kw">return</span> <span class="fn">len</span>(self._heap)
+
+er = <span class="fn">PriorityQueue</span>()
+er.<span class="fn">push</span>(<span class="st">"sprained ankle"</span>, <span class="nm">3</span>)
+er.<span class="fn">push</span>(<span class="st">"cardiac arrest"</span>, <span class="nm">1</span>)
+er.<span class="fn">push</span>(<span class="st">"broken arm"</span>, <span class="nm">2</span>)
+er.<span class="fn">push</span>(<span class="st">"chest pain"</span>, <span class="nm">1</span>)
+<span class="fn">print</span>([er.<span class="fn">pop</span>() <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(er))])
+<span class="cm"># ['cardiac arrest', 'chest pain', 'broken arm', 'sprained ankle']</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>Store <code>(priority, counter, item)</code> tuples</span></li><li class="rv d2"><span>Equal priorities fall back to the counter, so they leave in arrival order</span></li><li class="rv d3"><span>The item itself is never compared — so it can be any object, even one without <code>&lt;</code></span></li></ul><div class="dc r rv d6"><div class="lb">Without the counter</div><p>Two equal priorities would compare the items next. Strings work by accident; dicts or custom objects raise <code>TypeError</code>.</p></div></div></div>
+</div><span class="sn">22 / 29</span></section>
+
+<section class="slide ds" id="s23"><div class="sc" style="justify-content:center;"><div class="rl rv d1"></div><h2 class="rv d2" style="font-size:var(--ts);">Heap<br><em>Applications</em></h2><p class="rv d3" style="font-size:var(--h3);color:var(--muted);margin-top:var(--sg);">Top-k, running median, Dijkstra</p></div><span class="sn">23 / 29</span></section>
+
+<section class="slide sp" id="s24"><div class="vb"></div><div class="sec">Applications</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Top-k Largest in O(n log k)</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb  rv d3"><span class="kw">import</span> heapq
+
+<span class="kw">def</span> <span class="fn">top_k</span>(nums, k):
+    heap = []                <span class="cm"># min-heap: k largest so far</span>
+    <span class="kw">for</span> x <span class="kw">in</span> nums:
+        <span class="kw">if</span> <span class="fn">len</span>(heap) &lt; k:
+            heapq.<span class="fn">heappush</span>(heap, x)
+        <span class="kw">elif</span> x &gt; heap[<span class="nm">0</span>]:
+            heapq.<span class="fn">heapreplace</span>(heap, x)  <span class="cm"># swap out the smallest</span>
+    <span class="kw">return</span> <span class="fn">sorted</span>(heap, reverse=<span class="kw">True</span>)
+
+<span class="fn">print</span>(<span class="fn">top_k</span>([<span class="nm">7</span>, <span class="nm">2</span>, <span class="nm">9</span>, <span class="nm">4</span>, <span class="nm">11</span>, <span class="nm">5</span>, <span class="nm">8</span>], <span class="nm">3</span>))   <span class="cm"># [11, 9, 8]</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>Keep a <strong>min</strong>-heap of size k: its root is the weakest of the current top k</span></li><li class="rv d2"><span>A new value only gets in if it beats that root</span></li><li class="rv d3"><span>Time O(n log k), space O(k) — great when n is huge and k is small (e.g. top 10 of a million)</span></li></ul><div class="dc t rv d6"><div class="lb">Shortcut</div><p><code>heapq.nlargest(3, nums)</code> does the same thing.</p></div></div></div>
+</div><span class="sn">24 / 29</span></section>
+
+<section class="slide" id="s25"><div class="sec">Applications</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Running Median with Two Heaps</h2>
+<div class="tcw"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cb sm rv d3"><span class="kw">import</span> heapq
+
+<span class="kw">class</span> <span class="fn">RunningMedian</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.low = []    <span class="cm"># max-heap (stored negated): smaller half</span>
+        self.high = []   <span class="cm"># min-heap: larger half</span>
+
+    <span class="kw">def</span> <span class="fn">add</span>(self, x):
+        heapq.<span class="fn">heappush</span>(self.low, -x)
+        heapq.<span class="fn">heappush</span>(self.high, -heapq.<span class="fn">heappop</span>(self.low))
+        <span class="kw">if</span> <span class="fn">len</span>(self.high) &gt; <span class="fn">len</span>(self.low):
+            heapq.<span class="fn">heappush</span>(self.low, -heapq.<span class="fn">heappop</span>(self.high))
+
+    <span class="kw">def</span> <span class="fn">median</span>(self):
+        <span class="kw">if</span> <span class="fn">len</span>(self.low) &gt; <span class="fn">len</span>(self.high):
+            <span class="kw">return</span> -self.low[<span class="nm">0</span>]
+        <span class="kw">return</span> (-self.low[<span class="nm">0</span>] + self.high[<span class="nm">0</span>]) / <span class="nm">2</span>
+
+rm = <span class="fn">RunningMedian</span>()
+<span class="kw">for</span> x <span class="kw">in</span> [<span class="nm">5</span>, <span class="nm">15</span>, <span class="nm">1</span>, <span class="nm">3</span>]:
+    rm.<span class="fn">add</span>(x)
+    <span class="fn">print</span>(rm.<span class="fn">median</span>(), end=<span class="st">" "</span>)   <span class="cm"># 5 10.0 5 4.0</span></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span><code>low</code> holds the smaller half (a max-heap), <code>high</code> the larger half (a min-heap)</span></li><li class="rv d2"><span>Every value in <code>low</code> ≤ every value in <code>high</code>; sizes differ by at most one</span></li><li class="rv d3"><span>The median is one root, or the average of both</span></li><li class="rv d4"><span>Each <code>add</code> is O(log n); each <code>median</code> is O(1)</span></li></ul><div class="dc b rv d6"><div class="lb">Also uses a heap</div><p><strong>Dijkstra</strong> (week 10): pop the closest vertex. <strong>Merge k sorted lists</strong>: keep the k current heads in a heap.</p></div></div></div>
+</div><span class="sn">25 / 29</span></section>
+
+<section class="slide sp" id="s26"><div class="vb"></div><div class="sec">Summary</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Complexity Summary</h2>
+<div class="tbw rv d2"><table class="tb"><thead><tr><th>Operation</th><th>Binary heap</th><th>Why</th></tr></thead><tbody><tr><td><code>peek</code> (min)</td><td class="go">O(1)</td><td>It is always at index 0</td></tr><tr><td><code>push</code></td><td class="ok">O(log n)</td><td>Sift up at most the height</td></tr><tr><td><code>pop</code> (extract-min)</td><td class="ok">O(log n)</td><td>Sift down at most the height</td></tr><tr><td>Build from n items</td><td class="go">O(n)</td><td>Bottom-up heapify</td></tr><tr><td>Search for an arbitrary value</td><td class="ba">O(n)</td><td>Heaps are not search trees</td></tr><tr><td>Heap sort</td><td class="ok">O(n log n)</td><td>n extractions; in place, not stable</td></tr><tr><td>Top-k of n</td><td class="ok">O(n log k)</td><td>Heap of size k</td></tr></tbody></table></div><div class="cl b rv d4"><p>Height of a complete tree = ⌊log₂ n⌋. Every O(log n) above comes from that one fact.</p></div>
+</div><span class="sn">26 / 29</span></section>
+
+<section class="slide" id="s27"><div class="sec">Pitfalls</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Common Mistakes</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dc r rv d2"><div class="lb">Thinking a heap is sorted</div><p><code>[1, 4, 2, 7, 5, 3]</code> is a valid heap but not sorted. Only the root is guaranteed.</p></div><div class="dc r rv d3"><div class="lb">Swapping with the wrong child</div><p>Sift-down must swap with the <strong>smaller</strong> child in a min-heap.</p></div><div class="dc r rv d4"><div class="lb">Mixing index formulas</div><p>0-based: children <code>2i+1</code>, <code>2i+2</code>. 1-based: <code>2i</code>, <code>2i+1</code>. Pick one.</p></div></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="dc r rv d2"><div class="lb">Forgetting heapq is a min-heap</div><p>For a max-heap push <code>-x</code> and negate again when you pop.</p></div><div class="dc r rv d3"><div class="lb">heappop on an unheapified list</div><p>Call <code>heapq.heapify(xs)</code> first, or only ever add with <code>heappush</code>.</p></div><div class="dc r rv d4"><div class="lb">Comparing payloads</div><p>Equal priorities compare the next tuple field. Add a counter so items are never compared.</p></div></div></div>
+</div><span class="sn">27 / 29</span></section>
+
+<section class="slide sp" id="s28"><div class="vb"></div><div class="sec">Practice</div>
+<div class="sc"><div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Practice and the 3D Visual Lab</h2>
+<div class="tc"><div style="display:flex;flex-direction:column;gap:var(--gap);"><ul class="pt n"><li class="rv d1"><span>By hand: insert 7, 3, 9, 1, 5, 2 into an empty min-heap. Draw the tree and array after each insert</span></li><li class="rv d2"><span>Run <code>heapify([8, 3, 6, 1, 9, 2, 7, 5])</code> by hand. How many swaps?</span></li><li class="rv d3"><span>Write <code>MaxHeap</code> by changing only the comparisons in <code>MinHeap</code></span></li><li class="rv d4"><span>Implement <code>k_smallest(nums, k)</code> without <code>nsmallest</code></span></li><li class="rv d5"><span>Merge k sorted lists using a heap of <code>(value, list_index, element_index)</code></span></li><li class="rv d6"><span>Finish the week 1 exercise: your <code>PriorityQueue</code> ABC, now backed by <code>MinHeap</code></span></li></ul></div><div style="display:flex;flex-direction:column;gap:var(--gap);"><div class="cl t rv d3"><p>Watch insert and extract-min step by step in 3D: the tree and its array move together as values sift up and down.</p></div><div class="rv d4"><a class="lab" href="lab.html?algo=heap">▶ Open the 3D heap visualiser</a></div><div class="dc b rv d5"><div class="lb">Try this input</div><p><code>insert 8 ; insert 3 ; insert 10 ; insert 1 ; extract</code></p></div></div></div>
+</div><span class="sn">28 / 29</span></section>
+
+<section class="slide ds" id="s29">
+<div style="position:absolute;left:0;top:0;bottom:0;width:var(--band);background:var(--blue2);opacity:0.35;"></div>
+<div style="position:absolute;left:var(--band);top:0;bottom:0;width:3px;background:var(--neon);opacity:0.6;"></div>
+<div class="sc" style="position:relative;z-index:2;padding-left:calc(var(--band) + var(--pad));">
+<div class="rl rv d1"></div><h2 class="rv d2" style="margin-bottom:var(--gap);">Key Takeaways</h2>
+<div class="tc"><ul class="pt n"><li class="rv d1"><span>A <strong>priority queue</strong> serves the most urgent item first</span></li><li class="rv d2"><span>A binary heap = <strong>complete</strong> tree + <strong>heap order</strong> (parent ≤ children)</span></li><li class="rv d3"><span>Stored in a plain array: parent <code>(i-1)//2</code>, children <code>2i+1</code>, <code>2i+2</code></span></li><li class="rv d4"><span>Insert: append, then <strong>sift up</strong> — O(log n)</span></li><li class="rv d5"><span>Extract-min: move the last leaf to the root, then <strong>sift down</strong> to the smaller child — O(log n)</span></li></ul><ul class="pt b"><li class="rv d1"><span><code>peek</code> is O(1); building from n items is <strong>O(n)</strong> with bottom-up heapify</span></li><li class="rv d2"><span>Heap sort: O(n log n) always, in place, not stable</span></li><li class="rv d3"><span><code>heapq</code> is a min-heap on a list; negate for max-heaps; add a counter for ties</span></li><li class="rv d4"><span>Top-k in O(n log k); running median with two heaps</span></li><li class="rv d5"><span>Heaps power Dijkstra, Huffman coding and schedulers</span></li></ul></div></div><span class="sn">29 / 29</span></section>
+
+<script>
+class P{constructor(){this.sl=document.querySelectorAll('.slide');this.tot=this.sl.length;this.cur=0;this.pb=document.getElementById('pb');this.nd=document.getElementById('nd');this.obs();this.dots();this.kb();this.touch();this.wheel();this.upP(0);}
+obs(){const o=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('visible');const i=[...this.sl].indexOf(x.target);this.cur=i;this.upP(i);this.upD(i);}});},{threshold:0.5});this.sl.forEach(s=>o.observe(s));}
+dots(){this.sl.forEach((_,i)=>{const b=document.createElement('button');b.className='dot'+(i===0?' active':'');b.setAttribute('aria-label','Go to slide '+(i+1));b.addEventListener('click',()=>this.go(i));this.nd.appendChild(b);});}
+upD(i){document.querySelectorAll('.dot').forEach((d,j)=>d.classList.toggle('active',i===j));}
+upP(i){this.pb.style.width=(this.tot>1?(i/(this.tot-1))*100:100)+'%';}
+go(i){this.sl[i].scrollIntoView({behavior:'smooth'});}
+kb(){document.addEventListener('keydown',e=>{const m={'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1};if(m[e.key]!==undefined){e.preventDefault();this.go(Math.max(0,Math.min(this.tot-1,this.cur+m[e.key])));}});}
+touch(){let sy=0;document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});document.addEventListener('touchend',e=>{const dy=sy-e.changedTouches[0].clientY;if(Math.abs(dy)>50)this.go(Math.max(0,Math.min(this.tot-1,this.cur+(dy>0?1:-1))));},{passive:true});}
+wheel(){let l=0;document.addEventListener('wheel',e=>{const n=Date.now();if(n-l<700)return;l=n;this.go(Math.max(0,Math.min(this.tot-1,this.cur+(e.deltaY>0?1:-1))));},{passive:true});}}
+const p=new P();</script>
+
+<!-- ═══════════════════════════════════════════
+     CHAPTER PAGINATION
+     Injected automatically — do not edit manually
+═══════════════════════════════════════════ -->
+<style>
+#chapter-pagination {
+    position:fixed;
+    bottom:0; left:0; right:0;
+    background:rgba(10,10,10,0.97);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border-top:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:clamp(0.5rem,2vw,1.5rem);
+    padding:clamp(0.6rem,1.5vh,1rem) clamp(1rem,3vw,2.5rem);
+    z-index:99999;
+    transform:translateY(100%);
+    transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);
+    font-family:'JetBrains Mono','Space Mono',monospace;
+}
+#chapter-pagination.pg-visible {
+    transform:translateY(0);
+}
+#chapter-pagination.pg-peek {
+    transform:translateY(calc(100% - 4px));
+}
+.pg-btn {
+    display:flex;
+    align-items:center;
+    gap:clamp(0.5rem,1.2vw,1rem);
+    text-decoration:none;
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:3px;
+    padding:clamp(0.45rem,1vh,0.7rem) clamp(0.7rem,1.5vw,1.2rem);
+    background:rgba(255,255,255,0.04);
+    cursor:pointer;
+    transition:all 0.25s ease;
+    min-width:clamp(150px,22vw,260px);
+    flex-shrink:0;
+}
+.pg-btn:hover {
+    background:rgba(255,255,255,0.1);
+    border-color:rgba(255,255,255,0.25);
+    transform:translateY(-1px);
+}
+.pg-btn.pg-disabled {
+    opacity:0.3;
+    cursor:default;
+    pointer-events:none;
+}
+.pg-prev { flex-direction:row; }
+.pg-next { flex-direction:row; justify-content:flex-end; }
+.pg-arrow {
+    font-size:clamp(0.9rem,1.5vw,1.2rem);
+    color:rgba(255,255,255,0.5);
+    flex-shrink:0;
+    transition:transform 0.2s;
+}
+.pg-btn:hover .pg-arrow { color:#fff; }
+.pg-prev:hover .pg-arrow { transform:translateX(-2px); }
+.pg-next:hover .pg-arrow { transform:translateX(2px); }
+.pg-info { display:flex; flex-direction:column; gap:1px; }
+.pg-info-right { text-align:right; }
+.pg-label {
+    font-size:clamp(0.52rem,0.8vw,0.65rem);
+    text-transform:uppercase;
+    letter-spacing:0.15em;
+    color:rgba(255,255,255,0.35);
+}
+.pg-title {
+    font-size:clamp(0.62rem,1vw,0.82rem);
+    color:#fff;
+    font-weight:700;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:clamp(120px,18vw,220px);
+}
+.pg-meta {
+    font-size:clamp(0.52rem,0.75vw,0.62rem);
+    color:rgba(255,255,255,0.3);
+}
+/* Centre dots */
+.pg-center {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.5rem;
+    flex:1;
+}
+.pg-course-label {
+    font-size:clamp(0.5rem,0.75vw,0.6rem);
+    text-transform:uppercase;
+    letter-spacing:0.18em;
+    color:rgba(255,255,255,0.2);
+}
+.pg-dots {
+    display:flex;
+    align-items:center;
+    gap:clamp(3px,0.5vw,6px);
+    flex-wrap:wrap;
+    justify-content:center;
+}
+.pg-dot {
+    width:clamp(5px,0.7vw,8px);
+    height:clamp(5px,0.7vw,8px);
+    border-radius:50%;
+    background:rgba(255,255,255,0.18);
+    text-decoration:none;
+    flex-shrink:0;
+    transition:all 0.25s;
+    border:none;
+    cursor:pointer;
+}
+.pg-dot:hover {
+    background:rgba(255,255,255,0.5);
+    transform:scale(1.3);
+}
+.pg-dot-active {
+    background:#fff;
+    transform:scale(1.2);
+    width:clamp(14px,2vw,22px);
+    border-radius:3px;
+}
+/* Home button */
+.pg-home {
+    display:inline-flex;
+    align-items:center;
+    gap:0.4em;
+    font-size:clamp(0.52rem,0.8vw,0.65rem);
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:rgba(255,255,255,0.3);
+    text-decoration:none;
+    border:1px solid rgba(255,255,255,0.08);
+    padding:0.25em 0.6em;
+    border-radius:2px;
+    margin-top:0.3rem;
+    transition:all 0.2s;
+    white-space:nowrap;
+}
+.pg-home:hover { color:#fff; border-color:rgba(255,255,255,0.3); }
+/* Trigger tab — shows when pagination is hidden */
+#pg-trigger {
+    position:fixed;
+    bottom:0;
+    left:50%;
+    transform:translateX(-50%);
+    width:clamp(50px,8vw,80px);
+    height:4px;
+    background:rgba(255,255,255,0.15);
+    border-radius:3px 3px 0 0;
+    z-index:99998;
+    cursor:pointer;
+    transition:all 0.3s;
+}
+#pg-trigger:hover { background:rgba(255,255,255,0.4); height:6px; }
+@media(max-width:640px) {
+    .pg-meta { display:none; }
+    .pg-btn { min-width:auto; }
+    .pg-title { max-width:clamp(80px,25vw,150px); font-size:0.65rem; }
+    .pg-course-label { display:none; }
+}
+</style>
+
+<div id="pg-trigger" title="Show chapter navigation"></div>
+
+<nav id="chapter-pagination" role="navigation" aria-label="Chapter navigation">
+    
+        <a class="pg-btn pg-prev" href="binary_trees_bst.html">
+            <div class="pg-arrow">←</div>
+            <div class="pg-info">
+                <div class="pg-label">Previous</div>
+                <div class="pg-title">Binary Trees & BSTs</div>
+                <div class="pg-meta">Week 8 · 18 slides</div>
+            </div>
+        </a>
+
+    <div class="pg-center">
+        <div class="pg-course-label">SD279 — DSA</div>
+        <div class="pg-dots">
+        <a href="python_oop.html" class="pg-dot" title="Python OOP"></a>
+        <a href="intro_dsa_arrays.html" class="pg-dot" title="Intro to DSA & Arrays"></a>
+        <a href="complexity_analysis.html" class="pg-dot" title="Complexity Analysis"></a>
+        <a href="stacks_queues.html" class="pg-dot" title="Stacks & Queues"></a>
+        <a href="linked_lists.html" class="pg-dot" title="Linked Lists"></a>
+        <a href="hash_maps.html" class="pg-dot" title="Hash Maps"></a>
+        <a href="binary_trees_bst.html" class="pg-dot" title="Binary Trees & BSTs"></a>
+        <a href="heaps_priority_queues.html" class="pg-dot pg-dot-active" title="Heaps & Priority Queues"></a>
+        <a href="graphs.html" class="pg-dot" title="Graphs"></a>
+        <a href="algorithms.html" class="pg-dot" title="Sorting & Searching"></a>
+        </div>
+        <a href="index.html" class="pg-home">⌂ Course Home</a>
+    </div>
+
+    
+        <a class="pg-btn pg-next" href="graphs.html">
+            <div class="pg-info pg-info-right">
+                <div class="pg-label">Next Chapter</div>
+                <div class="pg-title">Graphs</div>
+                <div class="pg-meta">Week 10 · 25 slides</div>
+            </div>
+            <div class="pg-arrow">→</div>
+        </a>
+</nav>
+
+<script>
+(function() {
+    var bar = document.getElementById('chapter-pagination');
+    var trigger = document.getElementById('pg-trigger');
+    var visible = false;
+    var lastSlideIdx = -1;
+    var totalSlides = document.querySelectorAll('.slide').length;
+
+    function showBar() {
+        visible = true;
+        bar.classList.add('pg-visible');
+        bar.classList.remove('pg-peek');
+        trigger.style.display = 'none';
+    }
+    function hideBar() {
+        visible = false;
+        bar.classList.remove('pg-visible');
+        bar.classList.remove('pg-peek');
+        trigger.style.display = '';
+    }
+
+    // Show on last slide
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            if (e.isIntersecting) {
+                var slides = document.querySelectorAll('.slide');
+                var idx = Array.from(slides).indexOf(e.target);
+                lastSlideIdx = idx;
+                if (idx === slides.length - 1) {
+                    setTimeout(showBar, 600);
+                } else {
+                    if (visible) hideBar();
+                }
+            }
+        });
+    }, { threshold: 0.5 });
+
+    document.querySelectorAll('.slide').forEach(function(s) { obs.observe(s); });
+
+    // Trigger tab click
+    trigger.addEventListener('click', showBar);
+
+    // Keyboard shortcut: Tab key toggles
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            visible ? hideBar() : showBar();
+        }
+    });
+
+    // Click outside closes
+    bar.addEventListener('click', function(e) {
+        if (e.target === bar) hideBar();
+    });
+})();
+</script>
+
+</body>
+</html>

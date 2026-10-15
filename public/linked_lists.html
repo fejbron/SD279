@@ -477,8 +477,6 @@ go(i){this.sl[i].scrollIntoView({behavior:'smooth'});}
 kb(){document.addEventListener('keydown',e=>{const m={'ArrowDown':1,'ArrowRight':1,' ':1,'PageDown':1,'ArrowUp':-1,'ArrowLeft':-1,'PageUp':-1};if(m[e.key]!==undefined){e.preventDefault();this.go(Math.max(0,Math.min(this.tot-1,this.cur+m[e.key])));}});}
 touch(){let sy=0;document.addEventListener('touchstart',e=>{sy=e.touches[0].clientY;},{passive:true});document.addEventListener('touchend',e=>{const dy=sy-e.changedTouches[0].clientY;if(Math.abs(dy)>50)this.go(Math.max(0,Math.min(this.tot-1,this.cur+(dy>0?1:-1))));},{passive:true});}
 wheel(){let l=0;document.addEventListener('wheel',e=>{const n=Date.now();if(n-l<700)return;l=n;this.go(Math.max(0,Math.min(this.tot-1,this.cur+(e.deltaY>0?1:-1))));},{passive:true});}}
-save(){const d={};document.querySelectorAll('.slide').forEach((s,i)=>{d['s'+i]=s.innerHTML;});localStorage.setItem('ll_v2',JSON.stringify(d));if(this.on){this.tg.textContent='✓ Saved!';setTimeout(()=>{this.tg.textContent='💾 Save (Ctrl+S)';},1400);}}
-load(){try{const r=localStorage.getItem('ll_v2');if(!r)return;const d=JSON.parse(r);document.querySelectorAll('.slide').forEach((s,i)=>{if(d['s'+i])s.innerHTML=d['s'+i];});}catch(e){}}}
 const p=new P();</script>
 
 <!-- ═══════════════════════════════════════════
@@ -664,12 +662,14 @@ const p=new P();</script>
     <div class="pg-center">
         <div class="pg-course-label">SD279 — DSA</div>
         <div class="pg-dots">
+        <a href="python_oop.html" class="pg-dot" title="Python OOP"></a>
         <a href="intro_dsa_arrays.html" class="pg-dot" title="Intro to DSA & Arrays"></a>
         <a href="complexity_analysis.html" class="pg-dot" title="Complexity Analysis"></a>
         <a href="stacks_queues.html" class="pg-dot" title="Stacks & Queues"></a>
         <a href="linked_lists.html" class="pg-dot pg-dot-active" title="Linked Lists"></a>
         <a href="hash_maps.html" class="pg-dot" title="Hash Maps"></a>
         <a href="binary_trees_bst.html" class="pg-dot" title="Binary Trees & BSTs"></a>
+        <a href="heaps_priority_queues.html" class="pg-dot" title="Heaps & Priority Queues"></a>
         <a href="graphs.html" class="pg-dot" title="Graphs"></a>
         <a href="algorithms.html" class="pg-dot" title="Sorting & Searching"></a>
         </div>
